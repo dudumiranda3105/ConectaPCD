@@ -343,9 +343,13 @@ Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para ma
 ## 👨‍💻 Autor
 
 **Eduardo Miranda**
-
 - GitHub: [@dudumiranda3105](https://github.com/dudumiranda3105)
 
+**Eduarda Roberta Borges da Silva**
+- GitHub: [@Eduarda-Borges-Silva](https://github.com/Eduarda-Borges-Silva)
+
+**Rebeca Souza Lúcio Chagas**
+- GitHub: [@RebecaSLChagas](https://github.com/RebecaSLChagas)
 ---
 
 ## 🙏 Agradecimentos
