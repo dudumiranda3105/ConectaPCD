@@ -38,4 +38,10 @@ export const SubtiposService = {
 
     return SubtiposRepo.create(final, tipoId);
   },
+  connectBarreira(subtipoId: number, barreiraId: number) {
+    return SubtiposRepo.addBarreira(subtipoId, barreiraId);
+  },
+  disconnectBarreira(subtipoId: number, barreiraId: number) {
+    return SubtiposRepo.removeBarreira(subtipoId, barreiraId);
+  },
 };

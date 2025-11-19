@@ -14,4 +14,5 @@ export type Job = JobPostingFormValues & {
   status: 'Ativa' | 'Pausada' | 'Fechada'
   applications: number
   createdAt: string
+  matchScore?: number
 }

@@ -89,3 +89,9 @@ export async function fecharVaga(token: string, vagaId: number) {
 export async function reabrirVaga(token: string, vagaId: number) {
   return atualizarVaga(token, vagaId, { isActive: true })
 }
+
+export async function registrarVisualizacaoVaga(vagaId: number) {
+  const res = await fetch(`${API_URL}/vagas/${vagaId}/view`, { method: 'POST' })
+  if (!res.ok) throw new Error('Erro ao registrar visualização da vaga')
+  return res.json()
+}

@@ -23,6 +23,8 @@ import {
   Award,
   HeartHandshake,
   CheckCircle,
+  GraduationCap,
+  Clock,
 } from 'lucide-react'
 import { useToast } from '@/components/ui/use-toast'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -75,6 +77,10 @@ export default function JobDetailsPage() {
     if (foundJob) {
       setJob(foundJob)
       checkIfAlreadyApplied()
+      // registra visualização no backend
+      import('@/services/vagas').then(({ registrarVisualizacaoVaga }) => {
+        if (jobId) registrarVisualizacaoVaga(parseInt(jobId)).catch(() => {})
+      })
     } else {
       navigate('/dashboard/candidato')
     }
@@ -140,32 +146,43 @@ export default function JobDetailsPage() {
         </BreadcrumbList>
       </Breadcrumb>
 
-      <Card>
-        <CardHeader>
-          <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <Avatar className="h-16 w-16">
+      {/* Header Card com gradiente */}
+      <Card className="border-0 shadow-lg bg-gradient-to-br from-primary/5 via-background to-background overflow-hidden relative">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -z-10" />
+        <div className="absolute bottom-0 left-0 w-96 h-96 bg-primary/3 rounded-full blur-3xl -z-10" />
+        
+        <CardHeader className="space-y-6 pb-8">
+          <div className="flex flex-col sm:flex-row items-start justify-between gap-6">
+            <div className="flex items-start gap-4">
+              <Avatar className="h-20 w-20 border-2 border-primary/20 shadow-lg">
                 <AvatarImage src={job.logo} alt={`${job.company} logo`} />
-                <AvatarFallback>{job.company.charAt(0)}</AvatarFallback>
+                <AvatarFallback className="text-xl font-bold bg-primary/10 text-primary">
+                  {job.company.charAt(0)}
+                </AvatarFallback>
               </Avatar>
-              <div>
-                <CardTitle className="text-2xl">{job.title}</CardTitle>
-                <CardDescription className="flex items-center gap-2 mt-1">
+              <div className="space-y-2">
+                <CardTitle className="text-3xl font-bold">{job.title}</CardTitle>
+                <CardDescription className="flex items-center gap-2 text-base">
                   <Building className="h-4 w-4" /> {job.company}
                 </CardDescription>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Clock className="h-4 w-4" />
+                  Publicada em {new Date(job.createdAt).toLocaleDateString('pt-BR')}
+                </div>
               </div>
             </div>
-            <div className="flex flex-col sm:items-end gap-2 w-full sm:w-auto">
+            <div className="flex flex-col gap-3 w-full sm:w-auto">
               <Button
                 onClick={handleApply}
-                className="w-full sm:w-auto"
+                className="w-full sm:w-auto h-11 text-base shadow-md hover:shadow-lg transition-shadow"
                 disabled={!isJobActive || alreadyApplied || checkingApplication}
+                size="lg"
               >
                 {checkingApplication ? (
                   'Verificando...'
                 ) : alreadyApplied ? (
                   <>
-                    <CheckCircle className="mr-2 h-4 w-4" />
+                    <CheckCircle className="mr-2 h-5 w-5" />
                     Já candidatado
                   </>
                 ) : (
@@ -173,102 +190,159 @@ export default function JobDetailsPage() {
                 )}
               </Button>
               {alreadyApplied && isJobActive && (
-                <p className="text-xs text-green-600 text-center sm:text-right flex items-center justify-center sm:justify-end gap-1">
-                  <CheckCircle className="h-3 w-3" />
-                  Você já se candidatou a esta vaga
-                </p>
+                <Card className="bg-green-50 dark:bg-green-900/10 border-green-200 dark:border-green-800">
+                  <CardContent className="p-3">
+                    <p className="text-sm text-green-700 dark:text-green-400 flex items-center justify-center gap-2">
+                      <CheckCircle className="h-4 w-4" />
+                      Você já se candidatou a esta vaga
+                    </p>
+                  </CardContent>
+                </Card>
               )}
               {!isJobActive && (
-                <p className="text-xs text-destructive text-center sm:text-right">
-                  Esta vaga não está mais aceitando candidaturas.
-                </p>
+                <Card className="bg-destructive/10 border-destructive/20">
+                  <CardContent className="p-3">
+                    <p className="text-sm text-destructive text-center">
+                      Vaga fechada para candidaturas
+                    </p>
+                  </CardContent>
+                </Card>
               )}
-              <p className="text-xs text-muted-foreground text-center sm:text-right">
-                Publicada em:{' '}
-                {new Date(job.createdAt).toLocaleDateString('pt-BR')}
-              </p>
             </div>
+          </div>
+
+          {/* Métricas em cards */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <Card className="bg-card/50 backdrop-blur border-primary/10">
+              <CardContent className="p-4 flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-primary/10">
+                  <MapPin className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Localização</p>
+                  <p className="text-sm font-semibold">{job.location}</p>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card className="bg-card/50 backdrop-blur border-primary/10">
+              <CardContent className="p-4 flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-primary/10">
+                  <Briefcase className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Regime</p>
+                  <p className="text-sm font-semibold">{job.regime}</p>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card className="bg-card/50 backdrop-blur border-primary/10">
+              <CardContent className="p-4 flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-primary/10">
+                  <CalendarDays className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Tipo</p>
+                  <p className="text-sm font-semibold">{job.type}</p>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card className="bg-card/50 backdrop-blur border-primary/10">
+              <CardContent className="p-4 flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-primary/10">
+                  <GraduationCap className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Escolaridade</p>
+                  <p className="text-sm font-semibold">{job.sector}</p>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </CardHeader>
-        <CardContent className="space-y-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-            <div className="flex items-center gap-2">
-              <MapPin className="h-4 w-4 text-primary" />
-              <span>{job.location}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Briefcase className="h-4 w-4 text-primary" />
-              <span>{job.regime}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <CalendarDays className="h-4 w-4 text-primary" />
-              <span>{job.type}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Award className="h-4 w-4 text-primary" />
-              <span>{job.sector}</span>
-            </div>
-          </div>
-          <Separator />
-          <div>
-            <h3 className="text-lg font-semibold mb-2">Descrição da Vaga</h3>
-            <p className="text-muted-foreground whitespace-pre-wrap">
+      </Card>
+
+      {/* Card de conteúdo */}
+      <div className="grid gap-6">
+        <Card className="shadow-md">
+          <CardHeader>
+            <CardTitle className="text-xl">Descrição da Vaga</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed">
               {job.description}
             </p>
-          </div>
-          <Separator />
-          <div className="grid grid-cols-1 gap-8">
-            <div>
-              <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                <HeartHandshake className="h-5 w-5 text-blue-600" /> 
-                Acessibilidades Oferecidas
-              </h3>
-              {job.accessibilities && job.accessibilities.length > 0 ? (
-                <div className="flex flex-wrap gap-2">
-                  {job.accessibilities.map((acc, index) => (
-                    <Badge 
-                      key={index} 
-                      variant="secondary" 
-                      className="bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100"
-                    >
-                      {acc}
-                    </Badge>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-muted-foreground italic">
-                  Nenhuma acessibilidade específica informada
-                </p>
-              )}
-            </div>
-            
-            <div>
-              <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                <Award className="h-5 w-5 text-green-600" /> 
-                Benefícios Oferecidos
-              </h3>
-              {job.benefits && job.benefits.trim() ? (
-                <div className="flex flex-wrap gap-2">
-                  {job.benefits.split(',').map((benefit, index) => (
-                    <Badge 
-                      key={index} 
-                      variant="secondary"
-                      className="bg-green-50 text-green-700 border-green-200 hover:bg-green-100"
-                    >
-                      {benefit.trim()}
-                    </Badge>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-muted-foreground italic">
-                  Nenhum benefício específico informado
-                </p>
-              )}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-      <Button variant="outline" onClick={() => navigate(-1)}>
+          </CardContent>
+        </Card>
+
+        <Card className="shadow-md border-blue-100 dark:border-blue-900/20">
+          <CardHeader>
+            <CardTitle className="text-xl flex items-center gap-2">
+              <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/20">
+                <HeartHandshake className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              </div>
+              Acessibilidades Oferecidas
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {job.accessibilities && job.accessibilities.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {job.accessibilities.map((acc, index) => (
+                  <Badge 
+                    key={index} 
+                    variant="secondary" 
+                    className="bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800 text-sm py-1.5 px-3"
+                  >
+                    {acc}
+                  </Badge>
+                ))}
+              </div>
+            ) : (
+              <p className="text-muted-foreground italic">
+                Nenhuma acessibilidade específica informada
+              </p>
+            )}
+          </CardContent>
+        </Card>
+        
+        <Card className="shadow-md border-green-100 dark:border-green-900/20">
+          <CardHeader>
+            <CardTitle className="text-xl flex items-center gap-2">
+              <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900/20">
+                <Award className="h-5 w-5 text-green-600 dark:text-green-400" />
+              </div>
+              Benefícios Oferecidos
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {job.benefits && job.benefits.trim() ? (
+              <div className="flex flex-wrap gap-2">
+                {job.benefits.split(',').map((benefit, index) => (
+                  <Badge 
+                    key={index} 
+                    variant="secondary"
+                    className="bg-green-50 text-green-700 border-green-200 hover:bg-green-100 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800 text-sm py-1.5 px-3"
+                  >
+                    {benefit.trim()}
+                  </Badge>
+                ))}
+              </div>
+            ) : (
+              <p className="text-muted-foreground italic">
+                Nenhum benefício específico informado
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      <Button 
+        variant="outline" 
+        onClick={() => navigate(-1)}
+        className="shadow-sm hover:shadow-md transition-shadow"
+      >
         <ArrowLeft className="mr-2 h-4 w-4" />
         Voltar para as vagas
       </Button>

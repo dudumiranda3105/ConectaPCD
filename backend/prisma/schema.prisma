@@ -44,6 +44,7 @@ model Barreira {
   updatedAt       DateTime                 @updatedAt
 
   CandidatoSubtipoBarreira CandidatoSubtipoBarreira[]
+  mitigacoesRecursos       RecursoBarreiraMitigacao[]
 }
 
 model Acessibilidade {
@@ -55,6 +56,7 @@ model Acessibilidade {
 
   VagaAcessibilidade      VagaAcessibilidade[]
   CandidatoAcessibilidade CandidatoAcessibilidade[]
+  CandidatoSubtipo        CandidatoSubtipo[]
 }
 
 // tabelas de junção explícitas (para fácil evolução)
@@ -79,18 +81,29 @@ model BarreiraAcessibilidade {
 }
 
 model Empresa {
-  id          Int     @id @default(autoincrement())
-  nome        String
-  cnpj        String? @unique
-  email       String? @unique
-  vagas       Vaga[]
-  userId      Int?    @unique
-  user        User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  companyData Json?
+  id       Int     @id @default(autoincrement())
+  nome     String
+  cnpj     String? @unique
+  email    String? @unique
+  password String?
+  vagas    Vaga[]
+
+  // Dados adicionais da empresa
+  razaoSocial  String?
+  nomeFantasia String?
+  telefone     String?
+  endereco     String?
+  site         String?
+  descricao    String?
+  porte        String? // Pequeno, Médio, Grande
+  setor        String? // Tecnologia, Saúde, Educação, etc.
+  companyData  Json?
 
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([email])
 }
 
 model Vaga {
@@ -109,6 +122,7 @@ model Vaga {
   candidaturas    Candidatura[]
   matchScores     MatchScore[]
 
+  views     Int      @default(0)
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -146,24 +160,73 @@ model Candidato {
   nome         String
   cpf          String? @unique
   email        String? @unique
+  password     String?
   telefone     String?
-  escolaridade String
+  escolaridade String?
+  curriculoUrl String? // URL ou caminho do arquivo de currículo enviado
+  avatarUrl    String? // URL da imagem de avatar do candidato
+
+  // Dados adicionais do candidato
+  dataNascimento DateTime?
+  genero         String?
+  endereco       String?
+  cidade         String?
+  estado         String?
+  cep            String?
+  biografia      String?
+  linkedin       String?
+  portfolio      String?
+  profileData    Json?
 
   // Relações
-  subtipos        CandidatoSubtipo[]
-  candidaturas    Candidatura[]
-  acessibilidades CandidatoAcessibilidade[] // Nova relação direta
-  matchScores     MatchScore[]
+  subtipos           CandidatoSubtipo[]
+  candidaturas       Candidatura[]
+  acessibilidades    CandidatoAcessibilidade[]
+  matchScores        MatchScore[]
+  recursosAssistivos CandidatoRecursoAssistivo[]
 
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  userId      Int?  @unique
-  user        User? @relation(fields: [userId], references: [id], onDelete: Cascade)
-  profileData Json?
-
   @@index([nome])
+  @@index([email])
+}
+
+// Recursos assistivos (ex: prótese, muleta, cadeira de rodas)
+model RecursoAssistivo {
+  id         Int                         @id @default(autoincrement())
+  nome       String                      @unique
+  descricao  String?
+  candidatos CandidatoRecursoAssistivo[]
+  mitigacoes RecursoBarreiraMitigacao[]
+  createdAt  DateTime                    @default(now())
+  updatedAt  DateTime                    @updatedAt
+}
+
+// Relaciona candidato com recursos assistivos utilizados
+model CandidatoRecursoAssistivo {
+  candidatoId       Int
+  recursoId         Int
+  usoFrequencia     String? // sempre, frequente, ocasional
+  impactoMobilidade String? // leve, moderado, severo (auto-avaliação)
+  candidato         Candidato        @relation(fields: [candidatoId], references: [id], onDelete: Cascade)
+  recurso           RecursoAssistivo @relation(fields: [recursoId], references: [id], onDelete: Cascade)
+
+  @@id([candidatoId, recursoId])
+  @@index([recursoId])
+}
+
+// Mitigação de barreiras por recursos (eficiência alta remove necessidade, média reduz prioridade, baixa apenas registra)
+model RecursoBarreiraMitigacao {
+  recursoId  Int
+  barreiraId Int
+  eficiencia String? // alta, media, baixa
+  recurso    RecursoAssistivo @relation(fields: [recursoId], references: [id], onDelete: Cascade)
+  barreira   Barreira         @relation(fields: [barreiraId], references: [id], onDelete: Cascade)
+
+  @@id([recursoId, barreiraId])
+  @@index([barreiraId])
 }
 
 model Candidatura {
@@ -183,15 +246,21 @@ model Candidatura {
 
 // N:N Candidato <-> Subtipo
 model CandidatoSubtipo {
-  candidatoId Int
-  subtipoId   Int
-  candidato   Candidato          @relation(fields: [candidatoId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  subtipo     SubtipoDeficiencia @relation(fields: [subtipoId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  candidatoId      Int
+  subtipoId        Int
+  acessibilidadeId Int?
+  prioridade       String? // essencial, importante, desejavel
+  observacoes      String?
+
+  candidato      Candidato          @relation(fields: [candidatoId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  subtipo        SubtipoDeficiencia @relation(fields: [subtipoId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  acessibilidade Acessibilidade?    @relation(fields: [acessibilidadeId], references: [id], onDelete: SetNull)
 
   barreiras CandidatoSubtipoBarreira[] // relação contextual (por subtipo)
 
   @@id([candidatoId, subtipoId])
   @@index([subtipoId])
+  @@index([acessibilidadeId])
 }
 
 // N:N contextual (candidato + subtipo) <-> barreira
@@ -251,25 +320,20 @@ model MatchScore {
   @@index([vagaId])
 }
 
-enum Role {
-  CANDIDATE
-  COMPANY
-  ADMIN
-}
+// Tabela de Administradores do sistema
+model Admin {
+  id       Int    @id @default(autoincrement())
+  nome     String
+  email    String @unique
+  password String
+  cargo    String @default("Administrador") // Administrador, Moderador, Suporte, etc.
 
-model User {
-  id        Int      @id @default(autoincrement())
-  name      String
-  email     String   @unique
-  password  String
-  role      Role     @default(CANDIDATE)
+  // Permissões específicas (opcional)
+  permissoes Json? // { "gerenciarUsuarios": true, "moderarVagas": true, etc }
+
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  // relations to domain profiles
-  candidato Candidato? @relation()
-  empresa   Empresa?   @relation()
 
   @@index([email])
 }

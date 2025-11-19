@@ -32,7 +32,7 @@ export const jobPostingSchema = z.object({
   }),
   escolaridade: z.enum(ESCOLARIDADES, { required_error: 'Escolaridade obrigatória.' }),
   accessibilities: z
-    .array(z.enum(ACESSIBILIDADES_OFERECIDAS))
+    .array(z.string())
     .min(1, { message: 'Selecione ao menos uma acessibilidade.' }),
   benefits: z.string().min(1, { message: 'Informe ao menos um benefício.' }),
 })

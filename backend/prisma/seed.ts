@@ -1,14 +1,34 @@
 import { PrismaClient } from "@prisma/client";
+import bcrypt from "bcryptjs";
+
 const prisma = new PrismaClient();
 
 async function main() {
   // limpa dados (apenas para desenvolvimento)
+  await prisma.recursoBarreiraMitigacao.deleteMany();
+  await prisma.candidatoRecursoAssistivo.deleteMany();
+  await prisma.recursoAssistivo.deleteMany();
   await prisma.subtipoBarreira.deleteMany();
   await prisma.barreiraAcessibilidade.deleteMany();
   await prisma.acessibilidade.deleteMany();
   await prisma.barreira.deleteMany();
   await prisma.subtipoDeficiencia.deleteMany();
   await prisma.tipoDeficiencia.deleteMany();
+
+  // Criar admin padrão
+  const adminPassword = await bcrypt.hash("admin123", 10);
+  await prisma.admin.upsert({
+    where: { email: "admin@conectapcd.com" },
+    update: {},
+    create: {
+      nome: "Administrador",
+      email: "admin@conectapcd.com",
+      password: adminPassword,
+      cargo: "Administrador Geral",
+    },
+  });
+
+  console.log("✅ Admin criado: admin@conectapcd.com / admin123");
 
   // Tipos
   const motora = await prisma.tipoDeficiencia.create({
@@ -45,16 +65,46 @@ async function main() {
     ]);
 
   // Acessibilidades
-  const [rampa, pisoAntid, elevador, interprete, chatInterno, altoContraste, pisoGuia] =
-    await prisma.$transaction([
-      prisma.acessibilidade.create({ data: { descricao: "Rampa com inclinação adequada" } }),
-      prisma.acessibilidade.create({ data: { descricao: "Piso antiderrapante" } }),
-      prisma.acessibilidade.create({ data: { descricao: "Elevador / acesso em nível" } }),
-      prisma.acessibilidade.create({ data: { descricao: "Intérprete de Libras" } }),
-      prisma.acessibilidade.create({ data: { descricao: "Comunicação por chat interno" } }),
-      prisma.acessibilidade.create({ data: { descricao: "Sinalização de alto contraste" } }),
-      prisma.acessibilidade.create({ data: { descricao: "Piso guia / sinalização tátil" } }),
-    ]);
+  const [
+    rampa,
+    pisoAntid,
+    elevador,
+    interprete,
+    chatInterno,
+    altoContraste,
+    pisoGuia,
+    rampasAcesso,
+    sanitariosAdaptados,
+    pisoTatil,
+    mobiliarioAdaptado,
+    vagasEstacionamento,
+    portasLargas,
+    corrimãos,
+    iluminacaoAdequada,
+    sinalizacaoVisual,
+    audioDescricao,
+    legendasVideos
+  ] = await prisma.$transaction([
+    prisma.acessibilidade.create({ data: { descricao: "Rampa com inclinação adequada" } }),
+    prisma.acessibilidade.create({ data: { descricao: "Piso antiderrapante" } }),
+    prisma.acessibilidade.create({ data: { descricao: "Elevador / acesso em nível" } }),
+    prisma.acessibilidade.create({ data: { descricao: "Intérprete de Libras" } }),
+    prisma.acessibilidade.create({ data: { descricao: "Comunicação por chat interno" } }),
+    prisma.acessibilidade.create({ data: { descricao: "Sinalização de alto contraste" } }),
+    prisma.acessibilidade.create({ data: { descricao: "Piso guia / sinalização tátil" } }),
+    // Acessibilidades adicionais do formulário
+    prisma.acessibilidade.create({ data: { descricao: "Rampas de acesso" } }),
+    prisma.acessibilidade.create({ data: { descricao: "Sanitários adaptados" } }),
+    prisma.acessibilidade.create({ data: { descricao: "Piso tátil" } }),
+    prisma.acessibilidade.create({ data: { descricao: "Mobiliário adaptado" } }),
+    prisma.acessibilidade.create({ data: { descricao: "Vagas de estacionamento reservadas" } }),
+    prisma.acessibilidade.create({ data: { descricao: "Portas largas" } }),
+    prisma.acessibilidade.create({ data: { descricao: "Corrimãos" } }),
+    prisma.acessibilidade.create({ data: { descricao: "Iluminação adequada" } }),
+    prisma.acessibilidade.create({ data: { descricao: "Sinalização visual e tátil" } }),
+    prisma.acessibilidade.create({ data: { descricao: "Audiodescrição" } }),
+    prisma.acessibilidade.create({ data: { descricao: "Legendas em vídeos" } }),
+  ]);
 
   // Subtipo ↔ Barreiras (N:N)
   await prisma.subtipoBarreira.createMany({
@@ -93,6 +143,37 @@ async function main() {
     ],
     skipDuplicates: true,
   });
+
+  // Recursos Assistivos
+  const [protesePerna, muleta, bengala, cadeiraManual, cadeiraMotorizada] = await prisma.$transaction([
+    prisma.recursoAssistivo.create({ data: { nome: 'Prótese de perna', descricao: 'Prótese para membro inferior' } }),
+    prisma.recursoAssistivo.create({ data: { nome: 'Muleta', descricao: 'Auxílio para marcha' } }),
+    prisma.recursoAssistivo.create({ data: { nome: 'Bengala', descricao: 'Suporte de equilíbrio' } }),
+    prisma.recursoAssistivo.create({ data: { nome: 'Cadeira de rodas manual', descricao: 'Mobilidade com propulsão manual' } }),
+    prisma.recursoAssistivo.create({ data: { nome: 'Cadeira de rodas motorizada', descricao: 'Mobilidade com propulsão motorizada' } }),
+  ])
+
+  // Mitigações de barreiras por recursos
+  await prisma.recursoBarreiraMitigacao.createMany({
+    data: [
+      // Piso irregular
+      { recursoId: protesePerna.id, barreiraId: pisoIrregular.id, eficiencia: 'alta' },
+      { recursoId: muleta.id, barreiraId: pisoIrregular.id, eficiencia: 'media' },
+      { recursoId: bengala.id, barreiraId: pisoIrregular.id, eficiencia: 'media' },
+      { recursoId: cadeiraManual.id, barreiraId: pisoIrregular.id, eficiencia: 'media' },
+      { recursoId: cadeiraMotorizada.id, barreiraId: pisoIrregular.id, eficiencia: 'alta' },
+      // Degraus altos (parcialmente mitigados por prótese / muleta)
+      { recursoId: protesePerna.id, barreiraId: degrausAltos.id, eficiencia: 'media' },
+      { recursoId: muleta.id, barreiraId: degrausAltos.id, eficiencia: 'baixa' },
+      // Escadas (normalmente requer acessibilidade ambiental, baixa mitigação)
+      { recursoId: muleta.id, barreiraId: escadas.id, eficiencia: 'baixa' },
+      { recursoId: cadeiraManual.id, barreiraId: escadas.id, eficiencia: 'baixa' },
+      { recursoId: cadeiraMotorizada.id, barreiraId: escadas.id, eficiencia: 'baixa' },
+    ],
+    skipDuplicates: true,
+  })
+
+  console.log('Recursos assistivos e mitigações seed ✅')
 
   console.log("Seed concluído ✅");
 }

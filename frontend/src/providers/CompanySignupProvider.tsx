@@ -6,6 +6,7 @@ import {
   useEffect,
   useCallback,
 } from 'react'
+import { useLocation } from 'react-router-dom'
 import { CompanySignupFormValues } from '@/lib/schemas/company-signup-schema'
 
 type CompanySignupContextType = {
@@ -28,6 +29,7 @@ export const CompanySignupProvider = ({
 }: {
   children: ReactNode
 }) => {
+  const location = useLocation()
   const [currentStep, setCurrentStep] = useState(1)
   const [formData, setFormData] = useState<Partial<CompanySignupFormValues>>(
     () => {
@@ -42,6 +44,16 @@ export const CompanySignupProvider = ({
       }
     },
   )
+
+  // Limpar dados ao sair do formulário
+  useEffect(() => {
+    if (!location.pathname.includes('/signup/company')) {
+      console.debug('[CompanySignupProvider] User left signup page, clearing form data')
+      localStorage.removeItem(STORAGE_KEY)
+      setFormData({})
+      setCurrentStep(1)
+    }
+  }, [location.pathname])
 
   useEffect(() => {
     try {

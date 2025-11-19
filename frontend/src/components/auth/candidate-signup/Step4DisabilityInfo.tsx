@@ -10,6 +10,10 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import {
   disabilityInfoSchema,
   DisabilityInfoValues,
+  assistiveResourceSelectionSchema,
+  AssistiveResourceSelection,
+  ASSISTIVE_RESOURCE_USE,
+  MOBILITY_IMPACT,
 } from '@/lib/schemas/candidate-signup-schema'
 import { useCandidateSignup } from '@/providers/CandidateSignupProvider'
 import {
@@ -34,6 +38,8 @@ import { cn } from '@/lib/utils'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Info } from 'lucide-react'
 import { Separator } from '@/components/ui/separator'
+import { getAssistiveResources, AssistiveResourceDTO } from '@/services/assistiveResources'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 type Selections = {
   [typeId: number]: {
@@ -45,6 +51,13 @@ type Selections = {
   }
 }
 
+type ResourceSelections = {
+  [recursoId: number]: {
+    usoFrequencia?: string
+    impactoMobilidade?: string
+  }
+}
+
 export const Step4DisabilityInfo = forwardRef<StepFormHandle>((_, ref) => {
   const { formData, updateFormData } = useCandidateSignup()
   const [types, setTypes] = useState<DisabilityType[]>([])
@@ -53,6 +66,19 @@ export const Step4DisabilityInfo = forwardRef<StepFormHandle>((_, ref) => {
   )
   const [barriers, setBarriers] = useState<Barrier[]>([])
   const [loading, setLoading] = useState(true)
+  const [resources, setResources] = useState<AssistiveResourceDTO[]>([])
+  const [resourceSelections, setResourceSelections] = useState<ResourceSelections>(() => {
+    const initial: ResourceSelections = {}
+    if (formData.assistiveResources) {
+      for (const r of formData.assistiveResources) {
+        initial[r.recursoId] = {
+          usoFrequencia: r.usoFrequencia,
+          impactoMobilidade: r.impactoMobilidade,
+        }
+      }
+    }
+    return initial
+  })
 
   const [selections, setSelections] = useState<Selections>(() => {
     const initialSelections: Selections = {}
@@ -72,18 +98,21 @@ export const Step4DisabilityInfo = forwardRef<StepFormHandle>((_, ref) => {
   const form = useForm<DisabilityInfoValues>({
     resolver: zodResolver(disabilityInfoSchema),
     defaultValues: { disabilities: formData.disabilities || [] },
+    mode: 'onChange',
   })
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true)
       try {
-        const [fetchedTypes, fetchedBarriers] = await Promise.all([
+        const [fetchedTypes, fetchedBarriers, fetchedResources] = await Promise.all([
           getDisabilityTypes(),
           getBarriers(),
+          getAssistiveResources(),
         ])
         setTypes(fetchedTypes)
         setBarriers(fetchedBarriers)
+        setResources(fetchedResources)
 
         if (formData.disabilities && formData.disabilities.length > 0) {
           const selectedTypeIds = formData.disabilities.map((d) => d.typeId)
@@ -165,7 +194,12 @@ export const Step4DisabilityInfo = forwardRef<StepFormHandle>((_, ref) => {
         ),
       }),
     )
-    return { disabilities }
+    const assistiveResources: AssistiveResourceSelection[] = Object.entries(resourceSelections).map(([recursoId, data]) => ({
+      recursoId: Number(recursoId),
+      usoFrequencia: data.usoFrequencia as any,
+      impactoMobilidade: data.impactoMobilidade as any,
+    }))
+    return { disabilities, assistiveResources }
   }
 
   useImperativeHandle(ref, () => ({
@@ -180,6 +214,12 @@ export const Step4DisabilityInfo = forwardRef<StepFormHandle>((_, ref) => {
       }
       return isValid
     },
+    isFormValid: () => {
+      return Object.keys(selections).length > 0 &&
+        Object.values(selections).every(typeData => 
+          Object.keys(typeData.subtypes).length > 0
+        )
+    }
   }))
 
   if (loading) {
@@ -311,6 +351,69 @@ export const Step4DisabilityInfo = forwardRef<StepFormHandle>((_, ref) => {
             </div>
           )
         })}
+
+        <Separator />
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold">Recursos Assistivos Utilizados</h3>
+          <p className="text-sm text-muted-foreground">Selecione os recursos que você utiliza e informe frequência e impacto.</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {resources.map(r => {
+              const selected = !!resourceSelections[r.id]
+              return (
+                <div key={r.id} className={cn('p-4 border rounded-lg space-y-3', selected ? 'border-primary ring-2 ring-primary' : 'hover:border-primary/50')}>                  
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      checked={selected}
+                      onCheckedChange={(checked) => {
+                        setResourceSelections(prev => {
+                          const copy = { ...prev }
+                          if (checked) {
+                            copy[r.id] = { usoFrequencia: 'sempre', impactoMobilidade: 'moderado' }
+                          } else {
+                            delete copy[r.id]
+                          }
+                          return copy
+                        })
+                      }}
+                    />
+                    <div>
+                      <div className="font-medium">{r.nome}</div>
+                      {r.descricao && <div className="text-xs text-muted-foreground">{r.descricao}</div>}
+                    </div>
+                  </div>
+                  {selected && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <FormLabel className="text-xs">Frequência de Uso</FormLabel>
+                        <Select
+                          onValueChange={(val) => setResourceSelections(prev => ({ ...prev, [r.id]: { ...prev[r.id], usoFrequencia: val } }))}
+                          defaultValue={resourceSelections[r.id]?.usoFrequencia}
+                        >
+                          <SelectTrigger className="h-9 text-xs" />
+                          <SelectContent>
+                            {ASSISTIVE_RESOURCE_USE.map(v => <SelectItem key={v} value={v}>{v}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-1">
+                        <FormLabel className="text-xs">Impacto na Mobilidade</FormLabel>
+                        <Select
+                          onValueChange={(val) => setResourceSelections(prev => ({ ...prev, [r.id]: { ...prev[r.id], impactoMobilidade: val } }))}
+                          defaultValue={resourceSelections[r.id]?.impactoMobilidade}
+                        >
+                          <SelectTrigger className="h-9 text-xs" />
+                          <SelectContent>
+                            {MOBILITY_IMPACT.map(v => <SelectItem key={v} value={v}>{v}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        </div>
       </form>
     </Form>
   )

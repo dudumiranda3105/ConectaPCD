@@ -11,7 +11,7 @@ async function handleResponse<T>(response: Response): Promise<T> {
 
 export const api = {
   get: async <T>(endpoint: string): Promise<T> => {
-    const token = localStorage.getItem('authToken')
+    const token = localStorage.getItem('auth_token')
     const response = await fetch(`${API_BASE_URL}/${endpoint}`, {
       method: 'GET',
       headers: {
@@ -23,7 +23,7 @@ export const api = {
   },
 
   post: async <T, U>(endpoint: string, data: U): Promise<T> => {
-    const token = localStorage.getItem('authToken')
+    const token = localStorage.getItem('auth_token')
     const response = await fetch(`${API_BASE_URL}/${endpoint}`, {
       method: 'POST',
       headers: {
@@ -36,7 +36,7 @@ export const api = {
   },
 
   put: async <T, U>(endpoint: string, data: U): Promise<T> => {
-    const token = localStorage.getItem('authToken')
+    const token = localStorage.getItem('auth_token')
     const response = await fetch(`${API_BASE_URL}/${endpoint}`, {
       method: 'PUT',
       headers: {
@@ -49,7 +49,7 @@ export const api = {
   },
 
   delete: async <T>(endpoint: string): Promise<T> => {
-    const token = localStorage.getItem('authToken')
+    const token = localStorage.getItem('auth_token')
     const response = await fetch(`${API_BASE_URL}/${endpoint}`, {
       method: 'DELETE',
       headers: {

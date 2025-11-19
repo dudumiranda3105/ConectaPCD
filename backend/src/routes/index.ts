@@ -7,6 +7,8 @@ import vinculos from "./vinculos.routes";
 import auth from "./auth.routes";
 import vagas from "./vagas.routes";
 import candidaturas from "./candidaturas.routes";
+import match from "./match.routes";
+import admin from "./admin.routes";
 
 const router = Router();
 
@@ -19,5 +21,7 @@ router.use("/", vinculos); // rotas de vínculo
 router.use("/auth", auth);
 router.use("/vagas", vagas);
 router.use("/candidaturas", candidaturas);
+router.use("/match", match);
+router.use("/admin", admin);
 
 export default router;

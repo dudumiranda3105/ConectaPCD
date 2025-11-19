@@ -16,4 +16,20 @@ export const SubtiposController = {
     const created = await SubtiposService.create(nome, Number(tipoId));
     res.status(201).json(created);
   },
+  async connectBarreira(req: Request, res: Response) {
+    const subtipoId = Number(req.params.subtipoId);
+    const { barreiraId } = req.body;
+    try {
+      const updated = await SubtiposService.connectBarreira(subtipoId, Number(barreiraId));
+      res.status(201).json(updated);
+    } catch (e: any) {
+      res.status(e.status || 400).json({ error: e.message });
+    }
+  },
+  async disconnectBarreira(req: Request, res: Response) {
+    const subtipoId = Number(req.params.subtipoId);
+    const barreiraId = Number(req.params.barreiraId);
+    const updated = await SubtiposService.disconnectBarreira(subtipoId, barreiraId);
+    res.json(updated);
+  },
 };

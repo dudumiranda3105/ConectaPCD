@@ -253,6 +253,7 @@ export const Step3Infrastructure = forwardRef<StepFormHandle>((_, ref) => {
             </p>
           </CardContent>
         </Card>
+        <button type="submit" className="hidden" />
       </form>
     </Form>
   )

@@ -13,7 +13,7 @@ export const CandidateLayout = () => {
       </div>
       <div className="flex flex-col">
         <DashboardHeader logoText="ConectaPCD" role="candidate" />
-        <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
+        <main className="flex flex-1 flex-col gap-4 px-4 pb-6 pt-8 lg:gap-6 lg:px-8 lg:pb-8 lg:pt-12 transition-padding">
           <Outlet />
         </main>
         <AccessibilityButton />

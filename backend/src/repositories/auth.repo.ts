@@ -1,38 +1,112 @@
 import { prisma } from "./prisma";
 
-export const createUser = async (data: {
+// Busca usuário por email em todas as três tabelas
+export const findUserByEmail = async (email: string) => {
+  if (!email) return null;
+
+  // Busca em paralelo nas três tabelas
+  const [candidato, empresa, admin] = await Promise.all([
+    prisma.candidato.findUnique({ where: { email } }),
+    prisma.empresa.findUnique({ where: { email } }),
+    prisma.admin.findUnique({ where: { email } }),
+  ]);
+
+  if (candidato && candidato.email && candidato.password) {
+    return {
+      id: candidato.id,
+      name: candidato.nome,
+      email: candidato.email,
+      password: candidato.password,
+      role: "CANDIDATE" as const,
+      userType: "candidato" as const,
+      isActive: candidato.isActive,
+    };
+  }
+
+  if (empresa && empresa.email && empresa.password) {
+    return {
+      id: empresa.id,
+      name: empresa.nome,
+      email: empresa.email,
+      password: empresa.password,
+      role: "COMPANY" as const,
+      userType: "empresa" as const,
+      isActive: empresa.isActive,
+    };
+  }
+
+  if (admin) {
+    return {
+      id: admin.id,
+      name: admin.nome,
+      email: admin.email,
+      password: admin.password,
+      role: "ADMIN" as const,
+      userType: "admin" as const,
+      isActive: admin.isActive,
+    };
+  }
+
+  return null;
+};
+
+// Cria candidato
+export const createCandidato = async (data: {
   name: string;
   email: string;
   password: string;
-  role?: string;
 }) => {
-  // normaliza role para os valores do enum Prisma (CANDIDATE | COMPANY | ADMIN)
-  const roleInput = data.role ? String(data.role).toUpperCase() : undefined;
-  const role = roleInput === "COMPANY" ? "COMPANY" : roleInput === "ADMIN" ? "ADMIN" : roleInput === "CANDIDATE" ? "CANDIDATE" : undefined;
-
-  const createData: any = {
-    name: data.name,
-    email: data.email,
-    password: data.password,
-  };
-  if (role) createData.role = role;
-
-  return prisma.user.create({ data: createData });
+  return prisma.candidato.create({
+    data: {
+      nome: data.name,
+      email: data.email,
+      password: data.password,
+      escolaridade: "",
+    },
+  });
 };
 
-export const findUserByEmail = async (email: string) => {
-  if (!email) return null
-  return prisma.user.findUnique({ where: { email } });
+// Cria empresa
+export const createEmpresa = async (data: {
+  name: string;
+  email: string;
+  password: string;
+}) => {
+  return prisma.empresa.create({
+    data: {
+      nome: data.name,
+      email: data.email,
+      password: data.password,
+    },
+  });
 };
 
-export const findUserById = async (id: number) => {
-  return prisma.user.findUnique({ where: { id } });
+// Cria admin
+export const createAdmin = async (data: {
+  name: string;
+  email: string;
+  password: string;
+}) => {
+  return prisma.admin.create({
+    data: {
+      nome: data.name,
+      email: data.email,
+      password: data.password,
+    },
+  });
 };
 
-export const findEmpresaByUserId = async (userId: number) => {
-  return prisma.empresa.findUnique({ where: { userId } });
+// Busca candidato por ID
+export const findCandidatoById = async (id: number) => {
+  return prisma.candidato.findUnique({ where: { id } });
 };
 
-export const findCandidatoByUserId = async (userId: number) => {
-  return prisma.candidato.findUnique({ where: { userId } });
+// Busca empresa por ID
+export const findEmpresaById = async (id: number) => {
+  return prisma.empresa.findUnique({ where: { id } });
+};
+
+// Busca admin por ID
+export const findAdminById = async (id: number) => {
+  return prisma.admin.findUnique({ where: { id } });
 };

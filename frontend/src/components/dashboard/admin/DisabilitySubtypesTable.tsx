@@ -148,7 +148,7 @@ export const DisabilitySubtypesTable = () => {
                 <TableCell className="font-medium">{subtype.nome}</TableCell>
                 <TableCell>
                   <Badge variant="secondary">
-                    {getTypeName(subtype.tipo_id)}
+                    {getTypeName(subtype.tipoId || subtype.tipo_id)}
                   </Badge>
                 </TableCell>
                 <TableCell className="text-right">

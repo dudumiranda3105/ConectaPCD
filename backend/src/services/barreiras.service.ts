@@ -9,4 +9,13 @@ export const BarreirasService = {
     if (!final) throw Object.assign(new Error("O campo 'descricao' é obrigatório"), { status: 400 });
     return BarreirasRepo.create(final);
   },
+  listAcessibilidades(barreiraId: number) {
+    return BarreirasRepo.listAcessibilidades(barreiraId);
+  },
+  connect(barreiraId: number, acessibilidadeId: number) {
+    return BarreirasRepo.addAcessibilidade(barreiraId, acessibilidadeId);
+  },
+  disconnect(barreiraId: number, acessibilidadeId: number) {
+    return BarreirasRepo.removeAcessibilidade(barreiraId, acessibilidadeId);
+  },
 };

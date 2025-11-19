@@ -68,22 +68,36 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-[calc(100vh-12rem)] py-12 px-4 sm:px-6 lg:px-8">
+    <div className="flex items-center justify-center min-h-[calc(100vh-12rem)] py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+      {/* Background decorativo */}
+      <div className="absolute inset-0 -z-10">
+        <div className="absolute top-20 left-10 h-72 w-72 rounded-full bg-indigo-500/20 blur-3xl animate-pulse" />
+        <div className="absolute bottom-20 right-10 h-96 w-96 rounded-full bg-violet-500/20 blur-3xl animate-pulse" style={{animationDelay: '1s'}} />
+      </div>
+      
       <div className="w-full max-w-md space-y-8">
         <div className="flex flex-col items-center text-center">
-          <Shield className="h-12 w-12 text-primary" />
-          <h2 className="mt-6 text-3xl font-bold tracking-tight">
+          <div className="h-20 w-20 rounded-2xl bg-gradient-to-br from-indigo-500 via-violet-600 to-purple-700 flex items-center justify-center shadow-2xl mb-6 animate-in zoom-in duration-500">
+            <Shield className="h-10 w-10 text-white" />
+          </div>
+          <h2 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-indigo-600 via-violet-600 to-purple-600 bg-clip-text text-transparent">
             Acesso Administrativo
           </h2>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Entre com suas credenciais de administrador.
+          <p className="mt-3 text-base text-muted-foreground">
+            Entre com suas credenciais de administrador
           </p>
         </div>
-        <Card>
-          <CardHeader>
-            <CardTitle>Login de Administrador</CardTitle>
+        <Card className="border-2 shadow-2xl bg-gradient-to-br from-background to-muted/20 backdrop-blur-sm">
+          <CardHeader className="bg-gradient-to-r from-indigo-500/10 via-violet-500/10 to-purple-500/10 border-b">
+            <CardTitle className="text-2xl flex items-center gap-2">
+              <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center">
+                <Shield className="h-4 w-4 text-white" />
+              </div>
+              Login de Administrador
+            </CardTitle>
+            <CardDescription className="text-base">Sistema de gestão ConectaPCD</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-6">
             <Form {...form}>
               <form
                 onSubmit={form.handleSubmit(onSubmit)}
@@ -94,12 +108,13 @@ export default function AdminLoginPage() {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel htmlFor="email">E-mail</FormLabel>
+                      <FormLabel htmlFor="email" className="text-sm font-semibold">E-mail Administrativo</FormLabel>
                       <FormControl>
                         <Input
                           id="email"
                           type="email"
-                          placeholder="admin@example.com"
+                          placeholder="admin@conectapcd.com"
+                          className="h-12 border-2 focus:border-indigo-500 transition-all"
                           {...field}
                         />
                       </FormControl>
@@ -112,12 +127,13 @@ export default function AdminLoginPage() {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel htmlFor="password">Senha</FormLabel>
+                      <FormLabel htmlFor="password" className="text-sm font-semibold">Senha</FormLabel>
                       <FormControl>
                         <Input
                           id="password"
                           type="password"
-                          placeholder="********"
+                          placeholder="••••••••"
+                          className="h-12 border-2 focus:border-indigo-500 transition-all"
                           {...field}
                         />
                       </FormControl>
@@ -125,25 +141,31 @@ export default function AdminLoginPage() {
                     </FormItem>
                   )}
                 />
-                <Button type="submit" className="w-full" disabled={isLoading}>
+                <Button 
+                  type="submit" 
+                  className="w-full h-12 text-base font-semibold bg-gradient-to-r from-indigo-500 via-violet-600 to-purple-600 hover:from-indigo-600 hover:via-violet-700 hover:to-purple-700 shadow-lg" 
+                  disabled={isLoading}
+                >
                   {isLoading && (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                   )}
-                  Entrar
+                  Acessar Painel
                 </Button>
               </form>
             </Form>
           </CardContent>
         </Card>
-        <p className="text-center text-sm text-muted-foreground">
-          Não tem uma conta de administrador?{' '}
+        <div className="text-center space-y-2">
+          <p className="text-sm text-muted-foreground">
+            Não tem uma conta de administrador?
+          </p>
           <Link
             to="/admin/cadastro"
-            className="font-medium text-primary hover:underline"
+            className="inline-flex items-center gap-2 text-base font-semibold bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent hover:from-indigo-700 hover:to-violet-700 transition-all"
           >
-            Criar conta
+            Criar conta de administrador →
           </Link>
-        </p>
+        </div>
       </div>
     </div>
   )

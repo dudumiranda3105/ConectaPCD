@@ -17,6 +17,11 @@ import authRoutes from "./routes/auth.routes";
 import profilesRoutes from "./routes/profiles.routes";
 import candidaturasRoutes from "./routes/candidaturas.routes";
 import matchingRoutes from "./routes/matching.routes";
+import curriculoRoutes from "./routes/curriculo.routes";
+import avatarRoutes from "./routes/avatar.routes";
+import assistiveResourcesRoutes from './routes/assistiveResources.routes';
+import adminRoutes from './routes/admin.routes';
+import path from 'path';
 const app = express();
 const prisma = new PrismaClient();
 app.use(cors({ origin: true })); // antes das rotas
@@ -28,6 +33,7 @@ app.use("/subtipos", subtiposRoutes);
 app.use("/vinculos", vinculosRoutes)
 app.use("/barreiras", barreirasRoutes);
 app.use("/acessibilidades", acessibilidadesRoutes);
+app.use('/assistive-resources', assistiveResourcesRoutes);
 
 app.use("/empresas", empresasRoutes);
 app.use("/vagas", vagasRoutes);
@@ -46,6 +52,14 @@ app.use("/match", matchRoutes);
 
 // sistema de matching inteligente
 app.use("/matching", matchingRoutes);
+// currículo upload & fetch
+app.use('/curriculo', curriculoRoutes);
+// avatar upload & fetch
+app.use('/avatar', avatarRoutes);
+// rotas de administração
+app.use('/admin', adminRoutes);
+// servir arquivos de upload
+app.use('/uploads', express.static(path.resolve(process.cwd(), 'uploads')));
 
 // middleware de erro genérico
 app.use((err: any, _req: any, res: any, _next: any) => {
@@ -57,4 +71,4 @@ app.use((err: any, _req: any, res: any, _next: any) => {
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`API rodando em http://localhost:${PORT}`);
-});
+}); 

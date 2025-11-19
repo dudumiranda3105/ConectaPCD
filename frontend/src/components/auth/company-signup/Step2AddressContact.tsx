@@ -281,6 +281,7 @@ export const Step2AddressContact = forwardRef<StepFormHandle>((_, ref) => {
             />
           </div>
         </div>
+        <button type="submit" className="hidden" />
       </form>
     </Form>
   )

@@ -15,9 +15,31 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { MoreHorizontal } from 'lucide-react'
-import { mockUsers } from '@/lib/admin-mock-data'
+import { useState, useEffect } from 'react'
+import { adminService } from '@/services/adminService'
 
 export const UsersTable = () => {
+  const [users, setUsers] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const data = await adminService.getUsers()
+        setUsers(data)
+      } catch (error) {
+        console.error('Erro ao carregar usuários:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchUsers()
+  }, [])
+
+  if (loading) {
+    return <div className="p-4">Carregando usuários...</div>
+  }
+
   return (
     <div className="relative w-full overflow-auto">
       <Table>
@@ -32,7 +54,14 @@ export const UsersTable = () => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {mockUsers.map((user) => (
+          {users.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={6} className="text-center">
+                Nenhum usuário encontrado
+              </TableCell>
+            </TableRow>
+          ) : (
+            users.map((user) => (
             <TableRow key={user.id}>
               <TableCell className="font-medium">{user.name}</TableCell>
               <TableCell>{user.email}</TableCell>
@@ -61,7 +90,8 @@ export const UsersTable = () => {
                 </DropdownMenu>
               </TableCell>
             </TableRow>
-          ))}
+            ))
+          )}
         </TableBody>
       </Table>
     </div>

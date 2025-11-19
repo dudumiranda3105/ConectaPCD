@@ -16,6 +16,12 @@ export const VagasRepo = {
         orderBy: { acessibilidadeId: "asc" },
       },
     },
+  }).then(vagas => {
+    console.log('[VagasRepo] Vagas carregadas do banco:', vagas.length);
+    vagas.forEach(v => {
+      console.log(`[VagasRepo] Vaga ${v.id}: ${v.acessibilidades?.length || 0} acessibilidades no banco`);
+    });
+    return vagas;
   });
 },
 
@@ -46,7 +52,9 @@ export const VagasRepo = {
   },
 
   linkAcessibilidades(vagaId: number, acessibilidadeIds: number[]) {
+    console.log('[VagasRepo] linkAcessibilidades chamado:', { vagaId, acessibilidadeIds });
     const data = acessibilidadeIds.map((acessibilidadeId) => ({ vagaId, acessibilidadeId }));
+    console.log('[VagasRepo] Dados a serem inseridos:', data);
     return prisma.vagaAcessibilidade.createMany({ data, skipDuplicates: true });
   },
 
@@ -78,39 +86,81 @@ export const VagasRepo = {
   },
 
   async getCandidaturas(vagaId: number) {
-    console.log(`[VagasRepo] Buscando candidaturas para vagaId: ${vagaId}`);
+    console.log(`[VagasRepo] Buscando candidaturas para vagaId: ${vagaId}, tipo: ${typeof vagaId}`);
     
-    // Primeiro vamos verificar se existem candidaturas
-    const totalCandidaturas = await prisma.candidatura.count({
-      where: { vagaId }
-    });
-    console.log(`[VagasRepo] Total de candidaturas encontradas: ${totalCandidaturas}`);
-    
-    // Se não há candidaturas, retornar array vazio
-    if (totalCandidaturas === 0) {
-      console.log(`[VagasRepo] Nenhuma candidatura encontrada para a vaga ${vagaId}`);
+    // Garantir que vagaId é um número
+    const vagaIdNumber = Number(vagaId);
+    if (isNaN(vagaIdNumber)) {
+      console.error(`[VagasRepo] vagaId inválido: ${vagaId}`);
       return [];
     }
     
-    return prisma.candidatura.findMany({
-      where: { vagaId },
+    const candidaturas = await prisma.candidatura.findMany({
+      where: { vagaId: vagaIdNumber },
       include: {
-        candidato: {
+        vaga: {
           include: {
-            user: {
-              select: {
-                email: true
+            subtiposAceitos: {
+              include: {
+                subtipo: {
+                  include: {
+                    tipo: true
+                  }
+                }
               }
             },
+            acessibilidades: {
+              include: {
+                acessibilidade: true
+              }
+            }
+          }
+        },
+        candidato: {
+          select: {
+            id: true,
+            nome: true,
+            email: true,
+            telefone: true,
+            escolaridade: true,
+            curriculoUrl: true,
+            avatarUrl: true,
+            dataNascimento: true,
+            genero: true,
+            cidade: true,
+            estado: true,
+            biografia: true,
+            linkedin: true,
+            portfolio: true,
             subtipos: {
               include: {
                 subtipo: {
                   include: {
-                    tipo: {
-                      select: {
-                        nome: true
-                      }
-                    }
+                    tipo: true
+                  }
+                },
+                barreiras: {
+                  include: {
+                    barreira: true
+                  }
+                }
+              }
+            },
+            acessibilidades: {
+              include: {
+                acessibilidade: {
+                  select: {
+                    id: true,
+                    descricao: true
+                  }
+                }
+              }
+            },
+            recursosAssistivos: {
+              include: {
+                recurso: {
+                  include: {
+                    mitigacoes: true
                   }
                 }
               }
@@ -120,6 +170,9 @@ export const VagasRepo = {
       },
       orderBy: { createdAt: "desc" },
     });
+    
+    console.log(`[VagasRepo] Retornando ${candidaturas.length} candidaturas para vaga ${vagaIdNumber}`);
+    return candidaturas;
   },
 
   update(vagaId: number, dados: {
@@ -137,6 +190,15 @@ export const VagasRepo = {
       include: {
         empresa: { select: { id: true, nome: true, companyData: true } },
       },
+    });
+  },
+
+  incrementViews(vagaId: number) {
+    return prisma.vaga.update({
+      where: { id: vagaId },
+      // usar as any para evitar erro de tipos caso Prisma Client não tenha sido regenerado
+      data: ({ views: { increment: 1 } } as any),
+      select: { id: true, views: true },
     });
   },
 

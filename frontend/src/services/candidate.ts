@@ -28,8 +28,10 @@ export const signUpCandidate = async (
   if (res.user) localStorage.setItem('auth_user', JSON.stringify(res.user))
 
   // em seguida salva o perfil completo no backend
+  const baseUrl = import.meta.env?.VITE_API_BASE_URL || import.meta.env?.VITE_API_URL || 'http://localhost:3000'
+
   if (res.token) {
-    await fetch(`${import.meta.env?.VITE_API_URL || 'http://localhost:3000'}/profiles/candidate`, {
+    await fetch(`${baseUrl}/profiles/candidate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${res.token}` },
       body: JSON.stringify(formData),

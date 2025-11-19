@@ -12,7 +12,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { Info } from 'lucide-react'
+import { Info, Loader2 } from 'lucide-react'
 import { Separator } from '@/components/ui/separator'
 import {
   getDisabilityTypes,
@@ -39,7 +39,7 @@ interface DisabilityInfoEditorProps {
   isOpen: boolean
   onOpenChange: (open: boolean) => void
   initialDisabilities: DisabilityInfoValues['disabilities']
-  onSave: (data: DisabilityInfoValues['disabilities']) => void
+  onSave: (data: DisabilityInfoValues['disabilities']) => Promise<void>
 }
 
 export const DisabilityInfoEditor = ({
@@ -54,6 +54,7 @@ export const DisabilityInfoEditor = ({
   )
   const [barriers, setBarriers] = useState<Barrier[]>([])
   const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
   const [selections, setSelections] = useState<Selections>({})
 
   useEffect(() => {
@@ -147,7 +148,7 @@ export const DisabilityInfoEditor = ({
     setSelections(newSelections)
   }
 
-  const handleSaveChanges = () => {
+  const handleSaveChanges = async () => {
     const formattedData = Object.entries(selections).map(
       ([typeId, typeData]) => ({
         typeId: Number(typeId),
@@ -159,7 +160,15 @@ export const DisabilityInfoEditor = ({
         ),
       }),
     )
-    onSave(formattedData)
+    
+    try {
+      setSaving(true)
+      await onSave(formattedData)
+    } catch (error) {
+      console.error('Erro ao salvar:', error)
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -309,10 +318,19 @@ export const DisabilityInfoEditor = ({
           </div>
         </ScrollArea>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>
             Cancelar
           </Button>
-          <Button onClick={handleSaveChanges}>Salvar Alterações</Button>
+          <Button onClick={handleSaveChanges} disabled={saving}>
+            {saving ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Salvando...
+              </>
+            ) : (
+              'Salvar Alterações'
+            )}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

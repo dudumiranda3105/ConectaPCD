@@ -22,7 +22,9 @@ import CandidateDashboard from './pages/dashboard/candidate/CandidateDashboard'
 import CandidateProfilePage from './pages/dashboard/candidate/ProfilePage'
 import CandidateSettingsPage from './pages/dashboard/candidate/SettingsPage'
 import JobDetailsPage from './pages/dashboard/candidate/JobDetailsPage'
+import MatchesPage from './pages/dashboard/candidate/MatchesPage'
 import CompanyDashboard from './pages/dashboard/company/CompanyDashboard'
+import CompanyJobDetailsPage from './pages/dashboard/company/JobDetailsPage'
 import AdminDashboard from './pages/dashboard/admin/AdminDashboard'
 import ResumesPage from './pages/dashboard/company/ResumesPage'
 import AnalyticsPage from './pages/dashboard/company/AnalyticsPage'
@@ -35,10 +37,10 @@ import AdminSettingsPage from './pages/dashboard/admin/SettingsPage'
 import PrivacyPolicyPage from './pages/PrivacyPolicy'
 import TermsOfUsePage from './pages/TermsOfUse'
 import AboutPage from './pages/AboutPage'
-import DisabilityManagementPage from './pages/dashboard/admin/DisabilityManagementPage'
+import SystemManagementPage from './pages/dashboard/admin/SystemManagementPage'
 
 const App = () => (
-  <BrowserRouter>
+  <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
     <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
       <AuthProvider>
         <AccessibilityProvider>
@@ -76,6 +78,10 @@ const App = () => (
                     element={<JobDetailsPage />}
                   />
                   <Route
+                    path="/dashboard/candidato/vagas-recomendadas"
+                    element={<MatchesPage />}
+                  />
+                  <Route
                     path="/dashboard/candidato/perfil"
                     element={<CandidateProfilePage />}
                   />
@@ -91,6 +97,10 @@ const App = () => (
                   <Route
                     path="/dashboard/empresa"
                     element={<CompanyDashboard />}
+                  />
+                  <Route
+                    path="/dashboard/empresa/vagas/:jobId"
+                    element={<CompanyJobDetailsPage />}
                   />
                   <Route
                     path="/dashboard/empresa/vagas/:jobId/candidatos"
@@ -121,8 +131,8 @@ const App = () => (
                   />
                   <Route path="/admin/jobs" element={<AdminJobsPage />} />
                   <Route
-                    path="/admin/disabilities"
-                    element={<DisabilityManagementPage />}
+                    path="/admin/system"
+                    element={<SystemManagementPage />}
                   />
                   <Route
                     path="/admin/settings"

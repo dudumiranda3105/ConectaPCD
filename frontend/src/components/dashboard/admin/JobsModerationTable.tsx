@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Table,
   TableBody,
@@ -9,8 +9,8 @@ import {
 } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { useToast } from '@/components/ui/use-toast'
-import { mockJobsForModeration } from '@/lib/admin-mock-data'
+import { useToast } from '@/hooks/use-toast'
+import { adminService } from '@/services/adminService'
 
 type JobStatus = 'Pendente' | 'Aprovada' | 'Reprovada'
 type Job = {
@@ -22,19 +22,47 @@ type Job = {
 }
 
 export const JobsModerationTable = () => {
-  const [jobs, setJobs] = useState<Job[]>(mockJobsForModeration)
+  const [jobs, setJobs] = useState<Job[]>([])
+  const [loading, setLoading] = useState(true)
   const { toast } = useToast()
 
-  const handleStatusChange = (jobId: string, newStatus: JobStatus) => {
-    setJobs((prevJobs) =>
-      prevJobs.map((job) =>
-        job.id === jobId ? { ...job, status: newStatus } : job,
-      ),
-    )
-    toast({
-      title: `Vaga ${newStatus.toLowerCase()}`,
-      description: `A vaga foi marcada como ${newStatus.toLowerCase()}.`,
-    })
+  useEffect(() => {
+    const fetchJobs = async () => {
+      try {
+        const data = await adminService.getJobsForModeration()
+        setJobs(data)
+      } catch (error) {
+        console.error('Erro ao carregar vagas:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchJobs()
+  }, [])
+
+  const handleStatusChange = async (jobId: string, newStatus: JobStatus) => {
+    try {
+      await adminService.moderateJob(jobId, newStatus)
+      setJobs((prevJobs) =>
+        prevJobs.map((job) =>
+          job.id === jobId ? { ...job, status: newStatus } : job,
+        ),
+      )
+      toast({
+        title: `Vaga ${newStatus.toLowerCase()}`,
+        description: `A vaga foi marcada como ${newStatus.toLowerCase()}.`,
+      })
+    } catch (error) {
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível atualizar o status da vaga.',
+        variant: 'destructive',
+      })
+    }
+  }
+
+  if (loading) {
+    return <div className="p-4">Carregando vagas...</div>
   }
 
   return (

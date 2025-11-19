@@ -10,6 +10,14 @@ export const SETORES_ATIVIDADE = [
   'Outro',
 ] as const
 
+export const PORTES_EMPRESA = [
+  'MEI',
+  'Microempresa',
+  'Pequeno Porte',
+  'Médio Porte',
+  'Grande Porte',
+] as const
+
 export const ESTADOS_BRASILEIROS = [
   'AC',
   'AL',
@@ -73,9 +81,13 @@ export const companyDataSchema = z
     cnpj: z.string().regex(/^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$/, {
       message: 'CNPJ inválido. Use o formato 00.000.000/0000-00.',
     }),
+    porte: z.enum(PORTES_EMPRESA, {
+      required_error: 'O porte da empresa é obrigatório.',
+    }),
     setorAtividade: z.enum(SETORES_ATIVIDADE, {
       required_error: 'O setor de atividade é obrigatório.',
     }),
+    descricao: z.string().max(1000, { message: 'Descrição deve ter no máximo 1000 caracteres.' }).optional(),
     siteEmpresa: z
       .string()
       .url({ message: 'URL inválida.' })

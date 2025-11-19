@@ -8,6 +8,7 @@ export interface DisabilityType {
 export interface DisabilitySubtype {
   id: number
   tipoId: number
+  tipo_id: number // backend compatibility
   nome: string
 }
 
@@ -45,9 +46,13 @@ export const createDisabilityType = async (
   name: string,
   description: string,
 ): Promise<DisabilityType> => {
+  const token = localStorage.getItem('auth_token')
   const res = await fetch(`${API_URL}/tipos`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 
+      'Content-Type': 'application/json',
+      ...(token && { Authorization: `Bearer ${token}` }),
+    },
     body: JSON.stringify({ nome: name }),
   })
   if (!res.ok) throw new Error('Erro ao criar tipo de deficiência')
@@ -59,9 +64,13 @@ export const updateDisabilityType = async (
   name: string,
   description: string,
 ): Promise<DisabilityType | null> => {
+  const token = localStorage.getItem('auth_token')
   const res = await fetch(`${API_URL}/tipos/${id}`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 
+      'Content-Type': 'application/json',
+      ...(token && { Authorization: `Bearer ${token}` }),
+    },
     body: JSON.stringify({ nome: name }),
   })
   if (!res.ok) throw new Error('Erro ao atualizar tipo de deficiência')
@@ -69,8 +78,12 @@ export const updateDisabilityType = async (
 }
 
 export const deleteDisabilityType = async (id: number): Promise<void> => {
+  const token = localStorage.getItem('auth_token')
   const res = await fetch(`${API_URL}/tipos/${id}`, {
     method: 'DELETE',
+    headers: {
+      ...(token && { Authorization: `Bearer ${token}` }),
+    },
   })
   if (!res.ok) throw new Error('Erro ao deletar tipo de deficiência')
 }
@@ -79,9 +92,13 @@ export const createDisabilitySubtype = async (
   name: string,
   typeId: number,
 ): Promise<DisabilitySubtype> => {
+  const token = localStorage.getItem('auth_token')
   const res = await fetch(`${API_URL}/subtipos`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 
+      'Content-Type': 'application/json',
+      ...(token && { Authorization: `Bearer ${token}` }),
+    },
     body: JSON.stringify({ nome: name, tipoId: typeId }),
   })
   if (!res.ok) throw new Error('Erro ao criar subtipo')
@@ -93,9 +110,13 @@ export const updateDisabilitySubtype = async (
   name: string,
   typeId: number,
 ): Promise<DisabilitySubtype | null> => {
+  const token = localStorage.getItem('auth_token')
   const res = await fetch(`${API_URL}/subtipos/${id}`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 
+      'Content-Type': 'application/json',
+      ...(token && { Authorization: `Bearer ${token}` }),
+    },
     body: JSON.stringify({ nome: name, tipoId: typeId }),
   })
   if (!res.ok) throw new Error('Erro ao atualizar subtipo')
@@ -103,16 +124,24 @@ export const updateDisabilitySubtype = async (
 }
 
 export const deleteDisabilitySubtype = async (id: number): Promise<void> => {
+  const token = localStorage.getItem('auth_token')
   const res = await fetch(`${API_URL}/subtipos/${id}`, {
     method: 'DELETE',
+    headers: {
+      ...(token && { Authorization: `Bearer ${token}` }),
+    },
   })
   if (!res.ok) throw new Error('Erro ao deletar subtipo')
 }
 
 export const createBarrier = async (description: string): Promise<Barrier> => {
+  const token = localStorage.getItem('auth_token')
   const res = await fetch(`${API_URL}/barreiras`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 
+      'Content-Type': 'application/json',
+      ...(token && { Authorization: `Bearer ${token}` }),
+    },
     body: JSON.stringify({ descricao: description }),
   })
   if (!res.ok) throw new Error('Erro ao criar barreira')
@@ -123,9 +152,13 @@ export const updateBarrier = async (
   id: number,
   description: string,
 ): Promise<Barrier | null> => {
+  const token = localStorage.getItem('auth_token')
   const res = await fetch(`${API_URL}/barreiras/${id}`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 
+      'Content-Type': 'application/json',
+      ...(token && { Authorization: `Bearer ${token}` }),
+    },
     body: JSON.stringify({ descricao: description }),
   })
   if (!res.ok) throw new Error('Erro ao atualizar barreira')
@@ -133,8 +166,12 @@ export const updateBarrier = async (
 }
 
 export const deleteBarrier = async (id: number): Promise<void> => {
+  const token = localStorage.getItem('auth_token')
   const res = await fetch(`${API_URL}/barreiras/${id}`, {
     method: 'DELETE',
+    headers: {
+      ...(token && { Authorization: `Bearer ${token}` }),
+    },
   })
   if (!res.ok) throw new Error('Erro ao deletar barreira')
 }

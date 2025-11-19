@@ -1,11 +1,12 @@
 import { Router } from "express";
 import { VinculosController } from "../controllers/vinculos.controller";
+import { authMiddleware, adminOnly } from "../middleware/auth.middleware";
 const router = Router();
 
-// POST /subtipos/:id/barreiras  (N:N)
-router.post("/subtipos/:id/barreiras", VinculosController.vincularBarreiras);
+// POST /subtipos/:id/barreiras  (N:N) - apenas admin
+router.post("/subtipos/:id/barreiras", authMiddleware, adminOnly, VinculosController.vincularBarreiras);
 
-// POST /barreiras/:id/acessibilidades  (N:N)
-router.post("/barreiras/:id/acessibilidades", VinculosController.vincularAcessibilidades);
+// POST /barreiras/:id/acessibilidades  (N:N) - apenas admin
+router.post("/barreiras/:id/acessibilidades", authMiddleware, adminOnly, VinculosController.vincularAcessibilidades);
 
 export default router;

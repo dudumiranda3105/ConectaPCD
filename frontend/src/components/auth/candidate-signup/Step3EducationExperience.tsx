@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { Textarea } from '@/components/ui/textarea'
 import { PlusCircle, Trash2 } from 'lucide-react'
 import { Separator } from '@/components/ui/separator'
 import { StepFormHandle } from './Step1PersonalData'
@@ -29,7 +30,7 @@ import {
 } from '@/components/ui/select'
 
 export const Step3EducationExperience = forwardRef<StepFormHandle>((_, ref) => {
-  const { formData, updateFormData, nextStep } = useCandidateSignup()
+  const { formData, updateFormData } = useCandidateSignup()
 
   const form = useForm<EducationExperienceValues>({
     resolver: zodResolver(educationExperienceSchema),
@@ -37,8 +38,13 @@ export const Step3EducationExperience = forwardRef<StepFormHandle>((_, ref) => {
       educationLevel: formData.educationLevel,
       course: formData.course || '',
       institution: formData.institution || '',
+      curriculoUrl: formData.curriculoUrl || '',
+      linkedin: formData.linkedin || '',
+      portfolio: formData.portfolio || '',
+      biografia: formData.biografia || '',
       experiences: formData.experiences || [],
     },
+    mode: 'onChange',
   })
 
   const { fields, append, remove } = useFieldArray({
@@ -48,7 +54,6 @@ export const Step3EducationExperience = forwardRef<StepFormHandle>((_, ref) => {
 
   const onSubmit = (data: EducationExperienceValues) => {
     updateFormData(data)
-    nextStep()
   }
 
   useImperativeHandle(ref, () => ({
@@ -59,6 +64,9 @@ export const Step3EducationExperience = forwardRef<StepFormHandle>((_, ref) => {
       }
       return isValid
     },
+    isFormValid: () => {
+      return form.formState.isValid
+    }
   }))
 
   return (
@@ -79,7 +87,7 @@ export const Step3EducationExperience = forwardRef<StepFormHandle>((_, ref) => {
                     defaultValue={field.value}
                   >
                     <FormControl>
-                      <SelectTrigger>
+                      <SelectTrigger className="h-12 border-2 rounded-xl">
                         <SelectValue placeholder="Selecione seu nível de escolaridade" />
                       </SelectTrigger>
                     </FormControl>
@@ -105,6 +113,7 @@ export const Step3EducationExperience = forwardRef<StepFormHandle>((_, ref) => {
                     <Input
                       placeholder="Ex: Análise e Desenvolvimento de Sistemas"
                       {...field}
+                      className="h-12 border-2 rounded-xl"
                     />
                   </FormControl>
                   <FormMessage />
@@ -118,8 +127,86 @@ export const Step3EducationExperience = forwardRef<StepFormHandle>((_, ref) => {
                 <FormItem>
                   <FormLabel>Instituição de Ensino</FormLabel>
                   <FormControl>
-                    <Input placeholder="Ex: Universidade XYZ" {...field} />
+                    <Input placeholder="Ex: Universidade XYZ" {...field} className="h-12 border-2 rounded-xl" />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="curriculoUrl"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Link do Currículo (Opcional)</FormLabel>
+                  <FormControl>
+                    <Input 
+                      placeholder="Ex: https://drive.google.com/..." 
+                      {...field} 
+                      className="h-12 border-2 rounded-xl"
+                      type="url"
+                    />
+                  </FormControl>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Cole o link do seu currículo (Google Drive, Dropbox, etc.)
+                  </p>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="linkedin"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>LinkedIn (Opcional)</FormLabel>
+                  <FormControl>
+                    <Input 
+                      placeholder="Ex: https://linkedin.com/in/seu-perfil" 
+                      {...field} 
+                      className="h-12 border-2 rounded-xl"
+                      type="url"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="portfolio"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Portfólio (Opcional)</FormLabel>
+                  <FormControl>
+                    <Input 
+                      placeholder="Ex: https://seu-portfolio.com" 
+                      {...field} 
+                      className="h-12 border-2 rounded-xl"
+                      type="url"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="biografia"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Biografia (Opcional)</FormLabel>
+                  <FormControl>
+                    <Textarea 
+                      placeholder="Conte um pouco sobre você, suas habilidades e objetivos profissionais..." 
+                      {...field} 
+                      className="min-h-[100px] border-2 rounded-xl resize-none"
+                      maxLength={500}
+                    />
+                  </FormControl>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {field.value?.length || 0}/500 caracteres
+                  </p>
                   <FormMessage />
                 </FormItem>
               )}
@@ -155,6 +242,7 @@ export const Step3EducationExperience = forwardRef<StepFormHandle>((_, ref) => {
                         <Input
                           placeholder="Ex: Desenvolvedor Frontend"
                           {...field}
+                          className="h-12 border-2 rounded-xl"
                         />
                       </FormControl>
                       <FormMessage />
@@ -168,7 +256,7 @@ export const Step3EducationExperience = forwardRef<StepFormHandle>((_, ref) => {
                     <FormItem>
                       <FormLabel>Empresa</FormLabel>
                       <FormControl>
-                        <Input placeholder="Ex: InovaTech" {...field} />
+                        <Input placeholder="Ex: InovaTech" {...field} className="h-12 border-2 rounded-xl" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -182,7 +270,7 @@ export const Step3EducationExperience = forwardRef<StepFormHandle>((_, ref) => {
                       <FormItem>
                         <FormLabel>Data de Início</FormLabel>
                         <FormControl>
-                          <Input type="month" {...field} />
+                          <Input type="month" {...field} className="h-12 border-2 rounded-xl" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -195,7 +283,7 @@ export const Step3EducationExperience = forwardRef<StepFormHandle>((_, ref) => {
                       <FormItem>
                         <FormLabel>Data de Término (opcional)</FormLabel>
                         <FormControl>
-                          <Input type="month" {...field} />
+                          <Input type="month" {...field} className="h-12 border-2 rounded-xl" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>

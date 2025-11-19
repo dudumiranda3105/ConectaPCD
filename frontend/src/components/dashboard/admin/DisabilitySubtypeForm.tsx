@@ -46,7 +46,7 @@ export const DisabilitySubtypeForm = ({
     resolver: zodResolver(formSchema),
     defaultValues: {
       nome: subtype?.nome || '',
-      tipo_id: subtype?.tipo_id.toString() || '',
+      tipo_id: (subtype?.tipoId || subtype?.tipo_id)?.toString() || '',
     },
   })
 

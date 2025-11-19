@@ -1,8 +1,6 @@
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
 import { Menu, Briefcase, Shield } from 'lucide-react'
-import { Link } from 'react-router-dom'
-import { UserNav } from './UserNav'
 import { AdminSidebar } from './admin/AdminSidebar'
 import { CandidateSidebar } from './candidate/CandidateSidebar'
 import { CompanySidebar } from './company/CompanySidebar'
@@ -41,9 +39,6 @@ export const DashboardHeader = ({ logoText, role }: DashboardHeaderProps) => {
       <div className="flex items-center gap-2 sm:hidden">
         {iconMap[role]}
         <span className="font-bold">{logoText}</span>
-      </div>
-      <div className="ml-auto flex items-center gap-2">
-        <UserNav />
       </div>
     </header>
   )

@@ -19,12 +19,13 @@ import { Input } from '@/components/ui/input'
 import { StepFormHandle } from './Step1PersonalData'
 
 export const Step2Address = forwardRef<StepFormHandle>((_, ref) => {
-  const { formData, updateFormData, nextStep } = useCandidateSignup()
+  const { formData, updateFormData } = useCandidateSignup()
   const [isFetchingCep, setIsFetchingCep] = useState(false)
 
   const form = useForm<AddressValues>({
     resolver: zodResolver(addressSchema),
     defaultValues: formData,
+    mode: 'onChange',
   })
 
   const cepValue = form.watch('cep')
@@ -52,7 +53,6 @@ export const Step2Address = forwardRef<StepFormHandle>((_, ref) => {
 
   const onSubmit = (data: AddressValues) => {
     updateFormData(data)
-    nextStep()
   }
 
   useImperativeHandle(ref, () => ({
@@ -63,6 +63,9 @@ export const Step2Address = forwardRef<StepFormHandle>((_, ref) => {
       }
       return isValid
     },
+    isFormValid: () => {
+      return form.formState.isValid
+    }
   }))
 
   return (
@@ -119,7 +122,7 @@ export const Step2Address = forwardRef<StepFormHandle>((_, ref) => {
             <FormItem>
               <FormLabel>Rua</FormLabel>
               <FormControl>
-                <Input placeholder="Avenida Paulista" {...field} />
+                <Input placeholder="Avenida Paulista" {...field} className="h-12 border-2 rounded-xl" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -133,7 +136,7 @@ export const Step2Address = forwardRef<StepFormHandle>((_, ref) => {
               <FormItem className="md:col-span-1">
                 <FormLabel>Bairro</FormLabel>
                 <FormControl>
-                  <Input placeholder="Bela Vista" {...field} />
+                  <Input placeholder="Bela Vista" {...field} className="h-12 border-2 rounded-xl" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -146,7 +149,7 @@ export const Step2Address = forwardRef<StepFormHandle>((_, ref) => {
               <FormItem className="md:col-span-1">
                 <FormLabel>Número</FormLabel>
                 <FormControl>
-                  <Input placeholder="1000" {...field} />
+                  <Input placeholder="1000" {...field} className="h-12 border-2 rounded-xl" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -159,7 +162,7 @@ export const Step2Address = forwardRef<StepFormHandle>((_, ref) => {
               <FormItem className="md:col-span-1">
                 <FormLabel>Complemento (Opcional)</FormLabel>
                 <FormControl>
-                  <Input placeholder="Apto 101" {...field} />
+                  <Input placeholder="Apto 101" {...field} className="h-12 border-2 rounded-xl" />
                 </FormControl>
                 <FormMessage />
               </FormItem>

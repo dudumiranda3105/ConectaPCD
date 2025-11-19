@@ -15,7 +15,18 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { MoreHorizontal } from 'lucide-react'
-import { Candidate } from '@/lib/candidates-mock-data'
+
+type CandidateStatus = 'Pendente' | 'Revisado' | 'Entrevistando' | 'Rejeitado' | 'Contratado'
+
+type Candidate = {
+  id: string
+  name: string
+  email: string
+  appliedDate: string
+  matchScore: number
+  disabilities: string[]
+  status: CandidateStatus
+}
 
 interface CandidatesTableProps {
   candidates: Candidate[]
@@ -23,7 +34,7 @@ interface CandidatesTableProps {
 
 export const CandidatesTable = ({ candidates }: CandidatesTableProps) => {
   const getStatusVariant = (
-    status: Candidate['status'],
+    status: CandidateStatus,
   ): 'default' | 'secondary' | 'destructive' | 'outline' => {
     switch (status) {
       case 'Contratado':

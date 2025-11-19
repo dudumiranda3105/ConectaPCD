@@ -24,6 +24,20 @@ export const VagasController = {
       const empresaIdParam = (req.params as any).empresaId ?? (req.params as any).id;
       const empresaId = empresaIdParam ? Number(empresaIdParam) : undefined;
     const data = await VagasRepo.list(empresaId);
+    
+    // Log para debug das acessibilidades
+    if (data.length > 0) {
+      console.log(`[VagasController] Retornando ${data.length} vaga(s)`);
+      data.forEach(vaga => {
+        console.log(`[VagasController] Vaga ID ${vaga.id}: ${vaga.acessibilidades?.length || 0} acessibilidades`);
+        if (vaga.acessibilidades && vaga.acessibilidades.length > 0) {
+          vaga.acessibilidades.forEach(acc => {
+            console.log(`  - ${acc.acessibilidade.descricao}`);
+          });
+        }
+      });
+    }
+    
     res.json(data);
   },
 
@@ -50,9 +64,22 @@ export const VagasController = {
   async criar(req: Request, res: Response) {
     try {
       const { empresaId, titulo, descricao, escolaridade, tipo, regimeTrabalho, beneficios, acessibilidades } = req.body;
+      
+      console.log('[VagasController] ========== CRIANDO VAGA ==========');
+      console.log('[VagasController] Body completo recebido:', JSON.stringify(req.body, null, 2));
+      console.log('[VagasController] Acessibilidades:', {
+        valor: acessibilidades,
+        tipo: typeof acessibilidades,
+        isArray: Array.isArray(acessibilidades),
+        length: Array.isArray(acessibilidades) ? acessibilidades.length : 'N/A',
+        conteudo: Array.isArray(acessibilidades) ? acessibilidades : 'não é array'
+      });
+      console.log('[VagasController] =======================================');
+      
       const vaga = await VagasService.criarVaga(Number(empresaId), titulo, descricao, escolaridade, tipo, regimeTrabalho, beneficios, acessibilidades);
       res.status(201).json(vaga);
     } catch (e: any) {
+      console.error('[VagasController] Erro ao criar vaga:', e);
       res.status(400).json({ error: e.message ?? "Erro ao criar vaga" });
     }
   },
@@ -116,6 +143,18 @@ export const VagasController = {
       const vagaId = Number(req.params.id);
       const { titulo, descricao, escolaridade, tipo, regimeTrabalho, beneficios, acessibilidades, isActive } = req.body;
       
+      console.log('[VagasController] ========== ATUALIZANDO VAGA ==========');
+      console.log('[VagasController] VagaId:', vagaId);
+      console.log('[VagasController] Body completo recebido:', JSON.stringify(req.body, null, 2));
+      console.log('[VagasController] Acessibilidades:', {
+        valor: acessibilidades,
+        tipo: typeof acessibilidades,
+        isArray: Array.isArray(acessibilidades),
+        length: Array.isArray(acessibilidades) ? acessibilidades.length : 'N/A',
+        conteudo: Array.isArray(acessibilidades) ? acessibilidades : 'não é array'
+      });
+      console.log('[VagasController] =======================================');
+      
       if (isNaN(vagaId)) {
         return res.status(400).json({ error: "ID da vaga inválido" });
       }
@@ -123,7 +162,19 @@ export const VagasController = {
       const vaga = await VagasService.atualizarVaga(vagaId, { titulo, descricao, escolaridade, tipo, regimeTrabalho, beneficios, acessibilidades, isActive });
       res.json(vaga);
     } catch (err: any) {
+      console.error('[VagasController] Erro ao atualizar vaga:', err);
       res.status(400).json({ error: err.message || "Erro ao atualizar vaga" });
+    }
+  },
+
+  async registrarVisualizacao(req: Request, res: Response) {
+    try {
+      const vagaId = Number(req.params.id);
+      if (isNaN(vagaId)) return res.status(400).json({ error: "ID da vaga inválido" });
+      const result = await VagasService.registrarVisualizacao(vagaId);
+      res.json(result);
+    } catch (err: any) {
+      res.status(400).json({ error: err.message || "Erro ao registrar visualização" });
     }
   },
   

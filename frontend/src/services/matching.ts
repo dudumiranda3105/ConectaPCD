@@ -1,77 +1,93 @@
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
+import { api } from './api'
 
-export interface MatchResult {
+export interface BarreiraInfo {
+  id: number
+  descricao: string
+  atendida: boolean
+  acessibilidadesNecessarias: string[]
+  acessibilidadesOferecidas: string[]
+}
+
+export interface MatchDetails {
+  subtiposAceitos: number
+  subtiposTotal: number
+  barreirasAtendidas: number
+  barreirasTotal: number
+  barreirasPorSubtipo: Array<{
+    subtipo: string
+    barreiras: BarreiraInfo[]
+  }>
+}
+
+export interface MatchScore {
+  id: number
   candidatoId: number
   vagaId: number
   scoreTotal: number
-  scoreAcessibilidades: number
   scoreSubtipos: number
-  acessibilidadesAtendidas: number
-  acessibilidadesTotal: number
-  detalhes: {
-    atendidas: Array<{ id: number; descricao: string; qualidade?: string }>
-    nao_atendidas: Array<{ id: number; descricao: string; prioridade: string }>
-    extras: Array<{ id: number; descricao: string }>
-  }
-}
-
-export interface VagaComMatch extends MatchResult {
-  vaga: {
+  scoreAcessibilidades: number
+  compativel: boolean
+  detalhes: MatchDetails
+  calculadoEm: string
+  vaga?: {
     id: number
     titulo: string
     descricao: string
+    localizacao?: string
     empresa: {
-      nome: string
+      id: number
+      nomeFantasia: string
+      nome?: string
     }
   }
 }
 
-export interface CandidatoComMatch extends MatchResult {
-  candidato: {
-    id: number
-    nome: string
-    email: string
+/**
+ * Calcula os scores de match para um candidato com todas as vagas ativas
+ */
+export const calculateMatches = async (candidatoId: number): Promise<MatchScore[]> => {
+  const response = await api.get<MatchScore[]>(`match/${candidatoId}/calculate`)
+  return response
+}
+
+/**
+ * Busca os scores de match já calculados para um candidato
+ */
+export const getMatchScores = async (candidatoId: number): Promise<MatchScore[]> => {
+  const response = await api.get<MatchScore[]>(`match/${candidatoId}/scores`)
+  return response
+}
+
+/**
+ * Busca ou calcula os match scores (primeiro tenta cache, depois calcula se necessário)
+ */
+export const getOrCalculateMatches = async (candidatoId: number): Promise<MatchScore[]> => {
+  try {
+    // Tenta buscar do cache primeiro
+    const cached = await getMatchScores(candidatoId)
+    
+    // Se o cache está vazio ou muito antigo (mais de 1 dia), recalcula
+    if (cached.length === 0 || isStale(cached[0]?.calculadoEm)) {
+      return await calculateMatches(candidatoId)
+    }
+    
+    return cached
+  } catch (error) {
+    // Se houver erro ao buscar cache, calcula diretamente
+    console.warn('Erro ao buscar cache de matches, recalculando:', error)
+    return await calculateMatches(candidatoId)
   }
 }
 
-export async function buscarVagasCompatíveis(
-  token: string,
-  candidatoId: number,
-  limite = 10
-): Promise<VagaComMatch[]> {
-  const res = await fetch(`${API_URL}/matching/candidato/${candidatoId}/vagas?limite=${limite}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  })
-  if (!res.ok) throw new Error('Erro ao buscar vagas compatíveis')
-  return res.json()
-}
-
-export async function buscarCandidatosCompatíveis(
-  token: string,
-  vagaId: number,
-  limite = 10
-): Promise<CandidatoComMatch[]> {
-  const res = await fetch(`${API_URL}/matching/vaga/${vagaId}/candidatos?limite=${limite}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  })
-  if (!res.ok) throw new Error('Erro ao buscar candidatos compatíveis')
-  return res.json()
-}
-
-export async function calcularCompatibilidade(
-  token: string,
-  candidatoId: number,
-  vagaId: number
-): Promise<MatchResult> {
-  const res = await fetch(`${API_URL}/matching/candidato/${candidatoId}/vaga/${vagaId}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  })
-  if (!res.ok) throw new Error('Erro ao calcular compatibilidade')
-  return res.json()
+/**
+ * Verifica se um match score está desatualizado (mais de 24 horas)
+ */
+const isStale = (calculadoEm: string | undefined): boolean => {
+  if (!calculadoEm) return true
+  
+  const calculatedDate = new Date(calculadoEm)
+  const now = new Date()
+  const hoursDiff = (now.getTime() - calculatedDate.getTime()) / (1000 * 60 * 60)
+  
+  return hoursDiff > 24
 }

@@ -1,7 +1,6 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import * as authRepo from "../repositories/auth.repo";
-import { prisma } from "../repositories/prisma";
 
 const JWT_SECRET = process.env.JWT_SECRET || "dev_secret_change_this";
 
@@ -15,37 +14,78 @@ export const register = async (payload: {
   if (existing) throw new Error("E-mail já cadastrado");
 
   const hashed = await bcrypt.hash(payload.password, 10);
-  const user = await authRepo.createUser({
-    name: payload.name,
-    email: payload.email,
-    password: hashed,
-    role: payload.role,
-  });
 
-  const token = jwt.sign({ userId: user.id, role: user.role }, JWT_SECRET, {
-    expiresIn: "7d",
-  });
+  // Normaliza role
+  const roleInput = payload.role ? String(payload.role).toUpperCase() : "CANDIDATE";
+  const role = roleInput === "COMPANY" ? "COMPANY" : roleInput === "ADMIN" ? "ADMIN" : "CANDIDATE";
 
-  // Buscar empresaId ou candidatoId se já existir
-  let empresaId: number | undefined;
-  let candidatoId: number | undefined;
+  let user: any;
+  let userType: string;
+  let entityId: number;
 
-  try {
-    if (user.role === "COMPANY") {
-      const empresa = await authRepo.findEmpresaByUserId(user.id);
-      empresaId = empresa?.id;
-    } else if (user.role === "CANDIDATE") {
-      const candidato = await authRepo.findCandidatoByUserId(user.id);
-      candidatoId = candidato?.id;
-    }
-  } catch (e) {
-    console.error("[AUTH][REGISTER] Erro ao buscar empresa/candidato:", e);
+  // Cria na tabela apropriada
+  if (role === "COMPANY") {
+    const empresa = await authRepo.createEmpresa({
+      name: payload.name,
+      email: payload.email,
+      password: hashed,
+    });
+    user = {
+      id: empresa.id,
+      name: empresa.nome,
+      email: empresa.email,
+      role: "COMPANY",
+      isActive: empresa.isActive,
+    };
+    userType = "empresa";
+    entityId = empresa.id;
+  } else if (role === "ADMIN") {
+    const admin = await authRepo.createAdmin({
+      name: payload.name,
+      email: payload.email,
+      password: hashed,
+    });
+    user = {
+      id: admin.id,
+      name: admin.nome,
+      email: admin.email,
+      role: "ADMIN",
+      isActive: admin.isActive,
+    };
+    userType = "admin";
+    entityId = admin.id;
+  } else {
+    const candidato = await authRepo.createCandidato({
+      name: payload.name,
+      email: payload.email,
+      password: hashed,
+    });
+    user = {
+      id: candidato.id,
+      name: candidato.nome,
+      email: candidato.email,
+      role: "CANDIDATE",
+      isActive: candidato.isActive,
+    };
+    userType = "candidato";
+    entityId = candidato.id;
   }
 
-  // @ts-ignore
-  delete user.password;
+  const token = jwt.sign(
+    { userId: user.id, role: user.role, userType },
+    JWT_SECRET,
+    { expiresIn: "7d" }
+  );
 
-  return { user: { ...user, empresaId, candidatoId }, token };
+  // Retorna com IDs específicos
+  const responseUser: any = { ...user };
+  if (userType === "empresa") {
+    responseUser.empresaId = entityId;
+  } else if (userType === "candidato") {
+    responseUser.candidatoId = entityId;
+  }
+
+  return { user: responseUser, token };
 };
 
 export const login = async (email: string, password: string) => {
@@ -55,54 +95,29 @@ export const login = async (email: string, password: string) => {
   const isValid = await bcrypt.compare(password, user.password);
   if (!isValid) throw new Error("Credenciais inválidas");
 
-  const token = jwt.sign({ userId: user.id, role: user.role }, JWT_SECRET, {
-    expiresIn: "7d",
-  });
+  if (!user.isActive) throw new Error("Usuário inativo");
 
-  // Buscar empresaId ou candidatoId conforme o role
-  let empresaId: number | undefined;
-  let candidatoId: number | undefined;
+  const token = jwt.sign(
+    { userId: user.id, role: user.role, userType: user.userType },
+    JWT_SECRET,
+    { expiresIn: "7d" }
+  );
 
-  try {
-    if (user.role === "COMPANY") {
-      let empresa = await authRepo.findEmpresaByUserId(user.id);
-      // Se não existe, criar empresa básica automaticamente
-      if (!empresa) {
-        console.log("[AUTH][LOGIN] Criando registro de empresa para userId:", user.id);
-        empresa = await prisma.empresa.create({
-          data: {
-            userId: user.id,
-            nome: user.name,
-            email: user.email,
-          },
-        });
-      }
-      empresaId = empresa?.id;
-      console.log("[AUTH][LOGIN] EmpresaId encontrado:", empresaId);
-    } else if (user.role === "CANDIDATE") {
-      let candidato = await authRepo.findCandidatoByUserId(user.id);
-      // Se não existe, criar candidato básico automaticamente
-      if (!candidato) {
-        console.log("[AUTH][LOGIN] Criando registro de candidato para userId:", user.id);
-        candidato = await prisma.candidato.create({
-          data: {
-            userId: user.id,
-            nome: user.name,
-            email: user.email,
-            escolaridade: "",
-          },
-        });
-      }
-      candidatoId = candidato?.id;
-      console.log("[AUTH][LOGIN] CandidatoId encontrado:", candidatoId);
-    }
-  } catch (e) {
-    console.error("[AUTH][LOGIN] Erro ao buscar/criar empresa/candidato:", e);
-    // Continua mesmo se falhar
+  // Remove password do retorno
+  const userResponse: any = {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    isActive: user.isActive,
+  };
+
+  // Adiciona ID específico
+  if (user.userType === "empresa") {
+    userResponse.empresaId = user.id;
+  } else if (user.userType === "candidato") {
+    userResponse.candidatoId = user.id;
   }
 
-  // @ts-ignore
-  delete user.password;
-
-  return { user: { ...user, empresaId, candidatoId }, token };
+  return { user: userResponse, token };
 };

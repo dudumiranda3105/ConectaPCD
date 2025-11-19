@@ -40,6 +40,13 @@ export const MatchingService = {
             }
           }
         }
+        ,recursosAssistivos: {
+          include: {
+            recurso: {
+              include: { mitigacoes: true }
+            }
+          }
+        }
       }
     })
 
@@ -69,20 +76,55 @@ export const MatchingService = {
 
     // 2. Score de Acessibilidades
     // Por enquanto, usar apenas necessidades derivadas das barreiras
+    // Mapear mitigação de barreiras pelos recursos assistivos do candidato
+    const mitigacoesBarreiras = new Map<number, string>() // barreiraId -> melhor eficiencia
+    candidato.recursosAssistivos?.forEach(cr => {
+      cr.recurso.mitigacoes.forEach(m => {
+        const atual = mitigacoesBarreiras.get(m.barreiraId)
+        const nova = m.eficiencia || 'baixa'
+        // prioridade de eficiência: alta > media > baixa
+        const rank = (e: string) => e === 'alta' ? 3 : e === 'media' ? 2 : 1
+        if (!atual || rank(nova) > rank(atual)) {
+          mitigacoesBarreiras.set(m.barreiraId, nova)
+        }
+      })
+    })
+
     const necessidadesDerivadas = candidato.subtipos.flatMap(cs =>
-      cs.barreiras.flatMap(csb =>
-        csb.barreira.acessibilidades.map(ba => ({
-          id: ba.acessibilidadeId,
-          descricao: ba.acessibilidade.descricao,
-          prioridade: 'importante' as const,
-          fonte: 'barreira'
-        }))
-      )
+      cs.barreiras.flatMap(csb => {
+        const eficiencia = mitigacoesBarreiras.get(csb.barreiraId)
+        return csb.barreira.acessibilidades.map(ba => {
+          // Ajuste de prioridade conforme mitigação
+          if (eficiencia === 'alta') {
+            return null // totalmente mitigada, remove necessidade
+          }
+            const prioridade = eficiencia === 'media' ? 'desejavel' : 'importante'
+            return {
+              id: ba.acessibilidadeId,
+              descricao: ba.acessibilidade.descricao,
+              prioridade: prioridade as 'importante' | 'desejavel',
+              fonte: 'barreira',
+              barreiraId: csb.barreiraId
+            }
+        }).filter(Boolean) as Array<{ id: number; descricao: string; prioridade: 'importante' | 'desejavel'; fonte: string; barreiraId: number }>
+      })
     )
 
     // Remover duplicatas
-    const necessidadesMap = new Map()
-    necessidadesDerivadas.forEach(n => necessidadesMap.set(n.id, n))
+    const necessidadesMap = new Map<number, typeof necessidadesDerivadas[0]>()
+    necessidadesDerivadas.forEach(n => {
+      if (!n) return
+      const existente = necessidadesMap.get(n.id)
+      if (!existente) {
+        necessidadesMap.set(n.id, n)
+      } else {
+        // manter prioridade mais alta (importante > desejavel)
+        const rank = (p: string) => p === 'importante' ? 2 : 1
+        if (rank(n.prioridade) > rank(existente.prioridade)) {
+          necessidadesMap.set(n.id, n)
+        }
+      }
+    })
     const necessidades = Array.from(necessidadesMap.values())
 
     // Acessibilidades oferecidas pela vaga
@@ -104,7 +146,8 @@ export const MatchingService = {
     // Score ponderado por prioridade
     let pontos = 0, maxPontos = 0
     necessidades.forEach(n => {
-      const peso = n.prioridade === 'essencial' ? 3 : n.prioridade === 'importante' ? 2 : 1
+      // nova escala: importante=2, desejavel=1
+      const peso = n.prioridade === 'importante' ? 2 : 1
       maxPontos += peso
       if (oferecidas.has(n.id)) pontos += peso
     })

@@ -56,7 +56,7 @@
 
     /* Accessibility Variables */
     --font-size-multiplier: 1;
-    --font-sans-default: 'Inter', sans-serif;
+    --font-sans-default: 'Lexend', sans-serif;
     --font-sans-lexend: 'Lexend', sans-serif;
     --font-sans-arial: Arial, sans-serif;
     --font-sans: var(--font-sans-default);
@@ -162,6 +162,245 @@
   }
   .highlight-links a {
     @apply underline bg-primary/10 text-primary font-semibold p-1 rounded;
+  }
+
+  /* Reduzir movimento: remove transições/animações e usa scroll instantâneo */
+  .reduce-motion * {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* Tons de cinza: aplica filtro geral */
+  .grayscale {
+    filter: grayscale(1);
+  }
+
+  /* Modos para Daltônicos - Simulação de filtros de cores */
+  
+  /* Protanopia (dificuldade com vermelho) */
+  .colorblind-protanopia {
+    filter: url('#protanopia-filter');
+  }
+  
+  /* Deuteranopia (dificuldade com verde) */
+  .colorblind-deuteranopia {
+    filter: url('#deuteranopia-filter');
+  }
+  
+  /* Tritanopia (dificuldade com azul) */
+  .colorblind-tritanopia {
+    filter: url('#tritanopia-filter');
+  }
+  
+  /* Acromatopsia (sem percepção de cores) */
+  .colorblind-achromatopsia {
+    filter: grayscale(1) contrast(1.1);
+  }
+
+  /* Fallback para navegadores sem suporte a SVG filters */
+  @supports not (filter: url('#protanopia-filter')) {
+    .colorblind-protanopia {
+      filter: hue-rotate(20deg) saturate(0.8);
+    }
+    .colorblind-deuteranopia {
+      filter: hue-rotate(-10deg) saturate(0.7);
+    }
+    .colorblind-tritanopia {
+      filter: hue-rotate(45deg) saturate(0.6);
+    }
+  }
+
+  /* Scrollbar customizada */
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    @apply bg-blue-50 dark:bg-blue-950/20 rounded-full;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    @apply bg-blue-400 dark:bg-blue-600 rounded-full border-2 border-transparent bg-clip-padding;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    @apply bg-blue-500 dark:bg-blue-500;
+  }
+
+  /* Firefox */
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(96, 165, 250) rgb(239, 246, 255);
+  }
+
+  .dark .scrollbar-thin {
+    scrollbar-color: rgb(37, 99, 235) rgba(30, 58, 138, 0.2);
+  }
+
+  /* ScrollArea Customizada para Job Details */
+  [data-radix-scroll-area-viewport] {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(147, 197, 253) transparent;
+  }
+
+  .dark [data-radix-scroll-area-viewport] {
+    scrollbar-color: rgb(59, 130, 246) transparent;
+  }
+
+  [data-radix-scroll-area-viewport]::-webkit-scrollbar {
+    width: 10px;
+  }
+
+  [data-radix-scroll-area-viewport]::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+
+  [data-radix-scroll-area-viewport]::-webkit-scrollbar-thumb {
+    @apply bg-blue-300 dark:bg-blue-500 rounded-full;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+
+  [data-radix-scroll-area-viewport]::-webkit-scrollbar-thumb:hover {
+    @apply bg-blue-400 dark:bg-blue-400;
+  }
+
+  /* Modal ScrollArea com estilo premium */
+  .modal-scroll-area {
+    scrollbar-gutter: stable;
+  }
+
+  .modal-scroll-area [data-radix-scroll-area-viewport] {
+    scrollbar-width: auto;
+    scrollbar-color: rgb(96, 165, 250) transparent;
+  }
+
+  .modal-scroll-area [data-radix-scroll-area-viewport]::-webkit-scrollbar {
+    width: 10px;
+  }
+
+  .modal-scroll-area [data-radix-scroll-area-viewport]::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+
+  .modal-scroll-area [data-radix-scroll-area-viewport]::-webkit-scrollbar-thumb {
+    @apply bg-gradient-to-b from-blue-400 to-indigo-400 dark:from-blue-500 dark:to-indigo-600 rounded-full;
+    border: 3px solid transparent;
+    background-clip: padding-box;
+    min-height: 40px;
+  }
+
+  .modal-scroll-area [data-radix-scroll-area-viewport]::-webkit-scrollbar-thumb:hover {
+    @apply bg-gradient-to-b from-blue-500 to-indigo-500 dark:from-blue-400 dark:to-indigo-500 shadow-lg;
+  }
+
+  .modal-scroll-area [data-radix-scroll-area-viewport]::-webkit-scrollbar-thumb:active {
+    @apply bg-gradient-to-b from-blue-600 to-indigo-600 dark:from-blue-300 dark:to-indigo-400;
+  }
+
+  /* Acessibilidades ScrollArea - Visible Scrollbar */
+  .accessibility-scroll [data-radix-scroll-area-viewport] {
+    scrollbar-width: auto;
+    scrollbar-color: rgb(96, 165, 250) rgb(226, 232, 240);
+  }
+
+  .accessibility-scroll [data-radix-scroll-area-viewport]::-webkit-scrollbar {
+    width: 8px;
+    display: block;
+  }
+
+  .accessibility-scroll [data-radix-scroll-area-viewport]::-webkit-scrollbar-track {
+    background: rgb(226, 232, 240);
+    border-radius: 4px;
+  }
+
+  .accessibility-scroll [data-radix-scroll-area-viewport]::-webkit-scrollbar-thumb {
+    background: linear-gradient(to bottom, rgb(96, 165, 250), rgb(129, 140, 248));
+    border-radius: 4px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+
+  .accessibility-scroll [data-radix-scroll-area-viewport]::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(to bottom, rgb(59, 130, 246), rgb(99, 102, 241));
+    background-clip: padding-box;
+  }
+
+  /* Dark mode */
+  @media (prefers-color-scheme: dark) {
+    .accessibility-scroll [data-radix-scroll-area-viewport] {
+      scrollbar-color: rgb(59, 130, 246) rgb(30, 41, 59);
+    }
+
+    .accessibility-scroll [data-radix-scroll-area-viewport]::-webkit-scrollbar-track {
+      background: rgb(30, 41, 59);
+    }
+
+    .accessibility-scroll [data-radix-scroll-area-viewport]::-webkit-scrollbar-thumb {
+      background: linear-gradient(to bottom, rgb(59, 130, 246), rgb(79, 70, 229));
+      background-clip: padding-box;
+    }
+
+    .accessibility-scroll [data-radix-scroll-area-viewport]::-webkit-scrollbar-thumb:hover {
+      background: linear-gradient(to bottom, rgb(37, 99, 235), rgb(55, 48, 163));
+      background-clip: padding-box;
+    }
+  }
+
+  /* Mobile Optimizations */
+  @media (max-width: 640px) {
+    /* Melhor toque em elementos interativos */
+    button, a, [role="button"] {
+      min-height: 44px;
+      min-width: 44px;
+    }
+
+    /* Reduz padding excessivo em mobile */
+    .container {
+      padding-left: 1rem;
+      padding-right: 1rem;
+    }
+
+    /* Melhora legibilidade de textos pequenos */
+    body {
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
+    }
+
+    /* Melhora scroll em áreas touch */
+    * {
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* Desabilita zoom em inputs (UX mobile) */
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="tel"],
+    input[type="number"],
+    textarea,
+    select {
+      font-size: 16px;
+    }
+  }
+
+  /* Hover effects apenas em dispositivos com mouse */
+  @media (hover: hover) and (pointer: fine) {
+    .hover-only:hover {
+      /* Seus efeitos hover aqui */
+    }
+  }
+
+  /* Melhora área de toque em dispositivos touch */
+  @media (pointer: coarse) {
+    button,
+    a,
+    input,
+    select,
+    textarea {
+      padding: 0.75rem;
+    }
   }
 }
 

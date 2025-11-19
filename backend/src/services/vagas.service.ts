@@ -110,14 +110,45 @@ export const VagasService = {
   },
 
   async vincularAcessibilidadesPorNome(vagaId: number, nomes: string[]) {
-    // Buscar IDs das acessibilidades pelos nomes/descrições
+    console.log('[VagasService] Vinculando acessibilidades:', { vagaId, nomes });
+    
+    // Buscar IDs das acessibilidades pelos nomes/descrições (case-insensitive)
     const acessibilidades = await prisma.acessibilidade.findMany({
-      where: { descricao: { in: nomes } }
+      where: { 
+        descricao: { 
+          in: nomes,
+          mode: 'insensitive'
+        } 
+      }
     });
     
-    if (acessibilidades.length > 0) {
-      const acessibilidadeIds = acessibilidades.map(a => a.id);
-      await VagasRepo.linkAcessibilidades(vagaId, acessibilidadeIds);
+    console.log('[VagasService] Acessibilidades encontradas:', acessibilidades);
+    
+    if (acessibilidades.length === 0) {
+      console.warn('[VagasService] Nenhuma acessibilidade encontrada para os nomes fornecidos');
+      return;
     }
+    
+    if (acessibilidades.length !== nomes.length) {
+      console.warn('[VagasService] Algumas acessibilidades não foram encontradas:', {
+        esperadas: nomes.length,
+        encontradas: acessibilidades.length
+      });
+    }
+    
+    const acessibilidadeIds = acessibilidades.map(a => a.id);
+    await VagasRepo.linkAcessibilidades(vagaId, acessibilidadeIds);
+    
+    console.log('[VagasService] Acessibilidades vinculadas com sucesso:', acessibilidadeIds);
+    
+    // Verificar se foram realmente salvas
+    const vagaComAcessibilidades = await VagasRepo.findById(vagaId);
+    console.log('[VagasService] Verificação - Acessibilidades salvas na vaga:', vagaComAcessibilidades?.acessibilidades);
+  },
+
+  async registrarVisualizacao(vagaId: number) {
+    const vaga = await VagasRepo.findById(vagaId);
+    if (!vaga) throw new Error("Vaga não encontrada");
+    return VagasRepo.incrementViews(vagaId);
   },
 };

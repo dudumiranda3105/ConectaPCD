@@ -20,6 +20,7 @@ import {
   companyDataSchema,
   CompanyDataValues,
   SETORES_ATIVIDADE,
+  PORTES_EMPRESA,
 } from '@/lib/schemas/company-signup-schema'
 import { useCompanySignup } from '@/providers/CompanySignupProvider'
 import { fetchCnpjData } from '@/services/cnpj'
@@ -32,6 +33,7 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import {
   Select,
   SelectContent,
@@ -152,6 +154,35 @@ export const Step1CompanyData = forwardRef<StepFormHandle>((_, ref) => {
           />
           <FormField
             control={form.control}
+            name="porte"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Porte da Empresa</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o porte" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {PORTES_EMPRESA.map((porte) => (
+                      <SelectItem key={porte} value={porte}>
+                        {porte}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
             name="setorAtividade"
             render={({ field }) => (
               <FormItem>
@@ -178,6 +209,27 @@ export const Step1CompanyData = forwardRef<StepFormHandle>((_, ref) => {
             )}
           />
         </div>
+        <FormField
+          control={form.control}
+          name="descricao"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Descrição da Empresa (Opcional)</FormLabel>
+              <FormControl>
+                <Textarea 
+                  placeholder="Descreva sua empresa, seus valores e missão..." 
+                  {...field} 
+                  className="min-h-[100px] resize-none"
+                  maxLength={1000}
+                />
+              </FormControl>
+              <p className="text-xs text-muted-foreground mt-1">
+                {field.value?.length || 0}/1000 caracteres
+              </p>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
             control={form.control}
@@ -256,6 +308,7 @@ export const Step1CompanyData = forwardRef<StepFormHandle>((_, ref) => {
             )}
           />
         </div>
+        <button type="submit" className="hidden" />
       </form>
     </Form>
   )

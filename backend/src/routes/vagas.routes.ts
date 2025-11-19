@@ -9,6 +9,8 @@ r.get("/empresa/:id", VagasController.listar);
 r.get("/:id", VagasController.detalhar);
 r.post("/", VagasController.criar);
 r.put("/:id", VagasController.atualizar);
+// Registrar visualização
+r.post("/:id/view", VagasController.registrarVisualizacao);
 
 // N:N
 r.post("/:id/subtipos", VagasController.vincularSubtipos);

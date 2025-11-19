@@ -8,11 +8,28 @@ export const MatchRepo = {
       include: {
         subtipos: {
           include: {
-            subtipo: true,
+            subtipo: {
+              include: {
+                barreiras: {
+                  include: {
+                    barreira: {
+                      include: {
+                        acessibilidades: {
+                          include: { acessibilidade: true },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
             barreiras: {
               include: { barreira: true },
             },
           },
+        },
+        acessibilidades: {
+          include: { acessibilidade: true },
         },
       },
     });
@@ -20,6 +37,7 @@ export const MatchRepo = {
 
   async getVagasComDetalhes() {
     return prisma.vaga.findMany({
+      where: { isActive: true },
       include: {
         empresa: true,
         subtiposAceitos: { include: { subtipo: true } },
@@ -30,5 +48,49 @@ export const MatchRepo = {
 
   async getMapaBarreiraAcessibilidade() {
     return prisma.barreiraAcessibilidade.findMany();
+  },
+
+  async saveMatchScore(data: {
+    candidatoId: number;
+    vagaId: number;
+    scoreTotal: number;
+    scoreAcessibilidades: number;
+    scoreSubtipos: number;
+    acessibilidadesAtendidas: number;
+    acessibilidadesTotal: number;
+    detalhes: any;
+  }) {
+    return prisma.matchScore.upsert({
+      where: {
+        candidatoId_vagaId: {
+          candidatoId: data.candidatoId,
+          vagaId: data.vagaId,
+        },
+      },
+      create: data,
+      update: {
+        scoreTotal: data.scoreTotal,
+        scoreAcessibilidades: data.scoreAcessibilidades,
+        scoreSubtipos: data.scoreSubtipos,
+        acessibilidadesAtendidas: data.acessibilidadesAtendidas,
+        acessibilidadesTotal: data.acessibilidadesTotal,
+        detalhes: data.detalhes,
+        updatedAt: new Date(),
+      },
+    });
+  },
+
+  async getMatchScores(candidatoId: number) {
+    return prisma.matchScore.findMany({
+      where: { candidatoId },
+      include: {
+        vaga: {
+          include: {
+            empresa: true,
+          },
+        },
+      },
+      orderBy: { scoreTotal: 'desc' },
+    });
   },
 };
