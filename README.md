@@ -353,6 +353,7 @@ Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para ma
 - Comunidade PCD pela inspiração e feedback
 - Empresas parceiras comprometidas com a inclusão
 - Todos os contribuidores do projeto
+- Uni-FACEF – Centro Universitário Municipal de Franca
 
 ---
 
