@@ -19,16 +19,14 @@ export const AccessibilityButton = () => {
           <DialogTrigger asChild>
             <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50">
               <Button
-                className="relative h-10 px-4 sm:h-11 sm:px-5 rounded-lg shadow-xl border border-white/20 bg-gradient-to-br from-blue-500 via-indigo-600 to-violet-600 text-white transition-all duration-300 hover:scale-105 hover:-translate-y-0.5 hover:shadow-[0_20px_50px_rgba(79,70,229,0.35)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/50 group"
+                className="relative h-12 w-12 sm:h-14 sm:w-14 rounded-lg shadow-xl border border-white/20 bg-gradient-to-br from-blue-500 via-indigo-600 to-violet-600 text-white transition-all duration-300 hover:scale-105 hover:-translate-y-0.5 hover:shadow-[0_20px_50px_rgba(79,70,229,0.35)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/50 group p-0"
                 aria-label="Abrir menu de acessibilidade"
               >
                 {/* Brilho interno */}
                 <span className="absolute inset-0 rounded-lg bg-gradient-to-tr from-white/0 via-white/10 to-white/0 opacity-50" aria-hidden />
                 
                 {/* Ícone com animação */}
-                <Accessibility className="h-4 w-4 sm:h-5 sm:w-5 relative transition-transform duration-300 group-hover:scale-110 mr-2" />
-                
-                <span className="text-sm font-semibold">Acessibilidade</span>
+                <Accessibility className="h-5 w-5 sm:h-6 sm:w-6 relative transition-transform duration-300 group-hover:scale-110" />
               </Button>
             </div>
           </DialogTrigger>

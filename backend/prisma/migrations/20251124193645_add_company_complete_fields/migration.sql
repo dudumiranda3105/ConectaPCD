@@ -1,0 +1,18 @@
+-- AlterTable
+ALTER TABLE "Empresa" ADD COLUMN     "acessibilidadesOferecidas" TEXT,
+ADD COLUMN     "bairro" TEXT,
+ADD COLUMN     "barreiras" TEXT,
+ADD COLUMN     "cep" TEXT,
+ADD COLUMN     "cidade" TEXT,
+ADD COLUMN     "complemento" TEXT,
+ADD COLUMN     "estado" TEXT,
+ADD COLUMN     "logradouro" TEXT,
+ADD COLUMN     "numero" TEXT,
+ADD COLUMN     "outrasBarreiras" TEXT,
+ADD COLUMN     "outrosRecursosAcessibilidade" TEXT,
+ADD COLUMN     "politicasInclusao" TEXT,
+ADD COLUMN     "possuiSistemaInterno" BOOLEAN DEFAULT false,
+ADD COLUMN     "responsavelCargo" TEXT,
+ADD COLUMN     "responsavelEmail" TEXT,
+ADD COLUMN     "responsavelNome" TEXT,
+ADD COLUMN     "responsavelTelefone" TEXT;

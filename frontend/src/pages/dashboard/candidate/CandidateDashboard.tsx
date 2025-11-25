@@ -8,6 +8,7 @@ import { JobCardSkeleton } from '@/components/dashboard/candidate/JobCardSkeleto
 import { useJobStore } from '@/stores/job-store'
 import { listarVagasPublicas } from '@/services/vagas'
 import { listarCandidaturasCandidato } from '@/services/candidaturas'
+import { acessibilidadesService, Acessibilidade } from '@/services/acessibilidades'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -24,6 +25,23 @@ export default function CandidateDashboard() {
     regime: 'all',
     accessibilities: [] as string[],
   })
+  const [acessibilidades, setAcessibilidades] = useState<Acessibilidade[]>([])
+  const [loadingAcessibilidades, setLoadingAcessibilidades] = useState(true)
+
+  // Carregar acessibilidades do banco de dados
+  useEffect(() => {
+    const fetchAcessibilidades = async () => {
+      try {
+        const data = await acessibilidadesService.list()
+        setAcessibilidades(data)
+      } catch (error) {
+        console.error('Erro ao carregar acessibilidades:', error)
+      } finally {
+        setLoadingAcessibilidades(false)
+      }
+    }
+    fetchAcessibilidades()
+  }, [])
 
   useEffect(() => {
     const fetchJobs = async () => {
@@ -188,25 +206,25 @@ export default function CandidateDashboard() {
   return (
     <div className="space-y-6">
       {/* Header aprimorado com saudação e estatísticas */}
-      <div className="relative overflow-hidden rounded-2xl border border-indigo-200/20 bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-700 shadow-2xl shadow-indigo-500/20">
+      <div className="relative overflow-hidden rounded-xl sm:rounded-2xl border border-indigo-200/20 bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-700 shadow-2xl shadow-indigo-500/20">
         {/* Elementos decorativos de fundo */}
         <div className="absolute -right-32 -top-32 h-72 w-72 rounded-full bg-white/10 blur-3xl" />
         <div className="absolute -left-20 -bottom-20 h-64 w-64 rounded-full bg-white/5 blur-2xl" />
         <div className="absolute right-1/4 top-1/3 h-40 w-40 rounded-full bg-pink-400/10 blur-2xl" />
         
-        <div className="relative p-8 md:p-10">
-          <div className="flex flex-col gap-8">
+        <div className="relative p-4 sm:p-6 md:p-8 lg:p-10">
+          <div className="flex flex-col gap-4 sm:gap-6 md:gap-8">
             {/* Saudação e descrição */}
-            <div className="space-y-3">
-              <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm">
-                  <Briefcase className="h-6 w-6 text-white" />
+            <div className="space-y-2 sm:space-y-3">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm">
+                  <Briefcase className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-white drop-shadow-sm">
+                  <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold tracking-tight text-white drop-shadow-sm">
                     Olá, {user?.name?.split(' ')[0] || 'Candidato'}! 👋
                   </h1>
-                  <p className="mt-1 text-base text-indigo-100/90">
+                  <p className="mt-0.5 sm:mt-1 text-xs sm:text-sm md:text-base text-indigo-100/90">
                     {loading
                       ? 'Buscando as melhores oportunidades para você...'
                       : `Encontramos ${filteredJobs.length} vaga${filteredJobs.length === 1 ? '' : 's'} perfeita${filteredJobs.length === 1 ? '' : 's'} para seu perfil`}
@@ -215,54 +233,54 @@ export default function CandidateDashboard() {
               </div>
               
               <div className="flex flex-wrap items-center gap-2">
-                <Badge className="bg-white/20 text-white border-white/30 hover:bg-white/30 backdrop-blur-sm">
+                <Badge className="bg-white/20 text-white border-white/30 hover:bg-white/30 backdrop-blur-sm text-xs">
                   ✨ Inclusão em primeiro lugar
                 </Badge>
-                <Badge className="bg-emerald-500/20 text-emerald-100 border-emerald-300/30 hover:bg-emerald-500/30 backdrop-blur-sm">
+                <Badge className="bg-emerald-500/20 text-emerald-100 border-emerald-300/30 hover:bg-emerald-500/30 backdrop-blur-sm text-xs">
                   🎯 Vagas compatíveis
                 </Badge>
               </div>
             </div>
 
             {/* Cards de estatísticas */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="group relative overflow-hidden rounded-xl bg-white/10 backdrop-blur-md border border-white/20 p-5 transition-all hover:bg-white/15 hover:scale-105 hover:shadow-xl">
+            <div className="grid grid-cols-1 xs:grid-cols-3 gap-3 sm:gap-4">
+              <div className="group relative overflow-hidden rounded-lg sm:rounded-xl bg-white/10 backdrop-blur-md border border-white/20 p-3 sm:p-4 md:p-5 transition-all hover:bg-white/15 hover:scale-[1.02] md:hover:scale-105 hover:shadow-xl">
                 <div className="absolute -right-4 -top-4 h-24 w-24 rounded-full bg-indigo-400/20 blur-2xl transition-all group-hover:bg-indigo-400/30" />
                 <div className="relative flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-indigo-100/80 mb-1">Vagas Disponíveis</p>
-                    <p className="text-3xl font-bold text-white">
+                    <p className="text-xs sm:text-sm font-medium text-indigo-100/80 mb-0.5 sm:mb-1">Vagas Disponíveis</p>
+                    <p className="text-2xl sm:text-3xl font-bold text-white">
                       {jobs.filter((j) => j.status === 'Ativa').length}
                     </p>
                   </div>
-                  <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-white/20">
-                    <Briefcase className="h-6 w-6 text-white" />
+                  <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-lg bg-white/20">
+                    <Briefcase className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                   </div>
                 </div>
               </div>
 
-              <div className="group relative overflow-hidden rounded-xl bg-white/10 backdrop-blur-md border border-white/20 p-5 transition-all hover:bg-white/15 hover:scale-105 hover:shadow-xl">
+              <div className="group relative overflow-hidden rounded-lg sm:rounded-xl bg-white/10 backdrop-blur-md border border-white/20 p-3 sm:p-4 md:p-5 transition-all hover:bg-white/15 hover:scale-[1.02] md:hover:scale-105 hover:shadow-xl">
                 <div className="absolute -right-4 -top-4 h-24 w-24 rounded-full bg-pink-400/20 blur-2xl transition-all group-hover:bg-pink-400/30" />
                 <div className="relative flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-indigo-100/80 mb-1">Para Você</p>
-                    <p className="text-3xl font-bold text-white">{filteredJobs.length}</p>
+                    <p className="text-xs sm:text-sm font-medium text-indigo-100/80 mb-0.5 sm:mb-1">Para Você</p>
+                    <p className="text-2xl sm:text-3xl font-bold text-white">{filteredJobs.length}</p>
                   </div>
-                  <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-white/20">
-                    <Sparkles className="h-6 w-6 text-white" />
+                  <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-lg bg-white/20">
+                    <Sparkles className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                   </div>
                 </div>
               </div>
 
-              <div className="group relative overflow-hidden rounded-xl bg-white/10 backdrop-blur-md border border-white/20 p-5 transition-all hover:bg-white/15 hover:scale-105 hover:shadow-xl">
+              <div className="group relative overflow-hidden rounded-lg sm:rounded-xl bg-white/10 backdrop-blur-md border border-white/20 p-3 sm:p-4 md:p-5 transition-all hover:bg-white/15 hover:scale-[1.02] md:hover:scale-105 hover:shadow-xl">
                 <div className="absolute -right-4 -top-4 h-24 w-24 rounded-full bg-emerald-400/20 blur-2xl transition-all group-hover:bg-emerald-400/30" />
                 <div className="relative flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-indigo-100/80 mb-1">Candidaturas</p>
-                    <p className="text-3xl font-bold text-white">{appliedJobs.size}</p>
+                    <p className="text-xs sm:text-sm font-medium text-indigo-100/80 mb-0.5 sm:mb-1">Candidaturas</p>
+                    <p className="text-2xl sm:text-3xl font-bold text-white">{appliedJobs.size}</p>
                   </div>
-                  <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-white/20">
-                    <CheckCircle2 className="h-6 w-6 text-white" />
+                  <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-lg bg-white/20">
+                    <CheckCircle2 className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                   </div>
                 </div>
               </div>
@@ -271,12 +289,12 @@ export default function CandidateDashboard() {
         </div>
       </div>
 
-      <div className="flex items-end justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 sm:gap-4">
         <div>
-          <h2 className="text-xl md:text-2xl font-semibold tracking-tight">Recomendações para você</h2>
-          <p className="text-sm text-muted-foreground">Filtre por cidade, setor, regime ou acessibilidade oferecida.</p>
+          <h2 className="text-lg sm:text-xl md:text-2xl font-semibold tracking-tight">Recomendações para você</h2>
+          <p className="text-xs sm:text-sm text-muted-foreground">Filtre por cidade, setor, regime ou acessibilidade oferecida.</p>
         </div>
-        <Button variant="outline" disabled={loading} onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+        <Button variant="outline" size="sm" disabled={loading} onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="self-start sm:self-auto">
           Atualizar sugestões
         </Button>
       </div>
@@ -286,6 +304,8 @@ export default function CandidateDashboard() {
         onAccessibilityChange={handleAccessibilityChange}
         onClearFilters={clearFilters}
         uniqueCities={uniqueCities}
+        acessibilidades={acessibilidades}
+        loadingAcessibilidades={loadingAcessibilidades}
       />
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         {loading ? (

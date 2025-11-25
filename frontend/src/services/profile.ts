@@ -6,6 +6,8 @@ export interface CandidateProfileData {
   cpf?: string
   email?: string
   telefone?: string
+  dataNascimento?: string
+  genero?: string
   escolaridade: string
   curriculoUrl?: string
   avatarUrl?: string
@@ -50,6 +52,8 @@ export async function updateCandidateProfile(
     cpf?: string
     email?: string
     telefone?: string
+    dataNascimento?: string
+    genero?: string
     educationLevel?: string
   }
 ) {

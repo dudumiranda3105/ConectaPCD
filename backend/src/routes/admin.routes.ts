@@ -12,6 +12,8 @@ router.get('/stats', AdminController.getStats);
 router.get('/activities', AdminController.getActivities);
 router.get('/users', AdminController.getUsers);
 router.get('/admins', AdminController.getAdmins);
+router.post('/admins', AdminController.createAdmin);
+router.delete('/admins/:adminId', AdminController.deleteAdmin);
 router.get('/companies', AdminController.getCompanies);
 router.get('/jobs/moderation', AdminController.getJobsForModeration);
 router.post('/jobs/:jobId/moderate', AdminController.moderateJob);

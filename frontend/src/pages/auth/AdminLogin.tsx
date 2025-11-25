@@ -155,17 +155,6 @@ export default function AdminLoginPage() {
             </Form>
           </CardContent>
         </Card>
-        <div className="text-center space-y-2">
-          <p className="text-sm text-muted-foreground">
-            Não tem uma conta de administrador?
-          </p>
-          <Link
-            to="/admin/cadastro"
-            className="inline-flex items-center gap-2 text-base font-semibold bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent hover:from-indigo-700 hover:to-violet-700 transition-all"
-          >
-            Criar conta de administrador →
-          </Link>
-        </div>
       </div>
     </div>
   )

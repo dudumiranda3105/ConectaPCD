@@ -26,21 +26,24 @@ export function MatchScoreCard({ matchScore }: MatchScoreCardProps) {
   }
   
   const getScoreColor = (score: number) => {
-    if (score >= 80) return 'from-emerald-500 to-green-600'
-    if (score >= 60) return 'from-amber-500 to-orange-600'
+    if (score === 100) return 'from-blue-500 to-indigo-600'
+    if (score >= 60) return 'from-emerald-500 to-green-600'
+    if (score >= 26) return 'from-orange-500 to-amber-600'
     return 'from-rose-500 to-red-600'
   }
 
   const getScoreTextColor = (score: number) => {
-    if (score >= 80) return 'text-emerald-600 dark:text-emerald-400'
-    if (score >= 60) return 'text-amber-600 dark:text-amber-400'
+    if (score === 100) return 'text-blue-600 dark:text-blue-400'
+    if (score >= 60) return 'text-emerald-600 dark:text-emerald-400'
+    if (score >= 26) return 'text-orange-600 dark:text-orange-400'
     return 'text-rose-600 dark:text-rose-400'
   }
 
   const getScoreBadge = (score: number) => {
-    if (score >= 80) return { emoji: '⭐', text: 'Excelente Match!' }
+    if (score === 100) return { emoji: '💙', text: 'Match Perfeito' }
     if (score >= 60) return { emoji: '✅', text: 'Bom Match' }
-    return { emoji: '🔶', text: 'Match Razoável' }
+    if (score >= 26) return { emoji: '🔶', text: 'Match Razoável' }
+    return { emoji: '🔴', text: 'Match Baixo' }
   }
 
   const scoreBadge = getScoreBadge(scoreTotal)

@@ -10,8 +10,14 @@ export const TiposRepo = {
       include: { subtipos: { orderBy: { id: "asc" } } },
     });
   },
-  create(nome: string) {
-    return prisma.tipoDeficiencia.create({ data: { nome } });
+  create(nome: string, descricao?: string) {
+    return prisma.tipoDeficiencia.create({ data: { nome, descricao } });
+  },
+  update(id: number, nome: string, descricao?: string) {
+    return prisma.tipoDeficiencia.update({ 
+      where: { id }, 
+      data: { nome, descricao } 
+    });
   },
   findById(id: number) {
     return prisma.tipoDeficiencia.findUnique({ where: { id } });

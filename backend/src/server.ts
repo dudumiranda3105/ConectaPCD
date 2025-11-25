@@ -21,6 +21,7 @@ import curriculoRoutes from "./routes/curriculo.routes";
 import avatarRoutes from "./routes/avatar.routes";
 import assistiveResourcesRoutes from './routes/assistiveResources.routes';
 import adminRoutes from './routes/admin.routes';
+import mensagensRoutes from './routes/mensagens.routes';
 import path from 'path';
 const app = express();
 const prisma = new PrismaClient();
@@ -58,6 +59,8 @@ app.use('/curriculo', curriculoRoutes);
 app.use('/avatar', avatarRoutes);
 // rotas de administração
 app.use('/admin', adminRoutes);
+// rotas de mensagens/chat
+app.use('/mensagens', mensagensRoutes);
 // servir arquivos de upload
 app.use('/uploads', express.static(path.resolve(process.cwd(), 'uploads')));
 

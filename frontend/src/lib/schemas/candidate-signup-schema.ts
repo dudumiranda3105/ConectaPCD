@@ -43,7 +43,7 @@ export const personalDataSignupSchema = personalDataSchema.refine(
 
 export const addressSchema = z.object({
   cep: z.string().regex(/^\d{5}-\d{3}$/, { message: 'CEP inválido.' }),
-  uf: z.string().length(2, { message: 'UF deve ter 2 caracteres.' }),
+  uf: z.string().min(2, { message: 'O estado é obrigatório.' }),
   cidade: z.string().min(1, { message: 'A cidade é obrigatória.' }),
   bairro: z.string().min(1, { message: 'O bairro é obrigatório.' }),
   rua: z.string().min(1, { message: 'A rua é obrigatória.' }),
@@ -52,10 +52,12 @@ export const addressSchema = z.object({
 })
 
 export const experienceSchema = z.object({
-  company: z.string().min(1, { message: 'Nome da empresa é obrigatório.' }),
-  role: z.string().min(1, { message: 'Cargo é obrigatório.' }),
-  startDate: z.string().min(1, { message: 'Data de início é obrigatória.' }),
-  endDate: z.string().optional(),
+  empresa: z.string().min(1, { message: 'Nome da empresa é obrigatório.' }),
+  cargo: z.string().min(1, { message: 'Cargo é obrigatório.' }),
+  dataInicio: z.string().min(1, { message: 'Data de início é obrigatória.' }),
+  dataFim: z.string().optional(),
+  atualmenteTrabalha: z.boolean().default(false),
+  descricao: z.string().max(500, { message: 'Descrição deve ter no máximo 500 caracteres.' }).optional(),
 })
 
 export const EDUCATION_LEVELS = [
@@ -79,8 +81,7 @@ export const educationExperienceSchema = z.object({
   curriculoUrl: z.string().url({ message: 'URL inválida.' }).optional().or(z.literal('')),
   linkedin: z.string().url({ message: 'URL inválida.' }).optional().or(z.literal('')),
   portfolio: z.string().url({ message: 'URL inválida.' }).optional().or(z.literal('')),
-  biografia: z.string().max(500, { message: 'Biografia deve ter no máximo 500 caracteres.' }).optional(),
-  experiences: z.array(experienceSchema).optional(),
+  experiences: z.array(experienceSchema).optional().default([]),
 })
 
 export const DISABILITY_TYPES = [
@@ -143,6 +144,7 @@ export const candidateSignupSchema = z.object({
 
 export type PersonalDataValues = z.infer<typeof personalDataSchema>
 export type AddressValues = z.infer<typeof addressSchema>
+export type ExperienceValues = z.infer<typeof experienceSchema>
 export type EducationExperienceValues = z.infer<
   typeof educationExperienceSchema
 >

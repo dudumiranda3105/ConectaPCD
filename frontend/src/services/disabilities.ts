@@ -3,6 +3,7 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
 export interface DisabilityType {
   id: number
   nome: string
+  descricao?: string
 }
 
 export interface DisabilitySubtype {
@@ -44,7 +45,7 @@ export const getBarriers = async (): Promise<Barrier[]> => {
 
 export const createDisabilityType = async (
   name: string,
-  description: string,
+  description?: string,
 ): Promise<DisabilityType> => {
   const token = localStorage.getItem('auth_token')
   const res = await fetch(`${API_URL}/tipos`, {
@@ -53,7 +54,7 @@ export const createDisabilityType = async (
       'Content-Type': 'application/json',
       ...(token && { Authorization: `Bearer ${token}` }),
     },
-    body: JSON.stringify({ nome: name }),
+    body: JSON.stringify({ nome: name, descricao: description }),
   })
   if (!res.ok) throw new Error('Erro ao criar tipo de deficiência')
   return res.json()
@@ -62,7 +63,7 @@ export const createDisabilityType = async (
 export const updateDisabilityType = async (
   id: number,
   name: string,
-  description: string,
+  description?: string,
 ): Promise<DisabilityType | null> => {
   const token = localStorage.getItem('auth_token')
   const res = await fetch(`${API_URL}/tipos/${id}`, {
@@ -71,7 +72,7 @@ export const updateDisabilityType = async (
       'Content-Type': 'application/json',
       ...(token && { Authorization: `Bearer ${token}` }),
     },
-    body: JSON.stringify({ nome: name }),
+    body: JSON.stringify({ nome: name, descricao: description }),
   })
   if (!res.ok) throw new Error('Erro ao atualizar tipo de deficiência')
   return res.json()

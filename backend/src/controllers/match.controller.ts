@@ -40,10 +40,9 @@ export const MatchController = {
         calculadoEm: new Date().toISOString(),
         vaga: match.vaga,
       }));
-      
       res.json(formattedMatches);
     } catch (err: any) {
-      console.error("Erro ao calcular matches:", err);
+      console.error('[MATCH_CONTROLLER] Erro ao calcular matches:', err);
       res.status(500).json({ error: err.message ?? "Erro interno no servidor" });
     }
   },

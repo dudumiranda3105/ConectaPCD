@@ -2,7 +2,15 @@ import { prisma } from "./prisma";
 
 export const AcessRepo = {
   list() {
-    return prisma.acessibilidade.findMany({ orderBy: { id: "asc" } });
+    return prisma.acessibilidade.findMany({ 
+      orderBy: { id: "asc" },
+      include: {
+        barreiras: {
+          include: { barreira: true },
+          orderBy: { barreiraId: 'asc' },
+        },
+      },
+    });
   },
   create(descricao: string) {
     return prisma.acessibilidade.create({ data: { descricao } });
@@ -31,12 +39,22 @@ export const AcessRepo = {
     if (!acess) throw Object.assign(new Error('Acessibilidade não encontrada'), { status: 404 });
     const barreira = await prisma.barreira.findUnique({ where: { id: barreiraId } });
     if (!barreira) throw Object.assign(new Error('Barreira não encontrada'), { status: 404 });
-    try {
-      await prisma.barreiraAcessibilidade.create({ data: { barreiraId, acessibilidadeId } });
-    } catch (e: any) {
-      if (e.code === 'P2002') throw Object.assign(new Error('Ligação já existe'), { status: 409 });
-      throw e;
+    
+    // Verificar se a ligação já existe
+    const existing = await prisma.barreiraAcessibilidade.findUnique({
+      where: { barreiraId_acessibilidadeId: { barreiraId, acessibilidadeId } }
+    });
+    
+    if (existing) {
+      // Se já existe, retornar sem erro
+      return prisma.acessibilidade.findUnique({
+        where: { id: acessibilidadeId },
+        include: { barreiras: { include: { barreira: true } } },
+      });
     }
+    
+    await prisma.barreiraAcessibilidade.create({ data: { barreiraId, acessibilidadeId } });
+    
     return prisma.acessibilidade.findUnique({
       where: { id: acessibilidadeId },
       include: { barreiras: { include: { barreira: true } } },

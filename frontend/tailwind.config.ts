@@ -25,6 +25,14 @@ export default {
         '2xl': '1400px',
       },
     },
+    screens: {
+      'xs': '475px',
+      'sm': '640px',
+      'md': '768px',
+      'lg': '1024px',
+      'xl': '1280px',
+      '2xl': '1536px',
+    },
     extend: {
       fontFamily: {
         sans: ['var(--font-sans)', 'Inter', 'sans-serif'],
@@ -86,6 +94,11 @@ export default {
         md: 'calc(var(--radius) - 2px)',
         sm: 'calc(var(--radius) - 4px)',
       },
+      animation: {
+        'accordion-down': 'accordion-down 0.2s ease-out',
+        'accordion-up': 'accordion-up 0.2s ease-out',
+        blob: "blob 7s infinite",
+      },
       keyframes: {
         'accordion-down': {
           from: { height: '0' },
@@ -95,10 +108,20 @@ export default {
           from: { height: 'var(--radix-accordion-content-height)' },
           to: { height: '0' },
         },
-      },
-      animation: {
-        'accordion-down': 'accordion-down 0.2s ease-out',
-        'accordion-up': 'accordion-up 0.2s ease-out',
+        blob: {
+          "0%": {
+            transform: "translate(0px, 0px) scale(1)",
+          },
+          "33%": {
+            transform: "translate(30px, -50px) scale(1.1)",
+          },
+          "66%": {
+            transform: "translate(-20px, 20px) scale(0.9)",
+          },
+          "100%": {
+            transform: "translate(0px, 0px) scale(1)",
+          },
+        },
       },
       transitionProperty: {
         width: 'width',
@@ -114,5 +137,19 @@ export default {
       },
     },
   },
-  plugins: [animatePlugin, typographyPlugin, aspectRatioPlugin],
+  plugins: [
+    animatePlugin,
+    typographyPlugin,
+    aspectRatioPlugin,
+    function scrollbarPlugin({ addUtilities }: any) {
+      addUtilities({
+        '.scrollbar-thin': {
+          'scrollbar-width': 'thin',
+        },
+        '.scrollbar-none': {
+          'scrollbar-width': 'none',
+        },
+      })
+    }
+  ],
 } satisfies Config

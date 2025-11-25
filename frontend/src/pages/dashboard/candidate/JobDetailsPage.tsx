@@ -25,6 +25,15 @@ import {
   CheckCircle,
   GraduationCap,
   Clock,
+  Sparkles,
+  Star,
+  Users,
+  Send,
+  Eye,
+  Share2,
+  Heart,
+  Globe,
+  DollarSign,
 } from 'lucide-react'
 import { useToast } from '@/components/ui/use-toast'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -121,9 +130,15 @@ export default function JobDetailsPage() {
 
   if (loading || !job) {
     return (
-      <div className="space-y-6">
-        <Skeleton className="h-6 w-1/2" />
-        <Skeleton className="h-96 w-full" />
+      <div className="space-y-6 animate-pulse">
+        <Skeleton className="h-8 w-48" />
+        <div className="rounded-2xl overflow-hidden">
+          <Skeleton className="h-80 w-full" />
+        </div>
+        <div className="grid gap-6 md:grid-cols-2">
+          <Skeleton className="h-48 w-full rounded-xl" />
+          <Skeleton className="h-48 w-full rounded-xl" />
+        </div>
       </div>
     )
   }
@@ -131,221 +146,390 @@ export default function JobDetailsPage() {
   const isJobActive = job.status === 'Ativa'
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 pb-8">
+      {/* Breadcrumb estilizado */}
       <Breadcrumb>
-        <BreadcrumbList>
+        <BreadcrumbList className="text-sm">
           <BreadcrumbItem>
-            <BreadcrumbLink asChild>
-              <Link to="/dashboard/candidato">Vagas</Link>
+            <BreadcrumbLink asChild className="text-muted-foreground hover:text-primary transition-colors">
+              <Link to="/dashboard/candidato">🏠 Dashboard</Link>
             </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbPage>{job.title}</BreadcrumbPage>
+            <BreadcrumbLink asChild className="text-muted-foreground hover:text-primary transition-colors">
+              <Link to="/dashboard/candidato">💼 Vagas</Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage className="font-semibold text-foreground">{job.title}</BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
 
-      {/* Header Card com gradiente */}
-      <Card className="border-0 shadow-lg bg-gradient-to-br from-primary/5 via-background to-background overflow-hidden relative">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -z-10" />
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-primary/3 rounded-full blur-3xl -z-10" />
+      {/* Hero Section com gradiente vibrante */}
+      <div className="relative overflow-hidden rounded-3xl border-2 border-primary/10 shadow-2xl">
+        {/* Background gradiente animado */}
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-700" />
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48cGF0aCBkPSJNMzYgMzRoLTJ2LTRoMnY0em0wLThoLTJ2LTRoMnY0em0tOCA4aC0ydi00aDJ2NHptMC04aC0ydi00aDJ2NHoiLz48L2c+PC9nPjwvc3ZnPg==')] opacity-30" />
         
-        <CardHeader className="space-y-6 pb-8">
-          <div className="flex flex-col sm:flex-row items-start justify-between gap-6">
-            <div className="flex items-start gap-4">
-              <Avatar className="h-20 w-20 border-2 border-primary/20 shadow-lg">
-                <AvatarImage src={job.logo} alt={`${job.company} logo`} />
-                <AvatarFallback className="text-xl font-bold bg-primary/10 text-primary">
-                  {job.company.charAt(0)}
-                </AvatarFallback>
-              </Avatar>
-              <div className="space-y-2">
-                <CardTitle className="text-3xl font-bold">{job.title}</CardTitle>
-                <CardDescription className="flex items-center gap-2 text-base">
-                  <Building className="h-4 w-4" /> {job.company}
-                </CardDescription>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Clock className="h-4 w-4" />
-                  Publicada em {new Date(job.createdAt).toLocaleDateString('pt-BR')}
+        {/* Elementos decorativos */}
+        <div className="absolute -top-24 -right-24 w-96 h-96 bg-white/10 rounded-full blur-3xl" />
+        <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-pink-500/20 rounded-full blur-3xl" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-full blur-3xl" />
+        
+        {/* Conteúdo do Hero */}
+        <div className="relative p-8 md:p-12">
+          <div className="flex flex-col lg:flex-row items-start justify-between gap-8">
+            {/* Info da vaga */}
+            <div className="flex items-start gap-6 flex-1">
+              {/* Avatar da empresa */}
+              <div className="relative">
+                <div className="absolute inset-0 bg-white/20 rounded-2xl blur-xl" />
+                <Avatar className="relative h-24 w-24 md:h-28 md:w-28 border-4 border-white/30 shadow-2xl ring-4 ring-white/10">
+                  <AvatarImage src={job.logo} alt={`${job.company} logo`} />
+                  <AvatarFallback className="text-3xl font-bold bg-white/20 text-white backdrop-blur-sm">
+                    {job.company.charAt(0)}
+                  </AvatarFallback>
+                </Avatar>
+                {isJobActive && (
+                  <div className="absolute -bottom-2 -right-2 h-8 w-8 bg-green-500 rounded-full flex items-center justify-center border-4 border-white shadow-lg">
+                    <CheckCircle className="h-4 w-4 text-white" />
+                  </div>
+                )}
+              </div>
+              
+              {/* Título e empresa */}
+              <div className="space-y-4 flex-1">
+                <div>
+                  <div className="flex items-center gap-3 mb-2">
+                    <Badge className="bg-white/20 text-white border-0 backdrop-blur-sm hover:bg-white/30">
+                      <Sparkles className="h-3 w-3 mr-1" />
+                      {isJobActive ? 'Vaga Ativa' : 'Vaga Fechada'}
+                    </Badge>
+                    <Badge variant="outline" className="border-white/30 text-white/90 bg-white/10">
+                      {job.type}
+                    </Badge>
+                  </div>
+                  <h1 className="text-3xl md:text-4xl font-bold text-white mb-2 leading-tight">
+                    {job.title}
+                  </h1>
+                  <div className="flex items-center gap-2 text-white/90 text-lg">
+                    <Building className="h-5 w-5" />
+                    <span className="font-semibold">{job.company}</span>
+                  </div>
+                </div>
+                
+                {/* Tags de info */}
+                <div className="flex flex-wrap gap-3">
+                  <div className="flex items-center gap-2 text-white/80 bg-white/10 rounded-full px-4 py-2 backdrop-blur-sm">
+                    <MapPin className="h-4 w-4" />
+                    <span className="text-sm font-medium">{job.location}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-white/80 bg-white/10 rounded-full px-4 py-2 backdrop-blur-sm">
+                    <Briefcase className="h-4 w-4" />
+                    <span className="text-sm font-medium">{job.regime}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-white/80 bg-white/10 rounded-full px-4 py-2 backdrop-blur-sm">
+                    <Clock className="h-4 w-4" />
+                    <span className="text-sm font-medium">
+                      {new Date(job.createdAt).toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
-            <div className="flex flex-col gap-3 w-full sm:w-auto">
+            
+            {/* Botão de candidatura */}
+            <div className="flex flex-col gap-4 w-full lg:w-auto lg:min-w-[280px]">
               <Button
                 onClick={handleApply}
-                className="w-full sm:w-auto h-11 text-base shadow-md hover:shadow-lg transition-shadow"
+                className={`w-full h-14 text-lg font-bold shadow-2xl transition-all duration-300 ${
+                  alreadyApplied 
+                    ? 'bg-green-500 hover:bg-green-600' 
+                    : 'bg-white text-indigo-700 hover:bg-white/90 hover:scale-105'
+                }`}
                 disabled={!isJobActive || alreadyApplied || checkingApplication}
                 size="lg"
               >
                 {checkingApplication ? (
-                  'Verificando...'
+                  <span className="flex items-center gap-2">
+                    <div className="h-5 w-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                    Verificando...
+                  </span>
                 ) : alreadyApplied ? (
-                  <>
-                    <CheckCircle className="mr-2 h-5 w-5" />
-                    Já candidatado
-                  </>
+                  <span className="flex items-center gap-2">
+                    <CheckCircle className="h-6 w-6" />
+                    Candidatura Enviada!
+                  </span>
                 ) : (
-                  'Candidatar-se agora'
+                  <span className="flex items-center gap-2">
+                    <Send className="h-5 w-5" />
+                    Candidatar-se Agora
+                  </span>
                 )}
               </Button>
-              {alreadyApplied && isJobActive && (
-                <Card className="bg-green-50 dark:bg-green-900/10 border-green-200 dark:border-green-800">
-                  <CardContent className="p-3">
-                    <p className="text-sm text-green-700 dark:text-green-400 flex items-center justify-center gap-2">
-                      <CheckCircle className="h-4 w-4" />
-                      Você já se candidatou a esta vaga
-                    </p>
-                  </CardContent>
-                </Card>
+              
+              {alreadyApplied && (
+                <div className="bg-green-500/20 border border-green-400/30 rounded-xl p-4 backdrop-blur-sm">
+                  <p className="text-sm text-white flex items-center gap-2 justify-center font-medium">
+                    <Star className="h-4 w-4 fill-current" />
+                    Sua candidatura está em análise
+                  </p>
+                </div>
               )}
+              
               {!isJobActive && (
-                <Card className="bg-destructive/10 border-destructive/20">
-                  <CardContent className="p-3">
-                    <p className="text-sm text-destructive text-center">
-                      Vaga fechada para candidaturas
-                    </p>
-                  </CardContent>
-                </Card>
+                <div className="bg-red-500/20 border border-red-400/30 rounded-xl p-4 backdrop-blur-sm">
+                  <p className="text-sm text-white text-center font-medium">
+                    ⚠️ Esta vaga não está mais recebendo candidaturas
+                  </p>
+                </div>
               )}
             </div>
           </div>
+        </div>
+      </div>
 
-          {/* Métricas em cards */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Card className="bg-card/50 backdrop-blur border-primary/10">
-              <CardContent className="p-4 flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-primary/10">
-                  <MapPin className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Localização</p>
-                  <p className="text-sm font-semibold">{job.location}</p>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card className="bg-card/50 backdrop-blur border-primary/10">
-              <CardContent className="p-4 flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-primary/10">
-                  <Briefcase className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Regime</p>
-                  <p className="text-sm font-semibold">{job.regime}</p>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card className="bg-card/50 backdrop-blur border-primary/10">
-              <CardContent className="p-4 flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-primary/10">
-                  <CalendarDays className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Tipo</p>
-                  <p className="text-sm font-semibold">{job.type}</p>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card className="bg-card/50 backdrop-blur border-primary/10">
-              <CardContent className="p-4 flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-primary/10">
-                  <GraduationCap className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Escolaridade</p>
-                  <p className="text-sm font-semibold">{job.sector}</p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </CardHeader>
-      </Card>
-
-      {/* Card de conteúdo */}
-      <div className="grid gap-6">
-        <Card className="shadow-md">
-          <CardHeader>
-            <CardTitle className="text-xl">Descrição da Vaga</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed">
-              {job.description}
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="shadow-md border-blue-100 dark:border-blue-900/20">
-          <CardHeader>
-            <CardTitle className="text-xl flex items-center gap-2">
-              <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/20">
-                <HeartHandshake className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+      {/* Cards de métricas */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <Card className="group hover:shadow-xl hover:scale-105 transition-all duration-300 border-2 hover:border-blue-200 dark:hover:border-blue-800 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30">
+          <CardContent className="p-5">
+            <div className="flex items-center gap-4">
+              <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                <MapPin className="h-6 w-6 text-white" />
               </div>
-              Acessibilidades Oferecidas
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {job.accessibilities && job.accessibilities.length > 0 ? (
-              <div className="flex flex-wrap gap-2">
-                {job.accessibilities.map((acc, index) => (
-                  <Badge 
-                    key={index} 
-                    variant="secondary" 
-                    className="bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800 text-sm py-1.5 px-3"
-                  >
-                    {acc}
-                  </Badge>
-                ))}
+              <div>
+                <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Localização</p>
+                <p className="text-base font-bold text-foreground">{job.location}</p>
               </div>
-            ) : (
-              <p className="text-muted-foreground italic">
-                Nenhuma acessibilidade específica informada
-              </p>
-            )}
+            </div>
           </CardContent>
         </Card>
         
-        <Card className="shadow-md border-green-100 dark:border-green-900/20">
-          <CardHeader>
-            <CardTitle className="text-xl flex items-center gap-2">
-              <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900/20">
-                <Award className="h-5 w-5 text-green-600 dark:text-green-400" />
+        <Card className="group hover:shadow-xl hover:scale-105 transition-all duration-300 border-2 hover:border-purple-200 dark:hover:border-purple-800 bg-gradient-to-br from-purple-50 to-violet-50 dark:from-purple-950/30 dark:to-violet-950/30">
+          <CardContent className="p-5">
+            <div className="flex items-center gap-4">
+              <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-purple-500 to-violet-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                <Briefcase className="h-6 w-6 text-white" />
               </div>
-              Benefícios Oferecidos
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {job.benefits && job.benefits.trim() ? (
-              <div className="flex flex-wrap gap-2">
-                {job.benefits.split(',').map((benefit, index) => (
-                  <Badge 
-                    key={index} 
-                    variant="secondary"
-                    className="bg-green-50 text-green-700 border-green-200 hover:bg-green-100 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800 text-sm py-1.5 px-3"
-                  >
-                    {benefit.trim()}
-                  </Badge>
-                ))}
+              <div>
+                <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Regime</p>
+                <p className="text-base font-bold text-foreground">{job.regime}</p>
               </div>
-            ) : (
-              <p className="text-muted-foreground italic">
-                Nenhum benefício específico informado
-              </p>
-            )}
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="group hover:shadow-xl hover:scale-105 transition-all duration-300 border-2 hover:border-emerald-200 dark:hover:border-emerald-800 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30">
+          <CardContent className="p-5">
+            <div className="flex items-center gap-4">
+              <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                <CalendarDays className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Tipo</p>
+                <p className="text-base font-bold text-foreground">{job.type}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="group hover:shadow-xl hover:scale-105 transition-all duration-300 border-2 hover:border-amber-200 dark:hover:border-amber-800 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30">
+          <CardContent className="p-5">
+            <div className="flex items-center gap-4">
+              <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                <GraduationCap className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Setor</p>
+                <p className="text-base font-bold text-foreground">{job.sector}</p>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>
 
-      <Button 
-        variant="outline" 
-        onClick={() => navigate(-1)}
-        className="shadow-sm hover:shadow-md transition-shadow"
-      >
-        <ArrowLeft className="mr-2 h-4 w-4" />
-        Voltar para as vagas
-      </Button>
+      {/* Conteúdo principal */}
+      <div className="grid gap-6 lg:grid-cols-3">
+        {/* Coluna principal */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Descrição da vaga */}
+          <Card className="shadow-lg border-2 hover:shadow-xl transition-shadow overflow-hidden">
+            <CardHeader className="bg-gradient-to-r from-slate-50 to-gray-50 dark:from-slate-900/50 dark:to-gray-900/50 border-b">
+              <CardTitle className="text-xl flex items-center gap-3">
+                <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-slate-600 to-gray-700 flex items-center justify-center shadow-md">
+                  <Briefcase className="h-5 w-5 text-white" />
+                </div>
+                Descrição da Vaga
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="prose prose-slate dark:prose-invert max-w-none">
+                <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed text-base">
+                  {job.description}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Acessibilidades */}
+          <Card className="shadow-lg border-2 border-blue-100 dark:border-blue-900/30 hover:shadow-xl transition-shadow overflow-hidden">
+            <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border-b border-blue-100 dark:border-blue-900/30">
+              <CardTitle className="text-xl flex items-center gap-3">
+                <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-md">
+                  <HeartHandshake className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <span>Recursos de Acessibilidade</span>
+                  {job.accessibilities && job.accessibilities.length > 0 && (
+                    <Badge className="ml-3 bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300">
+                      {job.accessibilities.length} disponíveis
+                    </Badge>
+                  )}
+                </div>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-6">
+              {job.accessibilities && job.accessibilities.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {job.accessibilities.map((acc, index) => (
+                    <div 
+                      key={index}
+                      className="flex items-center gap-3 p-4 rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 border-2 border-blue-100 dark:border-blue-900/30 hover:border-blue-300 dark:hover:border-blue-700 transition-colors"
+                    >
+                      <div className="h-8 w-8 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                        <CheckCircle className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                      </div>
+                      <span className="font-medium text-blue-800 dark:text-blue-300">{acc}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <div className="h-16 w-16 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center mx-auto mb-4">
+                    <HeartHandshake className="h-8 w-8 text-gray-400" />
+                  </div>
+                  <p className="text-muted-foreground">
+                    Nenhum recurso de acessibilidade específico informado
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Sidebar */}
+        <div className="space-y-6">
+          {/* Benefícios */}
+          <Card className="shadow-lg border-2 border-emerald-100 dark:border-emerald-900/30 hover:shadow-xl transition-shadow overflow-hidden">
+            <CardHeader className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 border-b border-emerald-100 dark:border-emerald-900/30">
+              <CardTitle className="text-lg flex items-center gap-3">
+                <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-md">
+                  <Award className="h-5 w-5 text-white" />
+                </div>
+                Benefícios
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-5">
+              {job.benefits && job.benefits.trim() ? (
+                <div className="space-y-2">
+                  {job.benefits.split(',').map((benefit, index) => (
+                    <div 
+                      key={index}
+                      className="flex items-center gap-3 p-3 rounded-lg bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/30"
+                    >
+                      <Star className="h-4 w-4 text-emerald-600 dark:text-emerald-400 fill-current" />
+                      <span className="text-sm font-medium text-emerald-800 dark:text-emerald-300">{benefit.trim()}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-6">
+                  <p className="text-muted-foreground text-sm">
+                    Benefícios não informados
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Card da empresa */}
+          <Card className="shadow-lg border-2 hover:shadow-xl transition-shadow overflow-hidden">
+            <CardHeader className="bg-gradient-to-r from-violet-50 to-purple-50 dark:from-violet-950/30 dark:to-purple-950/30 border-b">
+              <CardTitle className="text-lg flex items-center gap-3">
+                <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-md">
+                  <Building className="h-5 w-5 text-white" />
+                </div>
+                Sobre a Empresa
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-5">
+              <div className="flex items-center gap-4 mb-4">
+                <Avatar className="h-14 w-14 border-2 shadow-md">
+                  <AvatarImage src={job.logo} />
+                  <AvatarFallback className="bg-violet-100 text-violet-700 font-bold text-lg">
+                    {job.company.charAt(0)}
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <h4 className="font-bold text-lg">{job.company}</h4>
+                  <p className="text-sm text-muted-foreground">{job.sector}</p>
+                </div>
+              </div>
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <MapPin className="h-4 w-4" />
+                  <span>{job.location}</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Globe className="h-4 w-4" />
+                  <span>Setor: {job.sector}</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* CTA final */}
+          {isJobActive && !alreadyApplied && (
+            <Card className="shadow-lg border-2 border-indigo-200 dark:border-indigo-800 bg-gradient-to-br from-indigo-50 to-violet-50 dark:from-indigo-950/30 dark:to-violet-950/30">
+              <CardContent className="p-6 text-center space-y-4">
+                <div className="h-14 w-14 rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center mx-auto shadow-lg">
+                  <Sparkles className="h-7 w-7 text-white" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-lg mb-1">Interessado na vaga?</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Envie sua candidatura agora mesmo!
+                  </p>
+                </div>
+                <Button 
+                  onClick={handleApply}
+                  className="w-full bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 shadow-lg"
+                  size="lg"
+                >
+                  <Send className="h-4 w-4 mr-2" />
+                  Candidatar-se
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </div>
+
+      {/* Botão voltar */}
+      <div className="pt-4">
+        <Button 
+          variant="outline" 
+          onClick={() => navigate(-1)}
+          className="shadow-md hover:shadow-lg transition-all border-2 hover:border-primary/50 group"
+          size="lg"
+        >
+          <ArrowLeft className="mr-2 h-5 w-5 group-hover:-translate-x-1 transition-transform" />
+          Voltar para as vagas
+        </Button>
+      </div>
     </div>
   )
 }

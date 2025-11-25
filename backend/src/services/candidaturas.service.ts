@@ -31,7 +31,7 @@ export const CandidaturasService = {
   },
 
   async atualizarStatus(id: number, status: string) {
-    if (!["Pendente", "Aceita", "Rejeitada"].includes(status)) {
+    if (!["Pendente", "Aceita", "Rejeitada", "EM_PROCESSO"].includes(status)) {
       throw new Error("Status inválido");
     }
     return CandidaturasRepo.updateStatus(id, status);

@@ -4,7 +4,7 @@ const API_BASE_URL =
 async function handleResponse<T>(response: Response): Promise<T> {
   if (!response.ok) {
     const error = await response.json()
-    throw new Error(error.message || 'Something went wrong')
+    throw new Error(error.error || error.message || 'Something went wrong')
   }
   return response.json()
 }

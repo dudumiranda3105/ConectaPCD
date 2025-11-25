@@ -1,4 +1,5 @@
 import { prisma } from '../repositories/prisma';
+import bcryptjs from 'bcryptjs';
 
 export const AdminService = {
   async getDashboardStats() {
@@ -280,5 +281,65 @@ export const AdminService = {
       type: a.descricao,
       offered: a._count.VagaAcessibilidade,
     }));
+  },
+
+  async createAdmin(data: { name: string; email: string; password: string; cargo?: string }) {
+    // Verificar se email já existe
+    const existingAdmin = await prisma.admin.findUnique({
+      where: { email: data.email },
+    });
+
+    if (existingAdmin) {
+      throw new Error('Email já está em uso');
+    }
+
+    // Hash da senha
+    const hashedPassword = await bcryptjs.hash(data.password, 10);
+
+    // Criar admin
+    const admin = await prisma.admin.create({
+      data: {
+        nome: data.name,
+        email: data.email,
+        password: hashedPassword,
+        cargo: data.cargo || 'Administrador',
+        isActive: true,
+      },
+      select: {
+        id: true,
+        nome: true,
+        email: true,
+        cargo: true,
+        createdAt: true,
+        isActive: true,
+      },
+    });
+
+    return {
+      id: admin.id.toString(),
+      name: admin.nome,
+      email: admin.email,
+      cargo: admin.cargo,
+      joined: admin.createdAt.toISOString(),
+      status: admin.isActive ? 'Ativo' : 'Inativo',
+    };
+  },
+
+  async deleteAdmin(adminId: number) {
+    // Verificar se existe
+    const admin = await prisma.admin.findUnique({
+      where: { id: adminId },
+    });
+
+    if (!admin) {
+      throw new Error('Administrador não encontrado');
+    }
+
+    // Deletar admin
+    await prisma.admin.delete({
+      where: { id: adminId },
+    });
+
+    return { success: true };
   },
 };

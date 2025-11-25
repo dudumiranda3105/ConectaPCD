@@ -60,7 +60,7 @@ export const MatchRepo = {
     acessibilidadesTotal: number;
     detalhes: any;
   }) {
-    return prisma.matchScore.upsert({
+    const result = await prisma.matchScore.upsert({
       where: {
         candidatoId_vagaId: {
           candidatoId: data.candidatoId,
@@ -78,6 +78,7 @@ export const MatchRepo = {
         updatedAt: new Date(),
       },
     });
+    return result
   },
 
   async getMatchScores(candidatoId: number) {

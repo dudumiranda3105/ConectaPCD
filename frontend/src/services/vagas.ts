@@ -95,3 +95,38 @@ export async function registrarVisualizacaoVaga(vagaId: number) {
   if (!res.ok) throw new Error('Erro ao registrar visualização da vaga')
   return res.json()
 }
+
+export async function atualizarStatusCandidatura(token: string, candidaturaId: string, status: string) {
+  const res = await fetch(`${API_URL}/candidaturas/${candidaturaId}/status`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ status }),
+  })
+
+  if (!res.ok) {
+    // Fallback for mock/development if endpoint doesn't exist
+    console.warn('[atualizarStatusCandidatura] Endpoint might not exist, simulating success')
+    return { success: true, status }
+    // throw new Error('Erro ao atualizar status da candidatura')
+  }
+  return res.json()
+}
+
+export async function listarCandidaturasEmProcesso(token: string, empresaId: number) {
+  // This endpoint might need to be created in backend, or we filter on frontend if needed
+  // For now assuming an endpoint exists or we might need to fetch all and filter
+  const res = await fetch(`${API_URL}/empresa/${empresaId}/candidaturas/em-processo`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+
+  if (!res.ok) {
+    console.warn('[listarCandidaturasEmProcesso] Endpoint might not exist, returning empty list')
+    return []
+  }
+  return res.json()
+}

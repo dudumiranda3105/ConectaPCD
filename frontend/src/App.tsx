@@ -17,7 +17,6 @@ import ProfileSelectorPage from './pages/auth/ProfileSelector'
 import CandidateSignupPage from './pages/auth/CandidateSignup'
 import CompanySignupPage from './pages/auth/CompanySignup'
 import AdminLoginPage from './pages/auth/AdminLogin'
-import AdminSignupPage from './pages/auth/AdminSignup'
 import CandidateDashboard from './pages/dashboard/candidate/CandidateDashboard'
 import CandidateProfilePage from './pages/dashboard/candidate/ProfilePage'
 import CandidateSettingsPage from './pages/dashboard/candidate/SettingsPage'
@@ -26,10 +25,12 @@ import MatchesPage from './pages/dashboard/candidate/MatchesPage'
 import CompanyDashboard from './pages/dashboard/company/CompanyDashboard'
 import CompanyJobDetailsPage from './pages/dashboard/company/JobDetailsPage'
 import AdminDashboard from './pages/dashboard/admin/AdminDashboard'
+import AdminsPage from './pages/dashboard/admin/AdminsPage'
 import ResumesPage from './pages/dashboard/company/ResumesPage'
 import AnalyticsPage from './pages/dashboard/company/AnalyticsPage'
 import SettingsPage from './pages/dashboard/company/SettingsPage'
 import JobCandidatesPage from './pages/dashboard/company/JobCandidatesPage'
+import ApplicationsInProcessPage from './pages/dashboard/company/ApplicationsInProcessPage'
 import AdminUsersPage from './pages/dashboard/admin/UsersPage'
 import AdminCompaniesPage from './pages/dashboard/admin/CompaniesPage'
 import AdminJobsPage from './pages/dashboard/admin/JobsPage'
@@ -38,6 +39,9 @@ import PrivacyPolicyPage from './pages/PrivacyPolicy'
 import TermsOfUsePage from './pages/TermsOfUse'
 import AboutPage from './pages/AboutPage'
 import SystemManagementPage from './pages/dashboard/admin/SystemManagementPage'
+import DisabilityManagementPage from './pages/dashboard/admin/DisabilityManagementPage'
+import ConversasPage from './pages/dashboard/ConversasPage'
+import ChatPage from './pages/dashboard/ChatPage'
 
 const App = () => (
   <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
@@ -61,7 +65,6 @@ const App = () => (
                   element={<CompanySignupPage />}
                 />
                 <Route path="/admin/login" element={<AdminLoginPage />} />
-                <Route path="/admin/cadastro" element={<AdminSignupPage />} />
                 <Route path="/privacidade" element={<PrivacyPolicyPage />} />
                 <Route path="/termos" element={<TermsOfUsePage />} />
                 <Route path="/sobre" element={<AboutPage />} />
@@ -88,6 +91,14 @@ const App = () => (
                   <Route
                     path="/dashboard/candidato/configuracoes"
                     element={<CandidateSettingsPage />}
+                  />
+                  <Route
+                    path="/dashboard/candidato/conversas"
+                    element={<ConversasPage />}
+                  />
+                  <Route
+                    path="/dashboard/candidato/chat/:candidaturaId"
+                    element={<ChatPage />}
                   />
                 </Route>
               </Route>
@@ -118,12 +129,25 @@ const App = () => (
                     path="/dashboard/empresa/configuracoes"
                     element={<SettingsPage />}
                   />
+                  <Route
+                    path="/dashboard/empresa/candidaturas-processo"
+                    element={<ApplicationsInProcessPage />}
+                  />
+                  <Route
+                    path="/dashboard/empresa/conversas"
+                    element={<ConversasPage />}
+                  />
+                  <Route
+                    path="/dashboard/empresa/chat/:candidaturaId"
+                    element={<ChatPage />}
+                  />
                 </Route>
               </Route>
 
               <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
                 <Route element={<AdminLayout />}>
                   <Route path="/admin" element={<AdminDashboard />} />
+                  <Route path="/admin/admins" element={<AdminsPage />} />
                   <Route path="/admin/users" element={<AdminUsersPage />} />
                   <Route
                     path="/admin/companies"
@@ -131,8 +155,8 @@ const App = () => (
                   />
                   <Route path="/admin/jobs" element={<AdminJobsPage />} />
                   <Route
-                    path="/admin/system"
-                    element={<SystemManagementPage />}
+                    path="/admin/disabilities"
+                    element={<DisabilityManagementPage />}
                   />
                   <Route
                     path="/admin/settings"

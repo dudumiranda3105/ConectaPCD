@@ -6,6 +6,7 @@ const r = Router();
 r.get("/", EmpresasController.listar);
 r.get("/:id", EmpresasController.detalhar);
 r.get("/:id/stats", EmpresasController.stats);
+r.get("/:id/candidaturas/em-processo", EmpresasController.listarCandidaturasEmProcesso);
 r.post("/", EmpresasController.criar);
 
 export default r;

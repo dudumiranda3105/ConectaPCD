@@ -3,16 +3,20 @@ import { api } from './api';
 export interface Acessibilidade {
   id: number;
   descricao: string;
-  barreiras?: Barreira[];
+  barreiras?: BarreiraAcessibilidade[];
   createdAt?: string;
   updatedAt?: string;
+}
+
+export interface BarreiraAcessibilidade {
+  barreiraId: number;
+  acessibilidadeId: number;
+  barreira: Barreira;
 }
 
 export interface Barreira {
   id: number;
   descricao: string;
-  barreiraId?: number;
-  acessibilidadeId?: number;
 }
 
 export const acessibilidadesService = {

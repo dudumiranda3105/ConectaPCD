@@ -13,7 +13,7 @@ export const CompanyLayout = () => {
       </div>
       <div className="flex flex-col">
         <DashboardHeader logoText="ConectaPCD" role="company" />
-        <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
+        <main className="flex flex-1 flex-col gap-3 sm:gap-4 p-3 sm:p-4 lg:gap-6 lg:p-6">
           <Outlet />
         </main>
         <AccessibilityButton />

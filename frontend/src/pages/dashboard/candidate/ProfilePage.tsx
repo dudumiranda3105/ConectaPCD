@@ -31,19 +31,24 @@ import { DisabilityInfoDisplay } from '@/components/dashboard/candidate/Disabili
 import { DisabilityInfoEditor } from '@/components/dashboard/candidate/DisabilityInfoEditor'
 import { MatchedJobs } from '@/components/dashboard/candidate/MatchedJobs'
 import { getCandidateProfile, updateCandidateProfile, updateCandidateDisabilities, uploadCurriculo, deleteCurriculo, uploadAvatar, deleteAvatar, CandidateProfileData } from '@/services/profile'
-import { Loader2, FileText, Eye, UploadCloud, Trash, Image as ImageIcon, X, CheckCircle2, User as UserIcon } from 'lucide-react'
+import { Loader2, FileText, Eye, UploadCloud, Trash, Image as ImageIcon, X, CheckCircle2, User as UserIcon, Sparkles, Star, Shield, Award, Briefcase, GraduationCap, Mail, Phone, Edit3, Camera, TrendingUp, Zap, Calendar, Users } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Progress } from '@/components/ui/progress'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { GENEROS, EDUCATION_LEVELS } from '@/lib/schemas/candidate-signup-schema'
 
-const profileFormSchema = personalDataSchema.pick({
-  name: true,
-  cpf: true,
-  email: true,
+import * as z from 'zod'
+
+const profileFormSchema = z.object({
+  name: z.string().min(3, { message: 'O nome completo é obrigatório.' }),
+  cpf: z.string(),
+  email: z.string().email({ message: 'Email inválido.' }),
+  telefone: z.string().regex(/^\(\d{2}\)\s\d{4,5}-\d{4}$/, { message: 'Telefone inválido. Use (XX) XXXXX-XXXX' }).optional().or(z.literal('')),
+  dataNascimento: z.string().optional(),
+  genero: z.enum(GENEROS).optional(),
+  escolaridade: z.enum(EDUCATION_LEVELS).optional().or(z.literal('')),
 })
-type ProfileFormValues = Pick<
-  CandidateSignupFormValues,
-  'name' | 'cpf' | 'email'
->
+type ProfileFormValues = z.infer<typeof profileFormSchema>
 
 export default function ProfilePage() {
   const { user } = useAuth() as { user: User | null }
@@ -64,6 +69,10 @@ export default function ProfilePage() {
       name: '',
       cpf: '',
       email: '',
+      telefone: '',
+      dataNascimento: '',
+      genero: undefined,
+      escolaridade: undefined,
     },
   })
 
@@ -79,6 +88,10 @@ export default function ProfilePage() {
           name: data.nome || '',
           cpf: data.cpf || '',
           email: data.email || '',
+          telefone: data.telefone || '',
+          dataNascimento: data.dataNascimento || '',
+          genero: (data.genero as typeof GENEROS[number]) || undefined,
+          escolaridade: (data.escolaridade as typeof EDUCATION_LEVELS[number]) || undefined,
         })
       } catch (error) {
         console.error('Erro ao carregar perfil:', error)
@@ -126,6 +139,10 @@ export default function ProfilePage() {
         name: data.name,
         cpf: data.cpf,
         email: data.email,
+        telefone: data.telefone || undefined,
+        dataNascimento: data.dataNascimento || undefined,
+        genero: data.genero || undefined,
+        educationLevel: data.escolaridade || undefined,
       })
       setProfileData(updated)
       toast({
@@ -202,6 +219,8 @@ export default function ProfilePage() {
       ['cpf', profileData.cpf],
       ['email', profileData.email],
       ['telefone', profileData.telefone],
+      ['dataNascimento', profileData.dataNascimento],
+      ['genero', profileData.genero],
       ['escolaridade', profileData.escolaridade],
       ['curriculoUrl', profileData.curriculoUrl],
       ['avatarUrl', profileData.avatarUrl],
@@ -341,120 +360,194 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="space-y-8">
-      {/* Header do perfil aprimorado */}
-      <div className="relative overflow-hidden rounded-2xl border border-border/50 bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-pink-500/10 shadow-xl">
-        {/* Elementos decorativos */}
-        <div className="absolute -right-32 -top-32 h-72 w-72 rounded-full bg-primary/10 blur-3xl" />
-        <div className="absolute -left-20 -bottom-20 h-64 w-64 rounded-full bg-violet-500/10 blur-2xl" />
+    <div className="space-y-6 sm:space-y-8 pb-6 sm:pb-8">
+      {/* Header do perfil com design premium */}
+      <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl border border-border/30 shadow-xl sm:shadow-2xl">
+        {/* Background gradiente animado */}
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-700" />
         
-        <div className="relative p-8">
-          <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
-            {/* Avatar grande e moderno */}
+        {/* Pattern overlay */}
+        <div className="absolute inset-0 opacity-10">
+          <svg className="h-full w-full" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
+                <path d="M 32 0 L 0 0 0 32" fill="none" stroke="white" strokeWidth="0.5"/>
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#grid)" />
+          </svg>
+        </div>
+        
+        {/* Elementos decorativos flutuantes */}
+        <div className="absolute -right-20 -top-20 h-40 sm:h-64 w-40 sm:w-64 rounded-full bg-white/10 blur-3xl animate-pulse" />
+        <div className="absolute -left-10 top-1/2 h-32 sm:h-48 w-32 sm:w-48 rounded-full bg-pink-500/20 blur-2xl" />
+        <div className="absolute right-1/4 bottom-0 h-24 sm:h-32 w-24 sm:w-32 rounded-full bg-cyan-400/20 blur-xl" />
+        
+        {/* Ícones decorativos - ocultos em mobile */}
+        <div className="absolute top-6 right-8 opacity-20 hidden sm:block">
+          <Sparkles className="h-8 w-8 text-white animate-pulse" />
+        </div>
+        <div className="absolute bottom-8 left-8 opacity-15 hidden sm:block">
+          <Star className="h-10 w-10 text-white" />
+        </div>
+        
+        <div className="relative px-4 sm:px-8 py-6 sm:py-10 md:px-12 md:py-14">
+          <div className="flex flex-col lg:flex-row items-center lg:items-start gap-6 sm:gap-8">
+            {/* Avatar com efeitos premium */}
             <div className="relative group">
-              <div className="relative h-28 w-28 rounded-2xl ring-4 ring-primary/20 overflow-hidden bg-gradient-to-br from-primary/20 to-violet-500/20 flex items-center justify-center text-3xl font-bold shadow-lg transition-all group-hover:scale-105 group-hover:ring-primary/40">
+              <div className="absolute -inset-1 rounded-2xl sm:rounded-3xl bg-gradient-to-r from-pink-500 via-violet-500 to-cyan-500 opacity-70 blur group-hover:opacity-100 transition-opacity" />
+              <div className="relative h-28 w-28 sm:h-36 sm:w-36 rounded-2xl sm:rounded-3xl ring-4 ring-white/30 overflow-hidden bg-white/10 backdrop-blur-sm flex items-center justify-center text-3xl sm:text-4xl font-bold shadow-2xl transition-all group-hover:scale-[1.02]">
                 {profileData?.avatarUrl ? (
                   <img
                     src={profileData.avatarUrl}
                     alt="Avatar"
-                    className="h-full w-full object-cover transition-opacity duration-300"
+                    className="h-full w-full object-cover"
                     loading="lazy"
                   />
                 ) : (
-                  <span className="bg-gradient-to-br from-primary to-violet-600 bg-clip-text text-transparent">
+                  <span className="text-white drop-shadow-lg">
                     {getInitials(profileData?.nome || user?.name)}
                   </span>
                 )}
                 {isUploadingAvatar && (
-                  <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center">
-                    <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                  <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center">
+                    <Loader2 className="h-6 w-6 sm:h-8 sm:w-8 animate-spin text-white" />
                   </div>
                 )}
-              </div>
-              
-              {/* Indicador de completude sobre o avatar */}
-              <div className="absolute -bottom-2 -right-2 bg-background rounded-full p-1 shadow-lg border-2 border-background">
-                <div className="relative h-12 w-12">
-                  <svg className="transform -rotate-90 h-12 w-12">
-                    <circle
-                      cx="24"
-                      cy="24"
-                      r="20"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                      fill="transparent"
-                      className="text-muted/20"
-                    />
-                    <circle
-                      cx="24"
-                      cy="24"
-                      r="20"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                      fill="transparent"
-                      strokeDasharray={`${2 * Math.PI * 20}`}
-                      strokeDashoffset={`${2 * Math.PI * 20 * (1 - completeness / 100)}`}
-                      className="text-primary transition-all duration-500"
-                      strokeLinecap="round"
-                    />
-                  </svg>
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-xs font-bold">{completeness}%</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Informações do perfil */}
-            <div className="flex-1 space-y-4">
-              <div>
-                <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-primary via-violet-600 to-pink-600 bg-clip-text text-transparent">
-                  {profileData?.nome || user?.name || 'Candidato'}
-                </h1>
-                <p className="text-muted-foreground mt-1">
-                  {profileData?.email || user?.email}
-                </p>
-              </div>
-
-              <div className="flex flex-wrap gap-2">
-                {profileData?.escolaridade && (
-                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-sm font-medium">
-                    📚 {profileData.escolaridade}
-                  </div>
-                )}
-                {profileData?.telefone && (
-                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-violet-500/10 text-violet-700 dark:text-violet-300 text-sm font-medium">
-                    📱 {profileData.telefone}
-                  </div>
-                )}
-                {profileData?.curriculoUrl && (
-                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 text-sm font-medium">
-                    <FileText className="h-4 w-4" />
-                    Currículo anexado
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Ações do avatar */}
-            <div className="flex flex-col gap-2">
-              <div className="group relative">
+                
+                {/* Botão de câmera hover */}
+                <label 
+                  htmlFor="avatarInputHeader" 
+                  className="absolute inset-0 flex items-center justify-center bg-black/0 hover:bg-black/40 transition-all cursor-pointer opacity-0 group-hover:opacity-100"
+                >
+                  <Camera className="h-6 w-6 sm:h-8 sm:w-8 text-white drop-shadow-lg" />
+                </label>
                 <input
-                  id="avatarInput"
+                  id="avatarInputHeader"
                   type="file"
                   accept="image/png,image/jpeg,image/jpg,image/webp"
                   disabled={isUploadingAvatar}
                   onChange={handleAvatarChange}
                   className="hidden"
                 />
-                <label
-                  htmlFor="avatarInput"
-                  className="flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-border/50 bg-background/60 backdrop-blur-sm px-4 py-2.5 text-sm font-medium transition-all hover:border-primary hover:bg-primary/5 hover:shadow-md"
-                >
-                  <UploadCloud className="h-4 w-4 text-primary" />
-                  <span>{isUploadingAvatar ? 'Enviando...' : profileData?.avatarUrl ? 'Trocar Foto' : 'Adicionar Foto'}</span>
-                </label>
               </div>
+              
+              {/* Badge de completude animado */}
+              <div className="absolute -bottom-2 -right-2 sm:-bottom-3 sm:-right-3 bg-white rounded-xl sm:rounded-2xl p-1 sm:p-1.5 shadow-xl border-2 border-white">
+                <div className="relative h-10 w-10 sm:h-14 sm:w-14">
+                  <svg className="transform -rotate-90 h-10 w-10 sm:h-14 sm:w-14">
+                    <circle
+                      cx="50%"
+                      cy="50%"
+                      r="40%"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                      fill="transparent"
+                      className="text-gray-200"
+                    />
+                    <circle
+                      cx="50%"
+                      cy="50%"
+                      r="40%"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                      fill="transparent"
+                      strokeDasharray={`${2 * Math.PI * 20}`}
+                      strokeDashoffset={`${2 * Math.PI * 20 * (1 - completeness / 100)}`}
+                      className={`transition-all duration-700 ${
+                        completeness >= 80 ? 'text-emerald-500' : 
+                        completeness >= 50 ? 'text-amber-500' : 'text-rose-500'
+                      }`}
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className={`text-xs sm:text-sm font-bold ${
+                      completeness >= 80 ? 'text-emerald-600' : 
+                      completeness >= 50 ? 'text-amber-600' : 'text-rose-600'
+                    }`}>{completeness}%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Informações principais */}
+            <div className="flex-1 space-y-4 sm:space-y-5 text-center lg:text-left">
+              <div>
+                <div className="flex flex-col sm:flex-row items-center lg:items-start gap-2 sm:gap-3 mb-2">
+                  <h1 className="text-2xl xs:text-3xl sm:text-4xl md:text-5xl font-bold text-white tracking-tight drop-shadow-lg">
+                    {profileData?.nome || user?.name || 'Candidato'}
+                  </h1>
+                  {completeness === 100 && (
+                    <div className="flex items-center gap-1 px-2 sm:px-3 py-1 rounded-full bg-emerald-500/20 backdrop-blur-sm border border-emerald-400/30">
+                      <Award className="h-3 w-3 sm:h-4 sm:w-4 text-emerald-300" />
+                      <span className="text-xs font-medium text-emerald-200">Perfil Completo</span>
+                    </div>
+                  )}
+                </div>
+                <p className="text-white/70 text-sm sm:text-lg flex items-center justify-center lg:justify-start gap-2">
+                  <Mail className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="truncate max-w-[200px] sm:max-w-none">{profileData?.email || user?.email}</span>
+                </p>
+              </div>
+
+              {/* Tags informativas */}
+              <div className="flex flex-wrap justify-center lg:justify-start gap-2 sm:gap-3">
+                {profileData?.escolaridade && (
+                  <div className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl bg-white/10 backdrop-blur-sm text-white text-xs sm:text-sm font-medium border border-white/20 hover:bg-white/20 transition-colors">
+                    <GraduationCap className="h-3 w-3 sm:h-4 sm:w-4" />
+                    <span className="hidden xs:inline">{profileData.escolaridade}</span>
+                    <span className="xs:hidden">{profileData.escolaridade.split(' ')[0]}</span>
+                  </div>
+                )}
+                {profileData?.telefone && (
+                  <div className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl bg-white/10 backdrop-blur-sm text-white text-xs sm:text-sm font-medium border border-white/20 hover:bg-white/20 transition-colors">
+                    <Phone className="h-3 w-3 sm:h-4 sm:w-4" />
+                    {profileData.telefone}
+                  </div>
+                )}
+                {profileData?.curriculoUrl && (
+                  <div className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl bg-emerald-500/20 backdrop-blur-sm text-emerald-200 text-xs sm:text-sm font-medium border border-emerald-400/30">
+                    <FileText className="h-3 w-3 sm:h-4 sm:w-4" />
+                    <span className="hidden xs:inline">Currículo anexado</span>
+                    <span className="xs:hidden">CV</span>
+                    <CheckCircle2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                  </div>
+                )}
+                {disabilities.length > 0 && (
+                  <div className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl bg-violet-500/20 backdrop-blur-sm text-violet-200 text-xs sm:text-sm font-medium border border-violet-400/30">
+                    <Shield className="h-3 w-3 sm:h-4 sm:w-4" />
+                    {disabilities.length} {disabilities.length === 1 ? 'tipo' : 'tipos'}
+                  </div>
+                )}
+              </div>
+              
+              {/* Barra de progresso do perfil */}
+              <div className="max-w-md mx-auto lg:mx-0">
+                <div className="flex justify-between text-xs sm:text-sm text-white/70 mb-2">
+                  <span>Completude do perfil</span>
+                  <span className="font-medium text-white">{completeness}%</span>
+                </div>
+                <div className="h-1.5 sm:h-2 rounded-full bg-white/20 overflow-hidden">
+                  <div 
+                    className={`h-full rounded-full transition-all duration-700 ${
+                      completeness >= 80 ? 'bg-gradient-to-r from-emerald-400 to-emerald-500' : 
+                      completeness >= 50 ? 'bg-gradient-to-r from-amber-400 to-amber-500' : 
+                      'bg-gradient-to-r from-rose-400 to-rose-500'
+                    }`}
+                    style={{ width: `${completeness}%` }}
+                  />
+                </div>
+                {completeness < 100 && (
+                  <p className="text-xs text-white/50 mt-2 hidden sm:block">
+                    💡 Complete seu perfil para ter mais chances de ser encontrado por empresas
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Ações rápidas */}
+            <div className="flex flex-row lg:flex-col gap-2 sm:gap-3">
               {profileData?.avatarUrl && (
                 <Button
                   type="button"
@@ -462,14 +555,15 @@ export default function ProfilePage() {
                   size="sm"
                   disabled={isRemovingAvatar}
                   onClick={handleAvatarDelete}
-                  className="border border-border/50"
+                  className="text-white/70 hover:text-white hover:bg-white/10 border border-white/20 text-xs sm:text-sm"
                 >
-                  {isRemovingAvatar ? <Loader2 className="h-4 w-4 animate-spin" /> : <X className="h-4 w-4" />} Remover
+                  {isRemovingAvatar ? <Loader2 className="h-3 w-3 sm:h-4 sm:w-4 animate-spin sm:mr-2" /> : <Trash className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-2" />}
+                  <span className="hidden sm:inline">Remover foto</span>
                 </Button>
               )}
               {savedAt && (
-                <div className="inline-flex items-center gap-2 rounded-lg bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 px-4 py-2 text-sm font-medium animate-in fade-in shadow-sm">
-                  <CheckCircle2 className="h-4 w-4" /> Salvo!
+                <div className="inline-flex items-center gap-1.5 sm:gap-2 rounded-lg sm:rounded-xl bg-emerald-500/20 backdrop-blur-sm text-emerald-200 px-2.5 sm:px-4 py-1.5 sm:py-2.5 text-xs sm:text-sm font-medium animate-in fade-in border border-emerald-400/30">
+                  <CheckCircle2 className="h-3 w-3 sm:h-4 sm:w-4" /> <span className="hidden sm:inline">Salvo com sucesso!</span><span className="sm:hidden">Salvo!</span>
                 </div>
               )}
             </div>
@@ -479,52 +573,75 @@ export default function ProfilePage() {
 
       {isLoading ? (
         <div className="grid gap-6 lg:grid-cols-3">
-          <Card className="lg:col-span-2">
-            <CardHeader>
-              <Skeleton className="h-6 w-48" />
-              <Skeleton className="h-4 w-72 mt-2" />
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Skeleton className="h-10" />
-                <Skeleton className="h-10" />
-                <Skeleton className="h-10" />
-              </div>
-              <Skeleton className="h-10 w-40 ml-auto" />
-              <Skeleton className="h-32" />
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-              <Skeleton className="h-6 w-40" />
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <Skeleton className="h-10" />
-              <Skeleton className="h-16" />
-            </CardContent>
-          </Card>
+          <div className="lg:col-span-2 space-y-6">
+            <Card className="overflow-hidden">
+              <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent">
+                <Skeleton className="h-7 w-48" />
+                <Skeleton className="h-4 w-72 mt-2" />
+              </CardHeader>
+              <CardContent className="p-6 space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <Skeleton className="h-12 rounded-xl" />
+                  <Skeleton className="h-12 rounded-xl" />
+                  <Skeleton className="h-12 rounded-xl md:col-span-2" />
+                </div>
+                <Skeleton className="h-11 w-40 ml-auto rounded-xl" />
+              </CardContent>
+            </Card>
+            <Card className="overflow-hidden">
+              <CardHeader className="bg-gradient-to-r from-violet-500/5 to-transparent">
+                <Skeleton className="h-7 w-56" />
+                <Skeleton className="h-4 w-64 mt-2" />
+              </CardHeader>
+              <CardContent className="p-6">
+                <Skeleton className="h-32 rounded-xl" />
+              </CardContent>
+            </Card>
+          </div>
+          <div className="space-y-6">
+            <Card className="overflow-hidden">
+              <CardHeader className="bg-gradient-to-r from-emerald-500/5 to-transparent">
+                <Skeleton className="h-6 w-32" />
+              </CardHeader>
+              <CardContent className="p-6 space-y-4">
+                <Skeleton className="h-28 rounded-xl" />
+              </CardContent>
+            </Card>
+            <Card className="overflow-hidden">
+              <CardHeader>
+                <Skeleton className="h-6 w-40" />
+              </CardHeader>
+              <CardContent className="p-6 space-y-3">
+                <Skeleton className="h-16 rounded-xl" />
+                <Skeleton className="h-16 rounded-xl" />
+              </CardContent>
+            </Card>
+          </div>
         </div>
       ) : (
         <div className="grid gap-6 lg:grid-cols-3">
           {/* Coluna principal */}
           <div className="lg:col-span-2 space-y-6">
-            <Card className="border-border/50 shadow-lg overflow-hidden">
-              <CardHeader className="bg-gradient-to-r from-primary/5 via-violet-500/5 to-transparent border-b">
-                <CardTitle className="flex items-center gap-2 text-xl">
-                  <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <UserIcon className="h-5 w-5 text-primary" />
+            {/* Card Dados Pessoais */}
+            <Card className="border-0 shadow-xl overflow-hidden bg-gradient-to-br from-background to-background/80">
+              <CardHeader className="bg-gradient-to-r from-indigo-500/10 via-primary/5 to-transparent border-b border-border/50 pb-6">
+                <div className="flex items-center gap-4">
+                  <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+                    <UserIcon className="h-7 w-7 text-white" />
                   </div>
-                  Dados Pessoais
-                </CardTitle>
-                <CardDescription>
-                  Mantenha suas informações atualizadas para receber as melhores oportunidades
-                </CardDescription>
+                  <div>
+                    <CardTitle className="text-2xl font-bold">Dados Pessoais</CardTitle>
+                    <CardDescription className="text-base mt-1">
+                      Mantenha suas informações atualizadas para receber as melhores oportunidades
+                    </CardDescription>
+                  </div>
+                </div>
               </CardHeader>
-              <CardContent className="p-6">
+              <CardContent className="p-8">
                 <Form {...form}>
                   <form
                     onSubmit={form.handleSubmit(onPersonalDataSubmit)}
-                    className="space-y-6"
+                    className="space-y-8"
                     aria-label="Formulário de dados pessoais"
                   >
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -532,12 +649,16 @@ export default function ProfilePage() {
                         control={form.control}
                         name="name"
                         render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-sm font-semibold">Nome Completo</FormLabel>
+                          <FormItem className="space-y-3">
+                            <FormLabel className="text-sm font-semibold flex items-center gap-2">
+                              <UserIcon className="h-4 w-4 text-muted-foreground" />
+                              Nome Completo
+                            </FormLabel>
                             <FormControl>
                               <Input 
                                 {...field} 
-                                className="h-11 border-border/50 focus:border-primary transition-colors"
+                                className="h-12 rounded-xl border-border/50 bg-background/50 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                                placeholder="Seu nome completo"
                               />
                             </FormControl>
                             <FormMessage />
@@ -548,14 +669,18 @@ export default function ProfilePage() {
                         control={form.control}
                         name="cpf"
                         render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-sm font-semibold">CPF</FormLabel>
+                          <FormItem className="space-y-3">
+                            <FormLabel className="text-sm font-semibold flex items-center gap-2">
+                              <Shield className="h-4 w-4 text-muted-foreground" />
+                              CPF
+                              <span className="text-xs text-muted-foreground font-normal">(não editável)</span>
+                            </FormLabel>
                             <FormControl>
                               <Input 
                                 {...field} 
                                 disabled 
                                 aria-disabled 
-                                className="h-11 border-border/50 bg-muted/50"
+                                className="h-12 rounded-xl border-border/50 bg-muted/30 cursor-not-allowed"
                               />
                             </FormControl>
                             <FormMessage />
@@ -566,30 +691,136 @@ export default function ProfilePage() {
                         control={form.control}
                         name="email"
                         render={({ field }) => (
-                          <FormItem className="md:col-span-2">
-                            <FormLabel className="text-sm font-semibold">Email</FormLabel>
+                          <FormItem className="space-y-3">
+                            <FormLabel className="text-sm font-semibold flex items-center gap-2">
+                              <Mail className="h-4 w-4 text-muted-foreground" />
+                              Email
+                              <span className="text-xs text-muted-foreground font-normal">(não editável)</span>
+                            </FormLabel>
                             <FormControl>
                               <Input 
                                 type="email" 
                                 {...field} 
-                                className="h-11 border-border/50 focus:border-primary transition-colors"
+                                disabled
+                                aria-disabled
+                                className="h-12 rounded-xl border-border/50 bg-muted/30 cursor-not-allowed"
                               />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
+                      <FormField
+                        control={form.control}
+                        name="telefone"
+                        render={({ field }) => (
+                          <FormItem className="space-y-3">
+                            <FormLabel className="text-sm font-semibold flex items-center gap-2">
+                              <Phone className="h-4 w-4 text-muted-foreground" />
+                              Telefone
+                            </FormLabel>
+                            <FormControl>
+                              <Input 
+                                {...field} 
+                                className="h-12 rounded-xl border-border/50 bg-background/50 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                                placeholder="(XX) XXXXX-XXXX"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="dataNascimento"
+                        render={({ field }) => (
+                          <FormItem className="space-y-3">
+                            <FormLabel className="text-sm font-semibold flex items-center gap-2">
+                              <Calendar className="h-4 w-4 text-muted-foreground" />
+                              Data de Nascimento
+                            </FormLabel>
+                            <FormControl>
+                              <Input 
+                                type="date"
+                                {...field} 
+                                className="h-12 rounded-xl border-border/50 bg-background/50 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="genero"
+                        render={({ field }) => (
+                          <FormItem className="space-y-3">
+                            <FormLabel className="text-sm font-semibold flex items-center gap-2">
+                              <Users className="h-4 w-4 text-muted-foreground" />
+                              Gênero
+                            </FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value || ''}>
+                              <FormControl>
+                                <SelectTrigger className="h-12 rounded-xl border-border/50 bg-background/50 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all">
+                                  <SelectValue placeholder="Selecione seu gênero" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {GENEROS.map((genero) => (
+                                  <SelectItem key={genero} value={genero}>
+                                    {genero}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="escolaridade"
+                        render={({ field }) => (
+                          <FormItem className="md:col-span-2 space-y-3">
+                            <FormLabel className="text-sm font-semibold flex items-center gap-2">
+                              <GraduationCap className="h-4 w-4 text-muted-foreground" />
+                              Escolaridade
+                            </FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value || ''}>
+                              <FormControl>
+                                <SelectTrigger className="h-12 rounded-xl border-border/50 bg-background/50 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all">
+                                  <SelectValue placeholder="Selecione seu nível de escolaridade" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {EDUCATION_LEVELS.map((level) => (
+                                  <SelectItem key={level} value={level}>
+                                    {level}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                     </div>
-                    <div className="flex justify-end pt-4 border-t">
-                      <Button type="submit" disabled={isSaving} aria-busy={isSaving} size="lg" className="min-w-[140px]">
+                    <div className="flex justify-end pt-6 border-t border-border/50">
+                      <Button 
+                        type="submit" 
+                        disabled={isSaving} 
+                        aria-busy={isSaving} 
+                        size="lg" 
+                        className="min-w-[160px] h-12 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 shadow-lg shadow-indigo-500/25 transition-all hover:shadow-xl hover:shadow-indigo-500/30"
+                      >
                         {isSaving ? (
                           <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                             Salvando...
                           </>
                         ) : (
                           <>
-                            <CheckCircle2 className="mr-2 h-4 w-4" />
+                            <CheckCircle2 className="mr-2 h-5 w-5" />
                             Salvar Dados
                           </>
                         )}
@@ -600,50 +831,58 @@ export default function ProfilePage() {
               </CardContent>
             </Card>
 
-            <Card className="border-border/50 shadow-lg overflow-hidden">
-              <CardHeader className="bg-gradient-to-r from-violet-500/5 via-purple-500/5 to-transparent border-b">
+            {/* Card Informações de Deficiência */}
+            <Card className="border-0 shadow-xl overflow-hidden bg-gradient-to-br from-background to-background/80">
+              <CardHeader className="bg-gradient-to-r from-violet-500/10 via-purple-500/5 to-transparent border-b border-border/50 pb-6">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-lg bg-violet-500/10 flex items-center justify-center">
-                      <svg className="h-5 w-5 text-violet-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
+                  <div className="flex items-center gap-4">
+                    <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg shadow-violet-500/20">
+                      <Shield className="h-7 w-7 text-white" />
                     </div>
                     <div>
-                      <CardTitle className="text-xl">Informações de Deficiência</CardTitle>
-                      <CardDescription className="mt-1">
-                        Suas necessidades e barreiras identificadas
+                      <CardTitle className="text-2xl font-bold">Informações de Deficiência</CardTitle>
+                      <CardDescription className="text-base mt-1">
+                        Suas necessidades de acessibilidade e barreiras identificadas
                       </CardDescription>
                     </div>
                   </div>
                   <Button
                     variant="outline"
                     onClick={() => setIsDisabilityEditorOpen(true)}
-                    className="border-violet-500/30 hover:bg-violet-500/10"
+                    className="rounded-xl border-violet-500/30 hover:bg-violet-500/10 hover:border-violet-500/50 transition-all"
                   >
-                    ✏️ Editar
+                    <Edit3 className="h-4 w-4 mr-2" />
+                    Editar
                   </Button>
                 </div>
               </CardHeader>
-              <CardContent className="p-6">
+              <CardContent className="p-8">
                 <DisabilityInfoDisplay disabilities={disabilities} />
               </CardContent>
             </Card>
 
             {/* Card de Recomendações */}
-            <Card className="border-2 shadow-lg overflow-hidden">
-              <CardHeader className="bg-gradient-to-r from-indigo-500/10 via-violet-500/10 to-purple-500/10 border-b">
-                <CardTitle className="flex items-center gap-2 text-xl">
-                  <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-md">
-                    <svg className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-                    </svg>
+            <Card className="border-0 shadow-xl overflow-hidden bg-gradient-to-br from-background to-background/80">
+              <CardHeader className="bg-gradient-to-r from-amber-500/10 via-orange-500/5 to-transparent border-b border-border/50 pb-6">
+                <div className="flex items-center gap-4">
+                  <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-lg shadow-amber-500/20 relative">
+                    <Zap className="h-7 w-7 text-white" />
+                    <div className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-emerald-500 border-2 border-background animate-pulse" />
                   </div>
-                  Recomendações Inteligentes
-                </CardTitle>
-                <CardDescription className="text-base">Vagas compatíveis baseadas em IA e seu perfil de acessibilidade</CardDescription>
+                  <div>
+                    <CardTitle className="text-2xl font-bold flex items-center gap-2">
+                      Recomendações Inteligentes
+                      <span className="text-xs font-normal px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 border border-amber-500/20">
+                        IA
+                      </span>
+                    </CardTitle>
+                    <CardDescription className="text-base mt-1">
+                      Vagas compatíveis baseadas no seu perfil de acessibilidade
+                    </CardDescription>
+                  </div>
+                </div>
               </CardHeader>
-              <CardContent className="p-6">
+              <CardContent className="p-8">
                 <MatchedJobs />
               </CardContent>
             </Card>
@@ -651,17 +890,20 @@ export default function ProfilePage() {
 
           {/* Coluna secundária */}
           <div className="space-y-6">
-            <Card className="border-border/50 shadow-lg overflow-hidden">
-              <CardHeader className="bg-gradient-to-br from-emerald-500/5 to-transparent border-b pb-4">
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <div className="h-9 w-9 rounded-lg bg-emerald-500/10 flex items-center justify-center">
-                    <FileText className="h-5 w-5 text-emerald-600" />
+            {/* Card Currículo */}
+            <Card className="border-0 shadow-xl overflow-hidden bg-gradient-to-br from-background to-background/80">
+              <CardHeader className="bg-gradient-to-r from-emerald-500/10 to-transparent border-b border-border/50 pb-5">
+                <div className="flex items-center gap-3">
+                  <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/20">
+                    <FileText className="h-6 w-6 text-white" />
                   </div>
-                  Currículo
-                </CardTitle>
-                <CardDescription>Envie seu currículo em PDF, DOC ou DOCX</CardDescription>
+                  <div>
+                    <CardTitle className="text-lg font-bold">Currículo</CardTitle>
+                    <CardDescription>PDF, DOC ou DOCX (máx. 5MB)</CardDescription>
+                  </div>
+                </div>
               </CardHeader>
-              <CardContent className="p-6 space-y-4">
+              <CardContent className="p-6 space-y-5">
                 <div className="group relative">
                   <input
                     id="curriculoInput"
@@ -673,60 +915,63 @@ export default function ProfilePage() {
                   />
                   <label
                     htmlFor="curriculoInput"
-                    className="flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-border/50 bg-background/60 backdrop-blur-sm px-6 py-8 text-center transition-all hover:border-emerald-500/50 hover:bg-emerald-500/5 group-hover:shadow-md"
+                    className="flex cursor-pointer flex-col items-center justify-center gap-4 rounded-2xl border-2 border-dashed border-border/50 bg-gradient-to-br from-emerald-500/5 to-transparent px-6 py-10 text-center transition-all hover:border-emerald-500/50 hover:bg-emerald-500/10 group-hover:shadow-lg"
                   >
-                    <div className="h-14 w-14 rounded-full bg-emerald-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
-                      <UploadCloud className="h-7 w-7 text-emerald-600" />
+                    <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-teal-500/20 flex items-center justify-center group-hover:scale-110 transition-transform shadow-inner">
+                      <UploadCloud className="h-8 w-8 text-emerald-600" />
                     </div>
                     <div>
-                      <p className="font-medium text-sm">
-                        {isUploadingCurriculo ? 'Enviando arquivo...' : 'Clique para selecionar'}
+                      <p className="font-semibold text-base">
+                        {isUploadingCurriculo ? 'Enviando arquivo...' : 'Clique para enviar'}
                       </p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        PDF, DOC ou DOCX (máx. 5MB)
+                      <p className="text-sm text-muted-foreground mt-1">
+                        ou arraste e solte aqui
                       </p>
                     </div>
                   </label>
                 </div>
                 
                 {isUploadingCurriculo && (
-                  <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground animate-pulse">
-                    <Loader2 className="h-4 w-4 animate-spin text-emerald-600" />
-                    Processando arquivo...
+                  <div className="flex items-center justify-center gap-3 text-sm text-muted-foreground py-3 px-4 rounded-xl bg-emerald-500/5 border border-emerald-500/20">
+                    <Loader2 className="h-5 w-5 animate-spin text-emerald-600" />
+                    <span>Processando arquivo...</span>
                   </div>
                 )}
                 
                 {profileData?.curriculoUrl && (
-                  <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4 shadow-sm">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex items-center gap-3 min-w-0 flex-1">
-                        <div className="h-10 w-10 rounded-lg bg-emerald-500/10 flex items-center justify-center flex-shrink-0">
-                          <FileText className="h-5 w-5 text-emerald-600" />
+                  <div className="rounded-2xl border border-emerald-500/30 bg-gradient-to-br from-emerald-500/10 to-teal-500/5 p-5 shadow-sm">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex items-center gap-4 min-w-0 flex-1">
+                        <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center flex-shrink-0 shadow-md">
+                          <FileText className="h-6 w-6 text-white" />
                         </div>
                         <div className="min-w-0">
-                          <p className="text-sm font-medium truncate" title={profileData.curriculoUrl.split('/').pop()}>
+                          <p className="text-sm font-semibold truncate" title={profileData.curriculoUrl.split('/').pop()}>
                             {profileData.curriculoUrl.split('/').pop()}
                           </p>
-                          <p className="text-xs text-muted-foreground">Anexado com sucesso</p>
+                          <p className="text-xs text-emerald-600 flex items-center gap-1 mt-1">
+                            <CheckCircle2 className="h-3 w-3" />
+                            Anexado com sucesso
+                          </p>
                         </div>
                       </div>
-                      <div className="flex gap-1 flex-shrink-0">
+                      <div className="flex gap-2 flex-shrink-0">
                         <Button
                           type="button"
                           variant="outline"
-                          size="sm"
+                          size="icon"
                           onClick={() => window.open(profileData.curriculoUrl, '_blank')}
-                          className="h-9 w-9 p-0"
+                          className="h-10 w-10 rounded-xl border-emerald-500/30 hover:bg-emerald-500/10"
                         >
                           <Eye className="h-4 w-4" />
                         </Button>
                         <Button
                           type="button"
                           variant="outline"
-                          size="sm"
+                          size="icon"
                           disabled={isRemovingCurriculo}
                           onClick={handleCurriculoDelete}
-                          className="h-9 w-9 p-0 hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30"
+                          className="h-10 w-10 rounded-xl hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30"
                         >
                           {isRemovingCurriculo ? (
                             <Loader2 className="h-4 w-4 animate-spin" />
@@ -734,6 +979,61 @@ export default function ProfilePage() {
                             <Trash className="h-4 w-4" />
                           )}
                         </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Card de Estatísticas */}
+            <Card className="border-0 shadow-xl overflow-hidden bg-gradient-to-br from-background to-background/80">
+              <CardHeader className="bg-gradient-to-r from-blue-500/10 to-transparent border-b border-border/50 pb-5">
+                <div className="flex items-center gap-3">
+                  <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
+                    <TrendingUp className="h-6 w-6 text-white" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-lg font-bold">Seu Perfil</CardTitle>
+                    <CardDescription>Estatísticas rápidas</CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="p-6 space-y-4">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="rounded-xl bg-gradient-to-br from-indigo-500/10 to-violet-500/5 p-4 border border-indigo-500/20">
+                    <div className="text-3xl font-bold text-indigo-600">{disabilities.length}</div>
+                    <div className="text-xs text-muted-foreground mt-1">Tipos de Deficiência</div>
+                  </div>
+                  <div className="rounded-xl bg-gradient-to-br from-violet-500/10 to-purple-500/5 p-4 border border-violet-500/20">
+                    <div className="text-3xl font-bold text-violet-600">
+                      {disabilities.reduce((acc, d) => acc + d.subtypes.length, 0)}
+                    </div>
+                    <div className="text-xs text-muted-foreground mt-1">Subtipos</div>
+                  </div>
+                  <div className="rounded-xl bg-gradient-to-br from-emerald-500/10 to-teal-500/5 p-4 border border-emerald-500/20">
+                    <div className="text-3xl font-bold text-emerald-600">{completeness}%</div>
+                    <div className="text-xs text-muted-foreground mt-1">Perfil Completo</div>
+                  </div>
+                  <div className="rounded-xl bg-gradient-to-br from-amber-500/10 to-orange-500/5 p-4 border border-amber-500/20">
+                    <div className="text-3xl font-bold text-amber-600">
+                      {disabilities.reduce((acc, d) => acc + d.subtypes.reduce((a, s) => a + s.barriers.length, 0), 0)}
+                    </div>
+                    <div className="text-xs text-muted-foreground mt-1">Barreiras</div>
+                  </div>
+                </div>
+                
+                {completeness < 100 && (
+                  <div className="rounded-xl bg-gradient-to-r from-amber-500/10 to-orange-500/5 p-4 border border-amber-500/20">
+                    <div className="flex items-start gap-3">
+                      <div className="h-8 w-8 rounded-lg bg-amber-500/20 flex items-center justify-center flex-shrink-0">
+                        <Sparkles className="h-4 w-4 text-amber-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-amber-700 dark:text-amber-400">Dica para você</p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Complete seu perfil para aumentar suas chances de ser encontrado por empresas inclusivas!
+                        </p>
                       </div>
                     </div>
                   </div>

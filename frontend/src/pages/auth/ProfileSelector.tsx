@@ -6,72 +6,123 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { User, Building, Sparkles } from 'lucide-react'
+import { User, Building, Sparkles, ArrowRight, CheckCircle2 } from 'lucide-react'
 
 export default function ProfileSelectorPage() {
   return (
-    <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 flex items-center justify-center relative overflow-hidden">
-      {/* Background decorativo */}
-      <div className="absolute inset-0 -z-10">
-        <div className="absolute top-20 left-10 h-96 w-96 rounded-full bg-indigo-500/20 blur-3xl animate-pulse" />
-        <div className="absolute bottom-20 right-10 h-96 w-96 rounded-full bg-violet-500/20 blur-3xl animate-pulse" style={{animationDelay: '1s'}} />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[600px] w-[600px] rounded-full bg-purple-500/10 blur-3xl animate-pulse" style={{animationDelay: '2s'}} />
-      </div>
-      
-      <div className="w-full max-w-5xl space-y-10">
-        <div className="text-center space-y-4">
-          <div className="flex justify-center mb-6">
-            <div className="h-20 w-20 rounded-2xl bg-gradient-to-br from-indigo-500 via-violet-600 to-purple-700 flex items-center justify-center shadow-2xl animate-in zoom-in duration-500">
-              <Sparkles className="h-10 w-10 text-white" />
+    <div className="min-h-screen w-full flex flex-col lg:flex-row">
+      {/* Left Side - Decorative (Hidden on mobile/tablet) */}
+      <div className="hidden lg:flex w-1/2 relative bg-slate-900 overflow-hidden items-center justify-center">
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-700 opacity-90" />
+        <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]" />
+
+        {/* Animated Shapes */}
+        <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob" />
+        <div className="absolute top-0 -right-4 w-72 h-72 bg-indigo-500 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000" />
+        <div className="absolute -bottom-8 left-20 w-72 h-72 bg-pink-500 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000" />
+
+        <div className="relative z-10 p-12 text-white max-w-xl">
+          <div className="mb-8 inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20 shadow-xl">
+            <Sparkles className="w-8 h-8 text-white" />
+          </div>
+          <h1 className="text-5xl font-bold mb-6 leading-tight">
+            Comece sua jornada de <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-200 to-indigo-200">transformação</span>
+          </h1>
+          <p className="text-lg text-indigo-100 mb-8 leading-relaxed">
+            Seja você um talento em busca de oportunidades ou uma empresa buscando diversidade, seu lugar é aqui.
+          </p>
+
+          <div className="space-y-4">
+            <div className="flex items-center gap-3 text-indigo-100">
+              <CheckCircle2 className="w-5 h-5 text-green-400" />
+              <span>Cadastro 100% gratuito para candidatos</span>
+            </div>
+            <div className="flex items-center gap-3 text-indigo-100">
+              <CheckCircle2 className="w-5 h-5 text-green-400" />
+              <span>Conexão direta com recrutadores</span>
+            </div>
+            <div className="flex items-center gap-3 text-indigo-100">
+              <CheckCircle2 className="w-5 h-5 text-green-400" />
+              <span>Ambiente seguro e inclusivo</span>
             </div>
           </div>
-          <h2 className="text-5xl font-bold tracking-tight bg-gradient-to-r from-indigo-600 via-violet-600 to-purple-600 bg-clip-text text-transparent">
-            Junte-se à ConectaPCD
-          </h2>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Escolha o tipo de perfil que melhor descreve você e faça parte dessa transformação.
-          </p>
         </div>
-        <div className="grid md:grid-cols-2 gap-8">
-          <Link to="/cadastro/candidato" className="no-underline">
-            <Card className="group flex flex-col text-center border-2 shadow-2xl hover:shadow-[0_20px_60px_rgba(99,102,241,0.3)] transition-all duration-300 hover:-translate-y-2 hover:border-indigo-500/50 bg-gradient-to-br from-background to-muted/20 overflow-hidden h-full cursor-pointer">
-              <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-violet-500/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
-              <CardHeader className="items-center relative z-10 pt-8">
-                <div className="h-20 w-20 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-xl mb-4 group-hover:scale-110 transition-transform">
-                  <User className="w-10 h-10 text-white" />
-                </div>
-                <CardTitle className="text-3xl font-bold">Candidato</CardTitle>
-                <CardDescription className="text-base mt-3">
-                  Estou procurando por oportunidades de emprego inclusivas e acessíveis.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="flex-grow flex items-end pb-8 relative z-10">
-                <div className="w-full h-12 flex items-center justify-center text-base font-semibold bg-gradient-to-r from-blue-500 to-indigo-600 group-hover:from-blue-600 group-hover:to-indigo-700 shadow-lg rounded-md text-white transition-all">
-                  Criar perfil de candidato
-                </div>
-              </CardContent>
-            </Card>
-          </Link>
-          <Link to="/cadastro/empresa" className="no-underline">
-            <Card className="group flex flex-col text-center border-2 shadow-2xl hover:shadow-[0_20px_60px_rgba(124,58,237,0.3)] transition-all duration-300 hover:-translate-y-2 hover:border-violet-500/50 bg-gradient-to-br from-background to-muted/20 overflow-hidden h-full cursor-pointer">
-              <div className="absolute inset-0 bg-gradient-to-br from-violet-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
-              <CardHeader className="items-center relative z-10 pt-8">
-                <div className="h-20 w-20 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-xl mb-4 group-hover:scale-110 transition-transform">
-                  <Building className="w-10 h-10 text-white" />
-                </div>
-                <CardTitle className="text-3xl font-bold">Empresa</CardTitle>
-                <CardDescription className="text-base mt-3">
-                  Quero contratar talentos diversos, qualificados e comprometidos.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="flex-grow flex items-end pb-8 relative z-10">
-                <div className="w-full h-12 flex items-center justify-center text-base font-semibold bg-gradient-to-r from-violet-500 to-purple-600 group-hover:from-violet-600 group-hover:to-purple-700 shadow-lg rounded-md text-white transition-all">
-                  Cadastrar minha empresa
-                </div>
-              </CardContent>
-            </Card>
-          </Link>
+      </div>
+
+      {/* Right Side - Content */}
+      <div className="flex-1 flex items-center justify-center p-4 sm:p-6 md:p-8 bg-background overflow-y-auto min-h-screen lg:min-h-0">
+        <div className="w-full max-w-md space-y-6 sm:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+          {/* Mobile header with gradient */}
+          <div className="lg:hidden text-center mb-4">
+            <div className="inline-flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 shadow-lg mb-4">
+              <Sparkles className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
+            </div>
+          </div>
+          
+          <div className="text-center lg:text-left">
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Crie sua conta</h2>
+            <p className="mt-2 text-sm sm:text-base text-muted-foreground">
+              Escolha como você deseja participar da plataforma
+            </p>
+          </div>
+
+          <div className="grid gap-4 sm:gap-6">
+            {/* Candidate Option */}
+            <Link to="/cadastro/candidato" className="group no-underline outline-none">
+              <Card className="relative overflow-hidden border-2 transition-all duration-300 hover:border-indigo-500/50 hover:shadow-lg hover:-translate-y-1 cursor-pointer active:scale-[0.98]">
+                <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <CardContent className="p-4 sm:p-6 flex items-center gap-3 sm:gap-4">
+                  <div className="h-12 w-12 sm:h-14 sm:w-14 rounded-lg sm:rounded-xl bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center group-hover:scale-110 transition-transform duration-300 flex-shrink-0">
+                    <User className="w-6 h-6 sm:w-7 sm:h-7 text-indigo-600 dark:text-indigo-400" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-base sm:text-lg text-foreground group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">Sou Candidato</h3>
+                    <p className="text-xs sm:text-sm text-muted-foreground">Busco vagas e oportunidades de carreira</p>
+                  </div>
+                  <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground group-hover:text-indigo-600 group-hover:translate-x-1 transition-all flex-shrink-0" />
+                </CardContent>
+              </Card>
+            </Link>
+
+            {/* Company Option */}
+            <Link to="/cadastro/empresa" className="group no-underline outline-none">
+              <Card className="relative overflow-hidden border-2 transition-all duration-300 hover:border-violet-500/50 hover:shadow-lg hover:-translate-y-1 cursor-pointer active:scale-[0.98]">
+                <div className="absolute inset-0 bg-gradient-to-br from-violet-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <CardContent className="p-4 sm:p-6 flex items-center gap-3 sm:gap-4">
+                  <div className="h-12 w-12 sm:h-14 sm:w-14 rounded-lg sm:rounded-xl bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center group-hover:scale-110 transition-transform duration-300 flex-shrink-0">
+                    <Building className="w-6 h-6 sm:w-7 sm:h-7 text-violet-600 dark:text-violet-400" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-base sm:text-lg text-foreground group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">Sou Empresa</h3>
+                    <p className="text-xs sm:text-sm text-muted-foreground">Quero divulgar vagas e contratar</p>
+                  </div>
+                  <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground group-hover:text-violet-600 group-hover:translate-x-1 transition-all flex-shrink-0" />
+                </CardContent>
+              </Card>
+            </Link>
+          </div>
+
+          <div className="text-center space-y-3 sm:space-y-4 pt-2 sm:pt-4">
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-muted-foreground">
+                  Já tem uma conta?
+                </span>
+              </div>
+            </div>
+
+            <p className="text-sm text-muted-foreground">
+              <Link
+                to="/login"
+                className="font-semibold text-indigo-600 hover:text-indigo-500 hover:underline transition-all"
+              >
+                Fazer login
+              </Link>
+            </p>
+          </div>
         </div>
       </div>
     </div>

@@ -54,17 +54,17 @@ export const DisabilityTypesTable = () => {
 
   const handleFormSubmit = async (data: {
     nome: string
-    description: string
+    descricao?: string
   }) => {
     try {
       if (editingType) {
-        await updateDisabilityType(editingType.id, data.nome, data.description)
+        await updateDisabilityType(editingType.id, data.nome, data.descricao)
         toast({
           title: 'Sucesso',
           description: 'Tipo de deficiência atualizado.',
         })
       } else {
-        await createDisabilityType(data.nome, data.description)
+        await createDisabilityType(data.nome, data.descricao)
         toast({
           title: 'Sucesso',
           description: 'Novo tipo de deficiência criado.',
@@ -101,39 +101,61 @@ export const DisabilityTypesTable = () => {
       <div className="flex justify-end mb-4">
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button onClick={() => setEditingType(null)}>
+            <Button 
+              onClick={() => setEditingType(null)}
+              className="bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 shadow-lg"
+            >
               <PlusCircle className="mr-2 h-4 w-4" /> Adicionar Tipo
             </Button>
           </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>
-                {editingType ? 'Editar' : 'Adicionar'} Tipo de Deficiência
-              </DialogTitle>
+          <DialogContent className="sm:max-w-[500px]">
+            <DialogHeader className="space-y-3 pb-4 border-b">
+              <div className="flex items-center gap-3">
+                <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-teal-500 to-emerald-500 flex items-center justify-center shadow-lg shadow-teal-500/30">
+                  <PlusCircle className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <DialogTitle className="text-xl">
+                    {editingType ? 'Editar Tipo' : 'Novo Tipo de Deficiência'}
+                  </DialogTitle>
+                  <p className="text-sm text-muted-foreground">
+                    {editingType ? 'Atualize os dados do tipo' : 'Preencha os dados abaixo'}
+                  </p>
+                </div>
+              </div>
             </DialogHeader>
-            <DisabilityTypeForm
-              type={editingType}
-              onSubmit={handleFormSubmit}
-              onCancel={() => setIsDialogOpen(false)}
-            />
+            <div className="pt-4">
+              <DisabilityTypeForm
+                type={editingType}
+                onSubmit={handleFormSubmit}
+                onCancel={() => setIsDialogOpen(false)}
+              />
+            </div>
           </DialogContent>
         </Dialog>
       </div>
-      <div className="rounded-md border">
+      <div className="rounded-xl border border-border/50 shadow-lg overflow-hidden bg-card">
         <Table>
           <TableHeader>
-            <TableRow>
-              <TableHead>Nome</TableHead>
-              <TableHead>Descrição</TableHead>
-              <TableHead className="text-right">Ações</TableHead>
+            <TableRow className="bg-gradient-to-r from-blue-500/5 to-transparent border-b">
+              <TableHead className="font-semibold">Nome</TableHead>
+              <TableHead className="font-semibold">Descrição</TableHead>
+              <TableHead className="text-right font-semibold">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {types.map((type) => (
-              <TableRow key={type.id}>
-                <TableCell className="font-medium">{type.nome}</TableCell>
+              <TableRow key={type.id} className="hover:bg-muted/50 transition-colors">
+                <TableCell className="font-medium">
+                  <div className="flex items-center gap-2">
+                    <div className="h-8 w-8 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                      <span className="text-blue-600 font-bold text-sm">{type.nome.charAt(0).toUpperCase()}</span>
+                    </div>
+                    {type.nome}
+                  </div>
+                </TableCell>
                 <TableCell className="text-muted-foreground">
-                  {type.description}
+                  {type.descricao || <span className="italic text-muted-foreground/60">Sem descrição</span>}
                 </TableCell>
                 <TableCell className="text-right">
                   <Button

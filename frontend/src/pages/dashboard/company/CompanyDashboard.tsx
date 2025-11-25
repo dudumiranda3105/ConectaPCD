@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { PlusCircle, Users, Briefcase, CheckCircle2, Eye, TrendingUp, FileText } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
+import { PlusCircle, Users, Briefcase, CheckCircle2, Eye, TrendingUp, FileText, Sparkles, Building2, Target, Zap, ArrowRight, Clock, Star, Award, BarChart3, UserCheck, CalendarDays } from 'lucide-react'
 import { JobPublicationModal } from '@/components/dashboard/company/JobPublicationModal'
 import { JobsTable } from '@/components/dashboard/company/JobsTable'
 import { JobPostingFormValues } from '@/lib/schemas/job-posting-schema'
@@ -183,128 +184,311 @@ export default function CompanyDashboard() {
 
   return (
     <>
-      <div className="space-y-6">
-        {/* Header com gradiente e resumo */}
-        <div className="relative overflow-hidden rounded-xl border bg-gradient-to-br from-indigo-600 via-indigo-500 to-sky-500 text-white">
-          <div className="absolute -right-20 -top-20 h-56 w-56 rounded-full bg-white/10 blur-2xl" />
-          <div className="absolute -left-10 -bottom-10 h-44 w-44 rounded-full bg-white/10 blur-xl" />
-          <div className="relative p-4 sm:p-6 md:p-8">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-              <div>
-                <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">
-                  Olá, {user?.name || 'empresa'}
-                </h1>
-                <p className="mt-1 text-sm sm:text-base text-indigo-50/90">
-                  Gerencie suas vagas e acompanhe as candidaturas em tempo real.
-                </p>
-              </div>
-              <div className="flex items-center gap-3">
-                <Button variant="secondary" onClick={handleOpenCreateModal} className="w-full sm:w-auto">
-                  <PlusCircle className="mr-2 h-4 w-4" /> Publicar vaga
+      <div className="space-y-8 pb-8">
+        {/* Hero Header Premium */}
+        <div className="relative overflow-hidden rounded-xl sm:rounded-2xl lg:rounded-3xl border border-border/30 shadow-2xl">
+          {/* Background gradiente */}
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-600 via-indigo-600 to-violet-700" />
+          
+          {/* Pattern overlay */}
+          <div className="absolute inset-0 opacity-10">
+            <svg className="h-full w-full" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <pattern id="grid-company" width="32" height="32" patternUnits="userSpaceOnUse">
+                  <path d="M 32 0 L 0 0 0 32" fill="none" stroke="white" strokeWidth="0.5"/>
+                </pattern>
+              </defs>
+              <rect width="100%" height="100%" fill="url(#grid-company)" />
+            </svg>
+          </div>
+          
+          {/* Elementos decorativos flutuantes */}
+          <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-white/10 blur-3xl animate-pulse" />
+          <div className="absolute -left-10 top-1/2 h-48 w-48 rounded-full bg-cyan-500/20 blur-2xl" />
+          <div className="absolute right-1/4 bottom-0 h-32 w-32 rounded-full bg-pink-400/20 blur-xl" />
+          
+          {/* Ícones decorativos */}
+          <div className="absolute top-6 right-8 opacity-20 hidden sm:block">
+            <Sparkles className="h-8 w-8 text-white animate-pulse" />
+          </div>
+          <div className="absolute bottom-8 left-8 opacity-15 hidden sm:block">
+            <Star className="h-10 w-10 text-white" />
+          </div>
+          
+          <div className="relative px-4 py-6 sm:px-6 sm:py-8 md:px-8 md:py-10 lg:px-12 lg:py-14">
+            <div className="flex flex-col gap-6 lg:gap-8">
+              {/* Informações da empresa */}
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-6">
+                <div className="flex items-center gap-4 sm:gap-6">
+                  {/* Avatar da empresa */}
+                  <div className="relative group">
+                    <div className="absolute -inset-1 rounded-xl sm:rounded-2xl bg-gradient-to-r from-cyan-500 via-blue-500 to-violet-500 opacity-70 blur group-hover:opacity-100 transition-opacity" />
+                    <div className="relative h-16 w-16 sm:h-20 sm:w-20 lg:h-24 lg:w-24 rounded-xl sm:rounded-2xl bg-white/10 backdrop-blur-sm flex items-center justify-center shadow-2xl ring-2 sm:ring-4 ring-white/20">
+                      <Building2 className="h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 text-white" />
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-1 sm:space-y-2">
+                    <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                      <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-white tracking-tight drop-shadow-lg">
+                        Olá, {user?.name || 'Empresa'}!
+                      </h1>
+                      {(stats?.activeJobs ?? 0) > 0 && (
+                        <Badge className="bg-emerald-500/20 text-emerald-200 border-emerald-400/30 backdrop-blur-sm text-xs">
+                          <CheckCircle2 className="h-3 w-3 mr-1" />
+                          Ativo
+                        </Badge>
+                      )}
+                    </div>
+                    <p className="text-white/70 text-sm sm:text-base lg:text-lg max-w-xl">
+                      Gerencie suas vagas e encontre os melhores talentos com acessibilidade
+                    </p>
+                  </div>
+                </div>
+                
+                {/* Botão de ação */}
+                <Button 
+                  onClick={handleOpenCreateModal}
+                  size="lg"
+                  className="w-full sm:w-auto bg-white text-indigo-600 hover:bg-white/90 shadow-xl shadow-black/20 h-12 sm:h-14 px-6 sm:px-8 rounded-xl sm:rounded-2xl font-semibold text-sm sm:text-base transition-all hover:scale-[1.02]"
+                >
+                  <PlusCircle className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                  Publicar Nova Vaga
                 </Button>
               </div>
+            
+              {/* Stats Cards dentro do Hero */}
+            <div className="mt-6 sm:mt-8 lg:mt-10 grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+              <div className="group relative overflow-hidden rounded-xl sm:rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20 p-3 sm:p-4 lg:p-5 transition-all hover:bg-white/20">
+                <div className="flex items-center gap-2 sm:gap-3 lg:gap-4">
+                  <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-lg sm:rounded-xl bg-gradient-to-br from-emerald-400 to-green-500 flex items-center justify-center shadow-lg">
+                    <Briefcase className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+                  </div>
+                  <div>
+                    <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-white">
+                      {stats?.activeJobs ?? jobs.filter((j) => j?.isActive === true || j?.status === 'Ativa').length}
+                    </p>
+                    <p className="text-[10px] sm:text-xs lg:text-sm text-white/60">Vagas Ativas</p>
+                  </div>
+                </div>
+                <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity hidden sm:block">
+                  <ArrowRight className="h-4 w-4 text-white/50" />
+                </div>
+              </div>
+              
+              <div className="group relative overflow-hidden rounded-xl sm:rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20 p-3 sm:p-4 lg:p-5 transition-all hover:bg-white/20">
+                <div className="flex items-center gap-2 sm:gap-3 lg:gap-4">
+                  <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-lg sm:rounded-xl bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center shadow-lg">
+                    <Users className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+                  </div>
+                  <div>
+                    <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-white">
+                      {stats?.totalApplications ?? jobs.reduce((acc, j) => acc + (j?.applications || 0), 0)}
+                    </p>
+                    <p className="text-[10px] sm:text-xs lg:text-sm text-white/60">Candidaturas</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="group relative overflow-hidden rounded-xl sm:rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20 p-3 sm:p-4 lg:p-5 transition-all hover:bg-white/20">
+                <div className="flex items-center gap-2 sm:gap-3 lg:gap-4">
+                  <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-lg sm:rounded-xl bg-gradient-to-br from-violet-400 to-purple-500 flex items-center justify-center shadow-lg">
+                    <Eye className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+                  </div>
+                  <div>
+                    <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-white">{stats?.totalViews ?? 0}</p>
+                    <p className="text-[10px] sm:text-xs lg:text-sm text-white/60">Visualizações</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="group relative overflow-hidden rounded-xl sm:rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20 p-3 sm:p-4 lg:p-5 transition-all hover:bg-white/20">
+                <div className="flex items-center gap-2 sm:gap-3 lg:gap-4">
+                  <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-lg sm:rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg">
+                    <Target className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+                  </div>
+                  <div>
+                    <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-white">{stats?.totalJobs ?? jobs.length}</p>
+                    <p className="text-[10px] sm:text-xs lg:text-sm text-white/60">Total de Vagas</p>
+                  </div>
+                </div>
+              </div>
             </div>
-            {/* Métricas principais */}
-            <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <Card className="shadow-sm">
-                <CardHeader className="pb-2 px-4 pt-4 sm:px-6 sm:pt-6">
-                  <CardTitle className="text-xs font-medium text-muted-foreground">Vagas ativas</CardTitle>
-                </CardHeader>
-                <CardContent className="pt-0 px-4 pb-4 sm:px-6 sm:pb-6 flex items-center gap-2">
-                  <Briefcase className="h-4 w-4 text-primary" />
-                  <span className="text-xl font-semibold">
-                    {stats?.activeJobs ?? jobs.filter((j) => (j?.isActive === true) || j?.status === 'Ativa').length}
-                  </span>
-                </CardContent>
-              </Card>
-              <Card className="shadow-sm">
-                <CardHeader className="pb-2 px-4 pt-4 sm:px-6 sm:pt-6">
-                  <CardTitle className="text-xs font-medium text-muted-foreground">Candidaturas</CardTitle>
-                </CardHeader>
-                <CardContent className="pt-0 px-4 pb-4 sm:px-6 sm:pb-6 flex items-center gap-2">
-                  <Users className="h-4 w-4 text-primary" />
-                  <span className="text-xl font-semibold">
-                    {stats?.totalApplications ?? jobs.reduce((acc, j) => acc + (j?.applications || 0), 0)}
-                  </span>
-                </CardContent>
-              </Card>
-              <Card className="shadow-sm">
-                <CardHeader className="pb-2 px-4 pt-4 sm:px-6 sm:pt-6">
-                  <CardTitle className="text-xs font-medium text-muted-foreground">Visualizações</CardTitle>
-                </CardHeader>
-                <CardContent className="pt-0 px-4 pb-4 sm:px-6 sm:pb-6 flex items-center gap-2">
-                  <Eye className="h-4 w-4 text-primary" />
-                  <span className="text-xl font-semibold">{stats?.totalViews ?? 0}</span>
-                </CardContent>
-              </Card>
             </div>
           </div>
         </div>
 
-        {/* Linha de cards adicionais: Match, Atalhos e status */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Card adicional de match de acessibilidade */}
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Match de Acessibilidade</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">17</div>
-              <p className="text-xs text-muted-foreground">
-                candidatos têm match de acessibilidade com suas vagas.
-              </p>
-            </CardContent>
-          </Card>
-
-          {/* Card de Atalhos Rápidos */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium">Atalhos Rápidos</CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-col gap-2">
-              <Button variant="outline" className="justify-start" asChild>
-                <a href="#vagas-table">
-                  <FileText className="mr-2 h-4 w-4" />
-                  Gerenciar vagas
-                </a>
-              </Button>
-              <Button variant="outline" className="justify-start" asChild>
-                <a href="#vagas-table">
-                  <Users className="mr-2 h-4 w-4" />
-                  Ver currículos
-                </a>
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* Card de Status das vagas (aberto x fechado) */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <TrendingUp className="h-4 w-4" />
-                Status das Vagas
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="space-y-1">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">Abertas</span>
-                  <span className="font-semibold">{stats?.activeJobs ?? 0}</span>
+        {/* Cards de Insights */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          {/* Card Match de Acessibilidade */}
+          <Card className="border-0 shadow-xl overflow-hidden bg-gradient-to-br from-background to-background/80 group hover:shadow-2xl transition-all">
+            <CardHeader className="bg-gradient-to-r from-emerald-500/10 via-teal-500/5 to-transparent border-b border-border/50 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/20 group-hover:scale-110 transition-transform">
+                  <UserCheck className="h-6 w-6 text-white" />
                 </div>
-                <Progress value={stats?.totalJobs ? (stats.activeJobs / stats.totalJobs) * 100 : 0} className="h-2" />
+                <div>
+                  <CardTitle className="text-lg font-bold">Match de Acessibilidade</CardTitle>
+                  <CardDescription>Candidatos compatíveis</CardDescription>
+                </div>
               </div>
-              <div className="space-y-1">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">Fechadas</span>
-                  <span className="font-semibold">{stats?.closedJobs ?? 0}</span>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="flex items-end gap-4">
+                <div className="text-5xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
+                  17
                 </div>
-                <Progress value={stats?.totalJobs ? (stats.closedJobs / stats.totalJobs) * 100 : 0} className="h-2" />
+                <div className="pb-2">
+                  <Badge variant="secondary" className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/20">
+                    <TrendingUp className="h-3 w-3 mr-1" />
+                    +5 esta semana
+                  </Badge>
+                </div>
+              </div>
+              <p className="text-sm text-muted-foreground mt-4">
+                Candidatos com perfil de acessibilidade compatível com suas vagas
+              </p>
+              <div className="mt-4 pt-4 border-t border-border/50">
+                <Button variant="ghost" className="w-full justify-between group/btn hover:bg-emerald-500/10">
+                  Ver candidatos compatíveis
+                  <ArrowRight className="h-4 w-4 group-hover/btn:translate-x-1 transition-transform" />
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Card Atalhos Rápidos */}
+          <Card className="border-0 shadow-xl overflow-hidden bg-gradient-to-br from-background to-background/80">
+            <CardHeader className="bg-gradient-to-r from-blue-500/10 via-indigo-500/5 to-transparent border-b border-border/50 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
+                  <Zap className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <CardTitle className="text-lg font-bold">Ações Rápidas</CardTitle>
+                  <CardDescription>Acesse rapidamente</CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="p-6 space-y-3">
+              <Button 
+                variant="outline" 
+                className="w-full justify-start h-12 rounded-xl border-2 hover:border-blue-500/50 hover:bg-blue-500/5 transition-all group"
+                asChild
+              >
+                <a href="#vagas-table">
+                  <div className="h-8 w-8 rounded-lg bg-blue-500/10 flex items-center justify-center mr-3 group-hover:bg-blue-500/20 transition-colors">
+                    <FileText className="h-4 w-4 text-blue-600" />
+                  </div>
+                  <span className="font-medium">Gerenciar vagas</span>
+                </a>
+              </Button>
+              <Button 
+                variant="outline" 
+                className="w-full justify-start h-12 rounded-xl border-2 hover:border-indigo-500/50 hover:bg-indigo-500/5 transition-all group"
+                asChild
+              >
+                <a href="#vagas-table">
+                  <div className="h-8 w-8 rounded-lg bg-indigo-500/10 flex items-center justify-center mr-3 group-hover:bg-indigo-500/20 transition-colors">
+                    <Users className="h-4 w-4 text-indigo-600" />
+                  </div>
+                  <span className="font-medium">Ver currículos</span>
+                </a>
+              </Button>
+              <Button 
+                variant="outline" 
+                className="w-full justify-start h-12 rounded-xl border-2 hover:border-violet-500/50 hover:bg-violet-500/5 transition-all group"
+                onClick={handleOpenCreateModal}
+              >
+                <div className="h-8 w-8 rounded-lg bg-violet-500/10 flex items-center justify-center mr-3 group-hover:bg-violet-500/20 transition-colors">
+                  <PlusCircle className="h-4 w-4 text-violet-600" />
+                </div>
+                <span className="font-medium">Nova vaga</span>
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Card Status das Vagas */}
+          <Card className="border-0 shadow-xl overflow-hidden bg-gradient-to-br from-background to-background/80">
+            <CardHeader className="bg-gradient-to-r from-violet-500/10 via-purple-500/5 to-transparent border-b border-border/50 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg shadow-violet-500/20">
+                  <BarChart3 className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <CardTitle className="text-lg font-bold">Status das Vagas</CardTitle>
+                  <CardDescription>Visão geral</CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="p-6 space-y-5">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="h-3 w-3 rounded-full bg-emerald-500" />
+                    <span className="text-sm font-medium">Vagas Abertas</span>
+                  </div>
+                  <span className="text-lg font-bold text-emerald-600">{stats?.activeJobs ?? 0}</span>
+                </div>
+                <Progress 
+                  value={stats?.totalJobs ? (stats.activeJobs / stats.totalJobs) * 100 : 0} 
+                  className="h-2 bg-emerald-100 dark:bg-emerald-950"
+                />
+              </div>
+              
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="h-3 w-3 rounded-full bg-gray-400" />
+                    <span className="text-sm font-medium">Vagas Fechadas</span>
+                  </div>
+                  <span className="text-lg font-bold text-muted-foreground">{stats?.closedJobs ?? 0}</span>
+                </div>
+                <Progress 
+                  value={stats?.totalJobs ? (stats.closedJobs / stats.totalJobs) * 100 : 0} 
+                  className="h-2"
+                />
+              </div>
+              
+              <div className="pt-4 border-t border-border/50">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Taxa de preenchimento</span>
+                  <span className="font-semibold text-violet-600">
+                    {stats?.totalJobs ? Math.round((stats.closedJobs / stats.totalJobs) * 100) : 0}%
+                  </span>
+                </div>
               </div>
             </CardContent>
           </Card>
         </div>
 
+        {/* Dicas e Insights */}
+        {(stats?.activeJobs ?? 0) === 0 && (
+          <Card className="border-0 shadow-xl overflow-hidden bg-gradient-to-r from-amber-500/10 via-orange-500/5 to-yellow-500/10">
+            <CardContent className="p-6">
+              <div className="flex items-start gap-4">
+                <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-lg flex-shrink-0">
+                  <Sparkles className="h-6 w-6 text-white" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-lg mb-1">Comece a atrair talentos!</h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Publique sua primeira vaga e conecte-se com candidatos qualificados que buscam empresas inclusivas como a sua.
+                  </p>
+                  <Button 
+                    onClick={handleOpenCreateModal}
+                    className="bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 shadow-lg"
+                  >
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Publicar Primeira Vaga
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Tabela de Vagas */}
         <div id="vagas-table">
           <JobsTable
             jobs={jobs}
@@ -313,6 +497,7 @@ export default function CompanyDashboard() {
           />
         </div>
       </div>
+      
       <JobPublicationModal
         isOpen={isModalOpen}
         onOpenChange={setIsModalOpen}

@@ -1,12 +1,5 @@
 import { useState, useEffect } from 'react'
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
-import {
   Table,
   TableBody,
   TableCell,
@@ -25,7 +18,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { useToast } from '@/components/ui/use-toast'
-import { PlusCircle, Loader2, AlertCircle } from 'lucide-react'
+import { PlusCircle, Loader2, AlertCircle, Shield, Search } from 'lucide-react'
 import { getBarreiras, createBarreira, Barreira } from '@/services/barreiras'
 
 export default function BarriersManagementPage() {
@@ -34,6 +27,7 @@ export default function BarriersManagementPage() {
   const [descricao, setDescricao] = useState('')
   const [loading, setLoading] = useState(true)
   const [creating, setCreating] = useState(false)
+  const [searchTerm, setSearchTerm] = useState('')
   const { toast } = useToast()
 
   const fetchBarreiras = async () => {
@@ -87,132 +81,164 @@ export default function BarriersManagementPage() {
     }
   }
 
+  const filteredBarreiras = barreiras.filter((barreira) =>
+    barreira.descricao.toLowerCase().includes(searchTerm.toLowerCase())
+  )
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Gerenciar Barreiras</h1>
-        <p className="text-muted-foreground mt-2">
-          Adicione e gerencie as barreiras que candidatos podem enfrentar.
-        </p>
+      {/* Header com botão e busca */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h3 className="text-lg font-semibold flex items-center gap-2">
+            <Shield className="h-5 w-5 text-rose-500" />
+            Barreiras Cadastradas
+          </h3>
+          <p className="text-sm text-muted-foreground">
+            {barreiras.length} barreira{barreiras.length !== 1 ? 's' : ''} no sistema
+          </p>
+        </div>
+        
+        <div className="flex items-center gap-3">
+          <div className="relative w-full md:w-64">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar barreira..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 h-10"
+            />
+          </div>
+          
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="h-10 px-5 bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 shadow-lg whitespace-nowrap">
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Nova Barreira
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[500px]">
+              <DialogHeader className="space-y-3 pb-4 border-b">
+                <div className="flex items-center gap-3">
+                  <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-rose-500 to-red-600 flex items-center justify-center shadow-lg shadow-rose-500/30">
+                    <Shield className="h-6 w-6 text-white" />
+                  </div>
+                  <div>
+                    <DialogTitle className="text-2xl">Nova Barreira</DialogTitle>
+                    <DialogDescription className="text-base">
+                      Adicione uma barreira que candidatos podem enfrentar
+                    </DialogDescription>
+                  </div>
+                </div>
+              </DialogHeader>
+              <form onSubmit={handleCreate} className="space-y-6 mt-4">
+                <div className="space-y-3">
+                  <label className="text-sm font-semibold flex items-center gap-2">
+                    <AlertCircle className="h-4 w-4 text-rose-500" />
+                    Descrição da Barreira
+                  </label>
+                  <Input
+                    value={descricao}
+                    onChange={(e) => setDescricao(e.target.value)}
+                    placeholder="Ex: Dificuldade de locomoção em escadas"
+                    disabled={creating}
+                    className="h-12 border-2 focus:border-rose-500 transition-all"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Seja específico para ajudar no matching de candidatos com vagas
+                  </p>
+                </div>
+                <div className="flex justify-end gap-3 pt-4 border-t">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsDialogOpen(false)}
+                    disabled={creating}
+                    className="h-10 px-6"
+                  >
+                    Cancelar
+                  </Button>
+                  <Button 
+                    type="submit" 
+                    disabled={creating}
+                    className="h-10 px-6 bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-600 hover:to-red-700 shadow-lg"
+                  >
+                    {creating ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Criando...
+                      </>
+                    ) : (
+                      <>
+                        <PlusCircle className="mr-2 h-4 w-4" />
+                        Criar Barreira
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </form>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>Barreiras Cadastradas</CardTitle>
-              <CardDescription>
-                Lista de todas as barreiras disponíveis no sistema.
-              </CardDescription>
-            </div>
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-              <DialogTrigger asChild>
-                <Button className="h-10 px-6 bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 shadow-lg">
-                  <PlusCircle className="mr-2 h-4 w-4" />
-                  Nova Barreira
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[500px]">
-                <DialogHeader className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-rose-500 to-rose-600 flex items-center justify-center shadow-lg">
-                      <PlusCircle className="h-6 w-6 text-white" />
-                    </div>
-                    <div>
-                      <DialogTitle className="text-2xl">Adicionar Barreira</DialogTitle>
-                      <DialogDescription className="text-base">
-                        Crie uma nova barreira que candidatos podem enfrentar.
-                      </DialogDescription>
-                    </div>
-                  </div>
-                </DialogHeader>
-                <form onSubmit={handleCreate} className="space-y-6 mt-4">
-                  <div className="space-y-3">
-                    <label className="text-sm font-semibold flex items-center gap-2">
-                      <AlertCircle className="h-4 w-4 text-rose-500" />
-                      Descrição da Barreira
-                    </label>
-                    <Input
-                      value={descricao}
-                      onChange={(e) => setDescricao(e.target.value)}
-                      placeholder="Ex: Dificuldade de locomoção em escadas"
-                      disabled={creating}
-                      className="h-12 border-2 focus:border-rose-500 transition-all"
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Seja específico para ajudar no matching de candidatos
-                    </p>
-                  </div>
-                  <div className="flex justify-end gap-3 pt-4 border-t">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => setIsDialogOpen(false)}
-                      disabled={creating}
-                      className="h-10 px-6"
-                    >
-                      Cancelar
-                    </Button>
-                    <Button 
-                      type="submit" 
-                      disabled={creating}
-                      className="h-10 px-6 bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 shadow-lg"
-                    >
-                      {creating ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Criando...
-                        </>
-                      ) : (
-                        <>
-                          <PlusCircle className="mr-2 h-4 w-4" />
-                          Criar Barreira
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                </form>
-              </DialogContent>
-            </Dialog>
+      {/* Tabela */}
+      {loading ? (
+        <div className="flex flex-col items-center justify-center py-16 gap-4">
+          <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-rose-500 to-red-500 flex items-center justify-center animate-pulse">
+            <Shield className="h-7 w-7 text-white" />
           </div>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin" />
-            </div>
-          ) : (
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-[100px]">ID</TableHead>
-                    <TableHead>Descrição</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {barreiras.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={2} className="text-center py-8 text-muted-foreground">
-                        Nenhuma barreira cadastrada ainda.
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    barreiras.map((barreira) => (
-                      <TableRow key={barreira.id}>
-                        <TableCell className="font-medium">
-                          {barreira.id}
-                        </TableCell>
-                        <TableCell>{barreira.descricao}</TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Loader2 className="h-5 w-5 animate-spin" />
+            <span>Carregando barreiras...</span>
+          </div>
+        </div>
+      ) : filteredBarreiras.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-16 text-muted-foreground rounded-xl border-2 border-dashed border-rose-200 dark:border-rose-800 bg-rose-50/30 dark:bg-rose-950/10">
+          <Shield className="h-16 w-16 mb-4 text-rose-300 dark:text-rose-700" />
+          <p className="text-lg font-medium">
+            {searchTerm ? 'Nenhuma barreira encontrada' : 'Nenhuma barreira cadastrada'}
+          </p>
+          <p className="text-sm mt-1">
+            {searchTerm ? 'Tente buscar por outro termo' : 'Clique em "Nova Barreira" para começar'}
+          </p>
+        </div>
+      ) : (
+        <div className="rounded-xl border border-border/50 shadow-lg overflow-hidden bg-card">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-gradient-to-r from-rose-500/5 to-transparent border-b">
+                <TableHead className="font-semibold">Barreira</TableHead>
+                <TableHead className="font-semibold w-24 text-right">ID</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredBarreiras.map((barreira, index) => (
+                <TableRow 
+                  key={barreira.id} 
+                  className="hover:bg-rose-50/50 dark:hover:bg-rose-950/20 transition-colors"
+                >
+                  <TableCell className="font-medium">
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-rose-500/10 to-red-500/10 flex items-center justify-center border border-rose-200 dark:border-rose-800">
+                        <Shield className="h-5 w-5 text-rose-600" />
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="font-medium">{barreira.descricao}</span>
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <span className="inline-flex items-center justify-center h-7 px-2.5 rounded-lg bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300 text-xs font-mono font-medium">
+                      #{barreira.id}
+                    </span>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      )}
     </div>
   )
 }

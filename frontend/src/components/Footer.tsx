@@ -1,88 +1,77 @@
 import { Link } from 'react-router-dom'
-import { Briefcase, Twitter, Linkedin, Facebook } from 'lucide-react'
+import { Briefcase, Twitter, Linkedin, Instagram, Mail, Heart } from 'lucide-react'
 
 export const Footer = () => {
   return (
-    <footer className="bg-gradient-to-br from-gray-50 to-indigo-50/30 dark:from-gray-950 dark:to-indigo-950/20 text-secondary-foreground border-t-2 border-indigo-100 dark:border-indigo-900">
-      <div className="container mx-auto py-16 px-4 sm:px-6 lg:px-8">
-        {/* Top grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
-          {/* Brand + Social */}
-          <div className="space-y-5">
-            <Link to="/" className="flex items-center space-x-2 group">
-              <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all group-hover:scale-105">
+    <footer className="relative overflow-hidden">
+      {/* Background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-indigo-950 to-violet-950" />
+      <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wMyI+PHBhdGggZD0iTTM2IDM0djItSDI0di0yaDEyek0zNiAyNHYySDI0di0yaDEyeiIvPjwvZz48L2c+PC9zdmc+')] opacity-50" />
+      
+      <div className="container mx-auto px-4 py-12 sm:py-16 relative z-10">
+        {/* Main Content */}
+        <div className="flex flex-col lg:flex-row items-center lg:items-start justify-between gap-10 lg:gap-16">
+          {/* Brand */}
+          <div className="text-center lg:text-left max-w-md">
+            <Link to="/" className="inline-flex items-center gap-3 group mb-4">
+              <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/30 group-hover:shadow-xl group-hover:shadow-indigo-500/40 transition-all group-hover:scale-105">
                 <Briefcase className="h-5 w-5 text-white" />
               </div>
-              <span className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">ConectaPCD</span>
+              <span className="text-2xl font-bold text-white">ConectaPCD</span>
             </Link>
-            <p className="text-muted-foreground text-base leading-relaxed">
-              Conectando talentos com deficiência a oportunidades de trabalho inclusivas.
+            <p className="text-gray-400 leading-relaxed">
+              Transformando o mercado de trabalho através da inclusão. Conectamos talentos com deficiência a empresas que valorizam a diversidade.
             </p>
-            <div className="flex items-center gap-3 pt-2">
-              <a href="#" aria-label="Twitter" className="h-10 w-10 flex items-center justify-center rounded-xl border-2 border-indigo-200 dark:border-indigo-800 hover:bg-gradient-to-br hover:from-indigo-600 hover:to-violet-600 hover:border-transparent hover:text-white transition-all hover:scale-110 hover:shadow-lg">
-                <Twitter className="h-4 w-4" />
-              </a>
-              <a href="#" aria-label="LinkedIn" className="h-10 w-10 flex items-center justify-center rounded-xl border-2 border-indigo-200 dark:border-indigo-800 hover:bg-gradient-to-br hover:from-indigo-600 hover:to-violet-600 hover:border-transparent hover:text-white transition-all hover:scale-110 hover:shadow-lg">
-                <Linkedin className="h-4 w-4" />
-              </a>
-              <a href="#" aria-label="Facebook" className="h-10 w-10 flex items-center justify-center rounded-xl border-2 border-indigo-200 dark:border-indigo-800 hover:bg-gradient-to-br hover:from-indigo-600 hover:to-violet-600 hover:border-transparent hover:text-white transition-all hover:scale-110 hover:shadow-lg">
-                <Facebook className="h-4 w-4" />
-              </a>
+          </div>
+
+          {/* Links */}
+          <div className="flex flex-wrap justify-center gap-8 sm:gap-12">
+            <div>
+              <h4 className="text-white font-semibold mb-4">Navegação</h4>
+              <ul className="space-y-3">
+                <li><Link to="/login" className="text-gray-400 hover:text-white transition-colors">Vagas</Link></li>
+                <li><Link to="/cadastro" className="text-gray-400 hover:text-white transition-colors">Cadastro</Link></li>
+                <li><Link to="/login" className="text-gray-400 hover:text-white transition-colors">Login</Link></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="text-white font-semibold mb-4">Legal</h4>
+              <ul className="space-y-3">
+                <li><Link to="/privacidade" className="text-gray-400 hover:text-white transition-colors">Privacidade</Link></li>
+                <li><Link to="/termos" className="text-gray-400 hover:text-white transition-colors">Termos</Link></li>
+              </ul>
             </div>
           </div>
 
-          {/* Produto */}
-          <div>
-            <h3 className="text-sm font-semibold tracking-wider uppercase mb-5 text-indigo-600 dark:text-indigo-400">Produto</h3>
-            <ul className="space-y-3">
-              <li>
-                <Link to="/login" className="text-muted-foreground hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors font-medium">Vagas</Link>
-              </li>
-              <li>
-                <Link to="/cadastro" className="text-muted-foreground hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors font-medium">Criar conta</Link>
-              </li>
-              <li>
-                <Link to="/login" className="text-muted-foreground hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors font-medium">Área da empresa</Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Empresa */}
-          <div>
-            <h3 className="text-sm font-semibold tracking-wider uppercase mb-5 text-indigo-600 dark:text-indigo-400">Empresa</h3>
-            <ul className="space-y-3">
-              <li>
-                <Link to="/sobre" className="text-muted-foreground hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors font-medium">Sobre</Link>
-              </li>
-              <li>
-                <a href="#" className="text-muted-foreground hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors font-medium">Blog</a>
-              </li>
-            </ul>
-          </div>
-
-          {/* Legal */}
-          <div>
-            <h3 className="text-sm font-semibold tracking-wider uppercase mb-5 text-indigo-600 dark:text-indigo-400">Legal</h3>
-            <ul className="space-y-3">
-              <li>
-                <Link to="/privacidade" className="text-muted-foreground hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors font-medium">Privacidade</Link>
-              </li>
-              <li>
-                <Link to="/termos" className="text-muted-foreground hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors font-medium">Termos</Link>
-              </li>
-            </ul>
+          {/* Social */}
+          <div className="text-center lg:text-right">
+            <h4 className="text-white font-semibold mb-4">Redes Sociais</h4>
+            <div className="flex items-center justify-center lg:justify-end gap-3">
+              <a href="#" aria-label="Twitter" className="h-10 w-10 flex items-center justify-center rounded-xl bg-white/5 hover:bg-gradient-to-br hover:from-indigo-500 hover:to-violet-600 text-gray-400 hover:text-white transition-all hover:scale-110 hover:shadow-lg hover:shadow-indigo-500/20">
+                <Twitter className="h-5 w-5" />
+              </a>
+              <a href="#" aria-label="LinkedIn" className="h-10 w-10 flex items-center justify-center rounded-xl bg-white/5 hover:bg-gradient-to-br hover:from-indigo-500 hover:to-violet-600 text-gray-400 hover:text-white transition-all hover:scale-110 hover:shadow-lg hover:shadow-indigo-500/20">
+                <Linkedin className="h-5 w-5" />
+              </a>
+              <a href="#" aria-label="Instagram" className="h-10 w-10 flex items-center justify-center rounded-xl bg-white/5 hover:bg-gradient-to-br hover:from-indigo-500 hover:to-violet-600 text-gray-400 hover:text-white transition-all hover:scale-110 hover:shadow-lg hover:shadow-indigo-500/20">
+                <Instagram className="h-5 w-5" />
+              </a>
+              <a href="mailto:contato@conectapcd.com" aria-label="Email" className="h-10 w-10 flex items-center justify-center rounded-xl bg-white/5 hover:bg-gradient-to-br hover:from-indigo-500 hover:to-violet-600 text-gray-400 hover:text-white transition-all hover:scale-110 hover:shadow-lg hover:shadow-indigo-500/20">
+                <Mail className="h-5 w-5" />
+              </a>
+            </div>
           </div>
         </div>
 
-        {/* Bottom bar */}
-        <div className="mt-16 pt-8 border-t-2 border-indigo-100 dark:border-indigo-900 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-sm text-muted-foreground">
-            &copy; {new Date().getFullYear()} ConectaPCD. Todos os direitos reservados.
-          </p>
-          <div className="flex items-center gap-4 text-sm">
-            <Link to="/privacidade" className="text-muted-foreground hover:text-indigo-600 dark:hover:text-indigo-400 font-medium transition-colors">Privacidade</Link>
-            <span className="text-muted-foreground/50">•</span>
-            <Link to="/termos" className="text-muted-foreground hover:text-indigo-600 dark:hover:text-indigo-400 font-medium transition-colors">Termos</Link>
+        {/* Divider */}
+        <div className="mt-12 pt-8 border-t border-white/10">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p className="text-sm text-gray-500">
+              &copy; {new Date().getFullYear()} ConectaPCD. Todos os direitos reservados.
+            </p>
+            <p className="text-sm text-gray-500 flex items-center gap-1.5">
+              Feito com <Heart className="w-4 h-4 text-pink-500 fill-pink-500" /> para promover a inclusão
+            </p>
           </div>
         </div>
       </div>

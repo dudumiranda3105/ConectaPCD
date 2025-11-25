@@ -20,7 +20,7 @@ export const upsertByUserId = async (candidateId: number, profileData: any) => {
         curriculoUrl: profileData.curriculoUrl !== undefined ? profileData.curriculoUrl : existing.curriculoUrl,
         linkedin: profileData.linkedin !== undefined ? profileData.linkedin : existing.linkedin,
         portfolio: profileData.portfolio !== undefined ? profileData.portfolio : existing.portfolio,
-        biografia: profileData.biografia !== undefined ? profileData.biografia : existing.biografia,
+        experiencias: profileData.experiencias !== undefined ? profileData.experiencias : existing.experiencias,
       },
       include: {
         subtipos: {
@@ -156,7 +156,7 @@ export const upsertByUserId = async (candidateId: number, profileData: any) => {
       curriculoUrl: profileData.curriculoUrl,
       linkedin: profileData.linkedin,
       portfolio: profileData.portfolio,
-      biografia: profileData.biografia,
+      experiencias: profileData.experiencias,
     },
     include: {
       subtipos: {

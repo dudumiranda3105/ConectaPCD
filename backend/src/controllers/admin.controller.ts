@@ -98,4 +98,40 @@ export const AdminController = {
       res.status(500).json({ error: err.message ?? 'Erro interno no servidor' });
     }
   },
+
+  async createAdmin(req: Request, res: Response) {
+    try {
+      const { name, email, password, cargo } = req.body;
+
+      if (!name || !email || !password) {
+        return res.status(400).json({ error: 'Nome, email e senha são obrigatórios' });
+      }
+
+      const admin = await AdminService.createAdmin({ name, email, password, cargo });
+      res.status(201).json(admin);
+    } catch (err: any) {
+      console.error('Erro ao criar administrador:', err);
+      if (err.message === 'Email já está em uso') {
+        return res.status(400).json({ error: err.message });
+      }
+      res.status(500).json({ error: err.message ?? 'Erro interno no servidor' });
+    }
+  },
+
+  async deleteAdmin(req: Request, res: Response) {
+    try {
+      const { adminId } = req.params;
+      const currentAdminId = (req as any).user?.userId;
+
+      if (Number(adminId) === currentAdminId) {
+        return res.status(400).json({ error: 'Você não pode remover a si mesmo' });
+      }
+
+      await AdminService.deleteAdmin(Number(adminId));
+      res.json({ message: 'Administrador removido com sucesso' });
+    } catch (err: any) {
+      console.error('Erro ao remover administrador:', err);
+      res.status(500).json({ error: err.message ?? 'Erro interno no servidor' });
+    }
+  },
 };

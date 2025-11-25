@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Shield, Link2, Accessibility, AlertCircle } from 'lucide-react'
+import { Shield, Link2, Accessibility, AlertCircle, Layers } from 'lucide-react'
 import { DisabilityTypesTable } from '@/components/dashboard/admin/DisabilityTypesTable'
+import { DisabilitySubtypesTable } from '@/components/dashboard/admin/DisabilitySubtypesTable'
 import { AcessibilidadesTable } from '@/components/dashboard/admin/AcessibilidadesTable'
 import BarriersManagementPage from './BarriersManagementPage'
 import BarrierConnectionsPage from './BarrierConnectionsPage'
@@ -23,7 +24,7 @@ export default function SystemManagementPage() {
             </div>
             <div>
               <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-                Gerenciamento do Sistema
+                Gerenciamento de Deficiências
               </h1>
               <p className="text-muted-foreground mt-2">
                 Configure tipos de deficiência, barreiras, acessibilidades e suas conexões
@@ -35,7 +36,7 @@ export default function SystemManagementPage() {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4 h-auto p-1 bg-muted/50 rounded-xl">
+        <TabsList className="grid w-full grid-cols-5 h-auto p-1 bg-muted/50 rounded-xl">
           <TabsTrigger 
             value="disabilities" 
             className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-md rounded-lg py-3"
@@ -44,7 +45,17 @@ export default function SystemManagementPage() {
               <AlertCircle className="h-4 w-4 text-blue-600" />
             </div>
             <span className="hidden sm:inline">Tipos de Deficiência</span>
-            <span className="sm:hidden">Deficiências</span>
+            <span className="sm:hidden">Tipos</span>
+          </TabsTrigger>
+          <TabsTrigger 
+            value="subtypes" 
+            className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-md rounded-lg py-3"
+          >
+            <div className="h-8 w-8 rounded-lg bg-indigo-500/10 flex items-center justify-center">
+              <Layers className="h-4 w-4 text-indigo-600" />
+            </div>
+            <span className="hidden sm:inline">Subtipos</span>
+            <span className="sm:hidden">Subtipos</span>
           </TabsTrigger>
           <TabsTrigger 
             value="barriers"
@@ -88,11 +99,30 @@ export default function SystemManagementPage() {
                 Tipos de Deficiência
               </h2>
               <p className="text-sm text-muted-foreground mt-2">
-                Gerencie os tipos e subtipos de deficiência disponíveis na plataforma
+                Gerencie os tipos de deficiência disponíveis na plataforma
               </p>
             </div>
             <div className="p-6">
               <DisabilityTypesTable />
+            </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="subtypes" className="space-y-4">
+          <div className="rounded-xl border border-border/50 bg-card shadow-lg overflow-hidden">
+            <div className="border-b bg-gradient-to-r from-indigo-500/5 to-transparent p-6">
+              <h2 className="text-2xl font-bold flex items-center gap-3">
+                <div className="h-10 w-10 rounded-lg bg-indigo-500/10 flex items-center justify-center">
+                  <Layers className="h-5 w-5 text-indigo-600" />
+                </div>
+                Subtipos de Deficiência
+              </h2>
+              <p className="text-sm text-muted-foreground mt-2">
+                Gerencie os subtipos de deficiência e associe-os aos tipos principais
+              </p>
+            </div>
+            <div className="p-6">
+              <DisabilitySubtypesTable />
             </div>
           </div>
         </TabsContent>

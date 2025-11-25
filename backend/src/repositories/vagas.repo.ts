@@ -129,9 +129,9 @@ export const VagasRepo = {
             genero: true,
             cidade: true,
             estado: true,
-            biografia: true,
             linkedin: true,
             portfolio: true,
+            profileData: true,
             subtipos: {
               include: {
                 subtipo: {

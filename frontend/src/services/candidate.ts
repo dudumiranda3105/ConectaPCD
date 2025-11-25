@@ -31,11 +31,29 @@ export const signUpCandidate = async (
   const baseUrl = import.meta.env?.VITE_API_BASE_URL || import.meta.env?.VITE_API_URL || 'http://localhost:3000'
 
   if (res.token) {
-    await fetch(`${baseUrl}/profiles/candidate`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${res.token}` },
-      body: JSON.stringify(formData),
-    })
+    try {
+      const profileResponse = await fetch(`${baseUrl}/profiles/candidate`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json', 
+          Authorization: `Bearer ${res.token}` 
+        },
+        body: JSON.stringify(formData),
+      })
+
+      if (!profileResponse.ok) {
+        const errorBody = await profileResponse.json().catch(() => ({}))
+        console.error('Erro ao salvar perfil completo:', errorBody)
+        throw new Error(errorBody.error || 'Erro ao salvar dados completos do perfil')
+      }
+
+      const profileData = await profileResponse.json()
+      console.log('Perfil completo salvo com sucesso:', profileData)
+    } catch (error) {
+      console.error('Erro ao salvar perfil completo:', error)
+      // Mesmo com erro no perfil, o usuário foi criado
+      throw error
+    }
   }
 
   return { user: { id: String(res.user.id), email: res.user.email } }

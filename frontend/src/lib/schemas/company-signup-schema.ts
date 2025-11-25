@@ -69,9 +69,10 @@ export const BARREIRAS = [
   'De Transporte',
 ] as const
 
-// Step 1: Company Data
-export const companyDataSchema = z
+// Unified Schema for Company Signup
+export const companySignupSchema = z
   .object({
+    // Dados da Empresa
     razaoSocial: z
       .string()
       .min(1, { message: 'A razão social é obrigatória.' }),
@@ -105,64 +106,50 @@ export const companyDataSchema = z
       })
       .regex(/[0-9]/, { message: 'A senha deve conter ao menos um número.' }),
     confirmarSenha: z.string(),
+    
+    // Endereço
+    cep: z.string().regex(/^\d{5}-\d{3}$/, {
+      message: 'CEP inválido. Use o formato 00000-000.',
+    }),
+    logradouro: z.string().min(1, { message: 'O logradouro é obrigatório.' }),
+    numero: z.string().min(1, { message: 'O número é obrigatório.' }),
+    complemento: z.string().optional(),
+    bairro: z.string().min(1, { message: 'O bairro é obrigatório.' }),
+    cidade: z.string().min(1, { message: 'A cidade é obrigatória.' }),
+    estado: z.string().min(2, { message: 'O estado é obrigatório.' }),
+    
+    // Responsável
+    nomeCompletoResponsavel: z
+      .string()
+      .min(1, { message: 'O nome do responsável é obrigatório.' }),
+    cargoResponsavel: z
+      .string()
+      .min(1, { message: 'O cargo do responsável é obrigatório.' }),
+    emailResponsavel: z
+      .string()
+      .email({ message: 'Por favor, insira um email válido.' }),
+    telefoneResponsavel: z
+      .string()
+      .min(1, { message: 'O telefone do responsável é obrigatório.' }),
+    possuiSistemaInterno: z.boolean().default(false),
+    
+    // Infraestrutura e Acessibilidade
+    acessibilidadesOferecidas: z
+      .array(z.enum(ACESSIBILIDADES_OFERECIDAS))
+      .min(1, { message: 'Selecione ao menos um recurso de acessibilidade.' }),
+    outrosRecursosAcessibilidade: z.string().optional(),
+    barreiras: z.array(z.enum(BARREIRAS)).optional(),
+    outrasBarreiras: z.string().optional(),
+    politicasInclusao: z.string().optional(),
+    concordaTermos: z.literal(true, {
+      errorMap: () => ({
+        message: 'Você deve concordar com os termos para continuar.',
+      }),
+    }),
   })
   .refine((data) => data.senha === data.confirmarSenha, {
     message: 'As senhas não coincidem.',
     path: ['confirmarSenha'],
   })
 
-// Step 2: Address and Contact
-export const addressContactSchema = z.object({
-  cep: z.string().regex(/^\d{5}-\d{3}$/, {
-    message: 'CEP inválido. Use o formato 00000-000.',
-  }),
-  logradouro: z.string().min(1, { message: 'O logradouro é obrigatório.' }),
-  numero: z.string().min(1, { message: 'O número é obrigatório.' }),
-  complemento: z.string().optional(),
-  bairro: z.string().min(1, { message: 'O bairro é obrigatório.' }),
-  cidade: z.string().min(1, { message: 'A cidade é obrigatória.' }),
-  estado: z.enum(ESTADOS_BRASILEIROS, {
-    required_error: 'O estado é obrigatório.',
-  }),
-  nomeCompletoResponsavel: z
-    .string()
-    .min(1, { message: 'O nome do responsável é obrigatório.' }),
-  cargoResponsavel: z
-    .string()
-    .min(1, { message: 'O cargo do responsável é obrigatório.' }),
-  emailResponsavel: z
-    .string()
-    .email({ message: 'Por favor, insira um email válido.' }),
-  telefoneResponsavel: z
-    .string()
-    .min(1, { message: 'O telefone do responsável é obrigatório.' }),
-  possuiSistemaInterno: z.boolean().default(false),
-})
-
-// Step 3: Infrastructure
-export const infrastructureSchema = z.object({
-  acessibilidadesOferecidas: z
-    .array(z.enum(ACESSIBILIDADES_OFERECIDAS))
-    .min(1, { message: 'Selecione ao menos um recurso de acessibilidade.' }),
-  outrosRecursosAcessibilidade: z.string().optional(),
-  barreiras: z.array(z.enum(BARREIRAS)).optional(),
-  outrasBarreiras: z.string().optional(),
-  politicasInclusao: z.string().optional(),
-  concordaTermos: z.literal(true, {
-    errorMap: () => ({
-      message: 'Você deve concordar com os termos para continuar.',
-    }),
-  }),
-})
-
-// Full Schema
-export const companySignupSchema = z.object({
-  ...companyDataSchema.shape,
-  ...addressContactSchema.shape,
-  ...infrastructureSchema.shape,
-})
-
-export type CompanyDataValues = z.infer<typeof companyDataSchema>
-export type AddressContactValues = z.infer<typeof addressContactSchema>
-export type InfrastructureValues = z.infer<typeof infrastructureSchema>
 export type CompanySignupFormValues = z.infer<typeof companySignupSchema>

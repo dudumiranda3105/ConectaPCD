@@ -43,4 +43,18 @@ export const CandidaturasRepo = {
       data: { status },
     });
   },
+
+  async listByEmpresaAndStatus(empresaId: number, status: string) {
+    return prisma.candidatura.findMany({
+      where: {
+        vaga: { empresaId },
+        status: status,
+      },
+      include: {
+        vaga: { select: { id: true, titulo: true } },
+        candidato: { select: { id: true, nome: true, email: true, telefone: true, avatarUrl: true, cidade: true, estado: true, escolaridade: true } },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+  },
 };

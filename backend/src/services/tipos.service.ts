@@ -7,9 +7,14 @@ export const TiposService = {
   listWithSubtipos() {
     return TiposRepo.listWithSubtipos();
   },
-  async create(nome: string) {
+  async create(nome: string, descricao?: string) {
     const final = (nome ?? "").trim();
     if (!final) throw Object.assign(new Error("O campo 'nome' é obrigatório"), { status: 400 });
-    return TiposRepo.create(final);
+    return TiposRepo.create(final, descricao);
+  },
+  async update(id: number, nome: string, descricao?: string) {
+    const final = (nome ?? "").trim();
+    if (!final) throw Object.assign(new Error("O campo 'nome' é obrigatório"), { status: 400 });
+    return TiposRepo.update(id, final, descricao);
   },
 };
