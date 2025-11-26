@@ -1,16 +1,19 @@
 /* Vite config for building the frontend react app: https://vite.dev/config/ */
-import { defineConfig, loadEnv } from 'vite'
+import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'path'
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
   server: {
-    host: '::',
+    host: 'localhost',
     port: 8080,
-  },
-  experimental: {
-    enableNativePlugin: true
+    strictPort: true,
+    hmr: {
+      host: 'localhost',
+      port: 8080,
+      protocol: 'ws',
+    },
   },
   build: {
     minify: mode !== 'development',

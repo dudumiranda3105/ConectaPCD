@@ -1,6 +1,6 @@
-const CACHE_NAME = 'conectapcd-v1';
-const STATIC_CACHE = 'conectapcd-static-v1';
-const DYNAMIC_CACHE = 'conectapcd-dynamic-v1';
+const CACHE_NAME = 'conectapcd-v2';
+const STATIC_CACHE = 'conectapcd-static-v2';
+const DYNAMIC_CACHE = 'conectapcd-dynamic-v2';
 
 // Arquivos para cache offline
 const STATIC_FILES = [
@@ -15,6 +15,14 @@ const NETWORK_FIRST_URLS = [
   '/api/',
   '/auth/',
   '/stats',
+];
+
+// URLs externas para ignorar completamente
+const IGNORED_URLS = [
+  'goskip.dev',
+  'api.goskip.dev',
+  'chrome-extension://',
+  'moz-extension://',
 ];
 
 // Instalar Service Worker
@@ -54,8 +62,18 @@ self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
-  // Ignorar extensões do Chrome e requisições não-HTTP
+  // Ignorar extensões do Chrome, requisições não-HTTP e URLs externas
   if (!url.protocol.startsWith('http')) {
+    return;
+  }
+
+  // Ignorar URLs externas que causam problemas de CORS
+  if (IGNORED_URLS.some(ignored => request.url.includes(ignored))) {
+    return;
+  }
+
+  // Ignorar requisições para outros domínios (não cachear)
+  if (url.origin !== self.location.origin) {
     return;
   }
 
@@ -152,7 +170,7 @@ async function staleWhileRevalidate(request) {
 self.addEventListener('push', (event) => {
   console.log('[SW] Push recebido');
   
-  let data = { title: 'ConectaPCD', body: 'Nova notificação', icon: '/icons/icon-192x192.png' };
+  let data = { title: 'ConectaPCD', body: 'Nova notificação', icon: '/favicon.ico' };
   
   if (event.data) {
     try {
@@ -164,8 +182,8 @@ self.addEventListener('push', (event) => {
 
   const options = {
     body: data.body || data.message,
-    icon: data.icon || '/icons/icon-192x192.png',
-    badge: '/icons/icon-72x72.png',
+    icon: data.icon || '/favicon.ico',
+    badge: '/favicon.ico',
     vibrate: [100, 50, 100],
     data: data.data || {},
     actions: data.actions || [
