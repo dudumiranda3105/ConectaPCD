@@ -78,4 +78,13 @@ export const AcessibilidadesController = {
       barreiras: updated?.barreiras.map(b => ({ barreiraId: b.barreiraId, descricao: b.barreira.descricao })) || [],
     });
   },
+  async delete(req: Request, res: Response) {
+    try {
+      const id = Number(req.params.id);
+      await AcessService.delete(id);
+      res.json({ message: 'Acessibilidade removida com sucesso' });
+    } catch (e: any) {
+      res.status(e.status || 400).json({ error: e.message });
+    }
+  },
 };

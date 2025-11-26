@@ -47,4 +47,9 @@ export const acessibilidadesService = {
   async disconnectBarreira(acessibilidadeId: number, barreiraId: number): Promise<void> {
     await api.delete(`acessibilidades/${acessibilidadeId}/barreiras/${barreiraId}`);
   },
+
+  // Deletar acessibilidade
+  async delete(id: number): Promise<void> {
+    await api.delete(`acessibilidades/${id}`);
+  },
 };

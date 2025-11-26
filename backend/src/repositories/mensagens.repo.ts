@@ -9,7 +9,9 @@ export const MensagensRepo = {
       where: { candidaturaId },
       include: {
         candidatura: {
-          include: {
+          select: {
+            id: true,
+            status: true,
             candidato: {
               select: {
                 id: true,
@@ -42,7 +44,9 @@ export const MensagensRepo = {
         data: { candidaturaId },
         include: {
           candidatura: {
-            include: {
+            select: {
+              id: true,
+              status: true,
               candidato: {
                 select: {
                   id: true,
@@ -80,7 +84,9 @@ export const MensagensRepo = {
       where: { id: conversaId },
       include: {
         candidatura: {
-          include: {
+          select: {
+            id: true,
+            status: true,
             candidato: {
               select: {
                 id: true,

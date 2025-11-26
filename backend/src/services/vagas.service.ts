@@ -1,5 +1,6 @@
 import { VagasRepo } from "../repositories/vagas.repo";
 import { prisma } from "../repositories/prisma";
+import { ActivityLogService } from "./activityLog.service";
 
 export const VagasService = {
   async listarVagasPublicas() {
@@ -22,6 +23,10 @@ export const VagasService = {
     if (acessibilidades && acessibilidades.length > 0) {
       await this.vincularAcessibilidadesPorNome(vaga.id, acessibilidades);
     }
+    
+    // Registrar atividade de criação de vaga
+    const empresaNome = empresa.nomeFantasia || empresa.razaoSocial || empresa.nome;
+    await ActivityLogService.logNovaVaga(empresaNome, empresaId, titulo.trim(), vaga.id);
     
     return vaga;
   },
@@ -72,8 +77,41 @@ export const VagasService = {
     if (!vaga) throw new Error("Vaga não encontrada");
 
     const candidaturas = await VagasRepo.getCandidaturas(vagaId);
-    console.log(`[VagasService] Candidaturas para vaga ${vagaId}:`, candidaturas.length, candidaturas);
-    return candidaturas;
+    console.log(`[VagasService] Candidaturas para vaga ${vagaId}:`, candidaturas.length);
+    
+    // Buscar match scores do banco de dados para cada candidatura
+    const candidaturasComMatch = await Promise.all(
+      candidaturas.map(async (candidatura: any) => {
+        try {
+          const matchScore = await prisma.matchScore.findUnique({
+            where: {
+              candidatoId_vagaId: {
+                candidatoId: candidatura.candidato.id,
+                vagaId: vagaId,
+              },
+            },
+          });
+          
+          return {
+            ...candidatura,
+            matchScoreDB: matchScore ? {
+              scoreTotal: matchScore.scoreTotal,
+              scoreAcessibilidades: matchScore.scoreAcessibilidades,
+              scoreSubtipos: matchScore.scoreSubtipos,
+              acessibilidadesAtendidas: matchScore.acessibilidadesAtendidas,
+              acessibilidadesTotal: matchScore.acessibilidadesTotal,
+              detalhes: matchScore.detalhes,
+              calculadoEm: matchScore.updatedAt || matchScore.calculadoEm,
+            } : null,
+          };
+        } catch (error) {
+          console.error(`[VagasService] Erro ao buscar match score para candidato ${candidatura.candidato.id}:`, error);
+          return candidatura;
+        }
+      })
+    );
+    
+    return candidaturasComMatch;
   },
 
   async atualizarVaga(vagaId: number, dados: {
@@ -92,6 +130,9 @@ export const VagasService = {
     // Separar acessibilidades dos outros dados
     const { acessibilidades, ...dadosVaga } = dados;
 
+    // Verificar se está fechando a vaga
+    const estaFechandoVaga = vaga.isActive === true && dados.isActive === false;
+
     // Atualizar dados da vaga (sem acessibilidades)
     const vagaAtualizada = await VagasRepo.update(vagaId, dadosVaga);
     
@@ -104,6 +145,12 @@ export const VagasService = {
       if (acessibilidades.length > 0) {
         await this.vincularAcessibilidadesPorNome(vagaId, acessibilidades);
       }
+    }
+    
+    // Registrar atividade se está fechando a vaga
+    if (estaFechandoVaga) {
+      const empresaNome = vaga.empresa.nomeFantasia || vaga.empresa.razaoSocial || vaga.empresa.nome;
+      await ActivityLogService.logVagaFechada(empresaNome, vaga.empresaId, vaga.titulo, vagaId);
     }
     
     return vagaAtualizada;

@@ -118,7 +118,7 @@ export async function atualizarStatusCandidatura(token: string, candidaturaId: s
 export async function listarCandidaturasEmProcesso(token: string, empresaId: number) {
   // This endpoint might need to be created in backend, or we filter on frontend if needed
   // For now assuming an endpoint exists or we might need to fetch all and filter
-  const res = await fetch(`${API_URL}/empresa/${empresaId}/candidaturas/em-processo`, {
+  const res = await fetch(`${API_URL}/empresas/${empresaId}/candidaturas/em-processo`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },

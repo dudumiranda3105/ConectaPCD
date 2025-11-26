@@ -210,14 +210,12 @@ export default function LoginPage() {
                     <FormItem>
                       <div className="flex items-center justify-between">
                         <FormLabel className="text-sm">Senha</FormLabel>
-                        <Button
-                          type="button"
-                          variant="link"
-                          className="p-0 h-auto text-[10px] sm:text-xs font-medium text-indigo-600 hover:text-indigo-500"
-                          onClick={handleForgotPassword}
+                        <Link
+                          to="/forgot-password"
+                          className="p-0 h-auto text-[10px] sm:text-xs font-medium text-indigo-600 hover:text-indigo-500 hover:underline"
                         >
                           Esqueceu a senha?
-                        </Button>
+                        </Link>
                       </div>
                       <FormControl>
                         <Input

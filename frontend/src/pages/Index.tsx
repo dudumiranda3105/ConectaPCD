@@ -12,6 +12,7 @@ import {
   Sparkles,
   Target,
   TrendingUp,
+  Briefcase,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
@@ -75,8 +76,55 @@ function AnimatedSection({
   );
 }
 
+// Componente de contador animado
+function AnimatedCounter({ target, duration = 2000 }: { target: number; duration?: number }) {
+  const [count, setCount] = useState(0);
+  const { ref, isInView } = useInView(0.3);
+  const hasAnimated = useRef(false);
+
+  useEffect(() => {
+    if (isInView && !hasAnimated.current && target > 0) {
+      hasAnimated.current = true;
+      const startTime = Date.now();
+      const animate = () => {
+        const elapsed = Date.now() - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        // Easing function for smooth animation
+        const easeOutQuart = 1 - Math.pow(1 - progress, 4);
+        setCount(Math.floor(easeOutQuart * target));
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        }
+      };
+      requestAnimationFrame(animate);
+    }
+  }, [isInView, target, duration]);
+
+  return <span ref={ref}>{count.toLocaleString('pt-BR')}</span>;
+}
+
 export default function Index() {
   const [scrollY, setScrollY] = useState(0);
+  const [stats, setStats] = useState({ candidates: 0, companies: 0, activeJobs: 0 });
+  const [statsLoaded, setStatsLoaded] = useState(false);
+
+  // Buscar estatísticas reais da API
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/stats`);
+        if (response.ok) {
+          const data = await response.json();
+          setStats(data);
+          setStatsLoaded(true);
+        }
+      } catch (error) {
+        console.error('Erro ao buscar estatísticas:', error);
+        // Mantém valores padrão em caso de erro
+      }
+    };
+    fetchStats();
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);
@@ -149,18 +197,43 @@ export default function Index() {
           {/* Stats flutuantes */}
           <div className="mt-12 lg:mt-20 grid grid-cols-3 gap-4 lg:gap-8 max-w-2xl xl:max-w-3xl mx-auto px-4">
             {[
-              { number: "500+", label: "Vagas Ativas" },
-              { number: "1000+", label: "Candidatos" },
-              { number: "200+", label: "Empresas" },
+              { 
+                number: stats.activeJobs, 
+                label: "Vagas Ativas",
+                icon: Briefcase,
+                color: "from-emerald-500 to-green-500"
+              },
+              { 
+                number: stats.candidates, 
+                label: "Candidatos",
+                icon: Users,
+                color: "from-purple-500 to-pink-500"
+              },
+              { 
+                number: stats.companies, 
+                label: "Empresas",
+                icon: Building2,
+                color: "from-blue-500 to-cyan-500"
+              },
             ].map((stat, i) => (
               <div
                 key={i}
-                className="text-center p-3 lg:p-4 rounded-2xl bg-card/60 backdrop-blur-sm shadow-lg hover:shadow-xl transition-shadow border border-border/50"
+                className="group text-center p-4 lg:p-6 rounded-2xl bg-card/80 backdrop-blur-sm shadow-lg hover:shadow-2xl transition-all duration-300 border border-border/50 hover:border-purple-300 dark:hover:border-purple-700 hover:-translate-y-1"
               >
-                <div className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-400 dark:to-pink-400 bg-clip-text text-transparent">
-                  {stat.number}
+                <div className={`w-10 h-10 lg:w-12 lg:h-12 mx-auto mb-3 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform`}>
+                  <stat.icon className="w-5 h-5 lg:w-6 lg:h-6 text-white" />
                 </div>
-                <div className="text-xs sm:text-sm lg:text-base text-muted-foreground">{stat.label}</div>
+                <div className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-400 dark:to-pink-400 bg-clip-text text-transparent">
+                  {statsLoaded ? (
+                    <>
+                      <AnimatedCounter target={stat.number} />
+                      {stat.number > 0 && <span className="text-lg">+</span>}
+                    </>
+                  ) : (
+                    <span className="animate-pulse">—</span>
+                  )}
+                </div>
+                <div className="text-xs sm:text-sm lg:text-base text-muted-foreground font-medium">{stat.label}</div>
               </div>
             ))}
           </div>

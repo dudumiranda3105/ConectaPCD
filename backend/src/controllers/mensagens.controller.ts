@@ -1,5 +1,7 @@
 import { Request, Response } from "express";
 import { MensagensService } from "../services/mensagens.service";
+import { prisma } from "../repositories/prisma";
+import { ActivityLogService } from "../services/activityLog.service";
 
 export const MensagensController = {
   // Obter ou criar conversa para uma candidatura
@@ -90,6 +92,41 @@ export const MensagensController = {
         tipoRemetente,
         conteudo
       );
+      
+      // Registrar atividade de chat (busca nomes para o log)
+      try {
+        const conversa = await prisma.conversa.findUnique({
+          where: { id: conversaId },
+          include: {
+            candidatura: {
+              include: {
+                candidato: { select: { nome: true } },
+                vaga: {
+                  include: {
+                    empresa: { select: { nome: true, nomeFantasia: true, razaoSocial: true } }
+                  }
+                }
+              }
+            }
+          }
+        });
+        
+        if (conversa) {
+          const candidatoNome = conversa.candidatura.candidato.nome;
+          const empresaNome = conversa.candidatura.vaga.empresa.nomeFantasia || 
+                             conversa.candidatura.vaga.empresa.razaoSocial || 
+                             conversa.candidatura.vaga.empresa.nome;
+          
+          if (tipoRemetente === 'CANDIDATO') {
+            await ActivityLogService.logMensagemChat(candidatoNome, 'CANDIDATO', Number(remetenteId), empresaNome);
+          } else {
+            await ActivityLogService.logMensagemChat(empresaNome, 'EMPRESA', Number(remetenteId), candidatoNome);
+          }
+        }
+      } catch (logError) {
+        console.error('[MensagensController] Erro ao registrar log de chat:', logError);
+        // Não falha a operação se o log falhar
+      }
       
       res.status(201).json(mensagem);
     } catch (error: any) {

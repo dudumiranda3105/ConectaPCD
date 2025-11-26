@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express'
 import jwt from 'jsonwebtoken'
 
-const JWT_SECRET = process.env.JWT_SECRET || 'dev_secret_change_this'
+const JWT_SECRET: string = process.env.JWT_SECRET || 'dev_secret_change_this'
 
 export interface TokenPayload {
   userId: number
@@ -19,7 +19,7 @@ export const authMiddleware = (req: Request, res: Response, next: NextFunction) 
 
   const token = auth[1]
   try {
-    const payload = jwt.verify(token, JWT_SECRET) as TokenPayload
+    const payload = jwt.verify(token, JWT_SECRET) as unknown as TokenPayload
     // anexa informações ao req
     ;(req as any).user = { 
       id: payload.userId, 

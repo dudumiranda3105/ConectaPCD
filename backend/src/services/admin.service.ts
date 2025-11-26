@@ -2,6 +2,21 @@ import { prisma } from '../repositories/prisma';
 import bcryptjs from 'bcryptjs';
 
 export const AdminService = {
+  // Estatísticas públicas para landing page (não requer autenticação)
+  async getPublicStats() {
+    const [candidatesCount, companiesCount, activeJobsCount] = await Promise.all([
+      prisma.candidato.count(),
+      prisma.empresa.count(),
+      prisma.vaga.count({ where: { isActive: true } }),
+    ]);
+
+    return {
+      candidates: candidatesCount,
+      companies: companiesCount,
+      activeJobs: activeJobsCount,
+    };
+  },
+
   async getDashboardStats() {
     const [candidatesCount, companiesCount, adminsCount, activeJobsCount, pendingJobsCount] = await Promise.all([
       prisma.candidato.count(),
@@ -21,8 +36,47 @@ export const AdminService = {
   },
 
   async getRecentActivities() {
-    // Busca atividades recentes: últimas candidaturas, vagas criadas, usuários cadastrados
-    const [recentCandidaturas, recentVagas, recentCandidatos, recentEmpresas] = await Promise.all([
+    // Primeiro tenta buscar do ActivityLog (nova tabela de logs)
+    try {
+      const activityLogs = await prisma.activityLog.findMany({
+        take: 20,
+        orderBy: { createdAt: 'desc' },
+      });
+
+      if (activityLogs.length > 0) {
+        // Mapeia os tipos para os tipos do frontend
+        const typeMapping: Record<string, string> = {
+          'CANDIDATURA': 'candidatura',
+          'VAGA': 'vaga',
+          'CADASTRO': 'cadastro',
+          'CONTRATACAO': 'contratacao',
+          'REJEICAO': 'rejeicao',
+          'LOGIN': 'login',
+          'PERFIL': 'perfil',
+          'CURRICULO': 'curriculo',
+          'LAUDO': 'laudo',
+          'CHAT': 'chat',
+          'MATCH': 'match',
+          'VAGA_FECHADA': 'vaga_fechada',
+          'APROVACAO_VAGA': 'aprovacao',
+          'VISUALIZACAO': 'visualizacao',
+        };
+
+        return activityLogs.map(log => ({
+          user: log.usuarioNome,
+          action: log.acao,
+          time: log.createdAt.toISOString(),
+          type: typeMapping[log.tipo] || 'outro',
+          userType: log.usuarioTipo,
+          details: log.detalhes,
+        }));
+      }
+    } catch (error) {
+      console.log('[AdminService] ActivityLog table não existe ainda, usando fallback');
+    }
+
+    // Fallback: Busca atividades de outras tabelas se ActivityLog não existir ou estiver vazia
+    const [recentCandidaturas, recentVagas, recentCandidatos, recentEmpresas, recentContratacoes, recentRejeicoes] = await Promise.all([
       prisma.candidatura.findMany({
         take: 5,
         orderBy: { createdAt: 'desc' },
@@ -47,6 +101,36 @@ export const AdminService = {
         take: 2,
         orderBy: { createdAt: 'desc' },
         select: { nomeFantasia: true, razaoSocial: true, nome: true, createdAt: true },
+      }),
+      // Contratações recentes
+      prisma.candidatura.findMany({
+        where: { status: 'APROVADA' },
+        take: 3,
+        orderBy: { updatedAt: 'desc' },
+        include: {
+          candidato: { select: { nome: true } },
+          vaga: { 
+            select: { 
+              titulo: true,
+              empresa: { select: { nomeFantasia: true, razaoSocial: true, nome: true } }
+            } 
+          },
+        },
+      }),
+      // Rejeições recentes
+      prisma.candidatura.findMany({
+        where: { status: 'Rejeitada' },
+        take: 2,
+        orderBy: { updatedAt: 'desc' },
+        include: {
+          candidato: { select: { nome: true } },
+          vaga: { 
+            select: { 
+              titulo: true,
+              empresa: { select: { nomeFantasia: true, razaoSocial: true, nome: true } }
+            } 
+          },
+        },
       }),
     ]);
 
@@ -92,10 +176,32 @@ export const AdminService = {
       });
     });
 
-    // Ordena por data mais recente e retorna as 10 mais recentes
+    // Adiciona contratações
+    recentContratacoes.forEach(c => {
+      const empresaNome = c.vaga.empresa.nomeFantasia || c.vaga.empresa.razaoSocial || c.vaga.empresa.nome;
+      activities.push({
+        user: empresaNome,
+        action: `contratou ${c.candidato.nome} para "${c.vaga.titulo}"`,
+        time: c.updatedAt,
+        type: 'contratacao',
+      });
+    });
+
+    // Adiciona rejeições
+    recentRejeicoes.forEach(c => {
+      const empresaNome = c.vaga.empresa.nomeFantasia || c.vaga.empresa.razaoSocial || c.vaga.empresa.nome;
+      activities.push({
+        user: empresaNome,
+        action: `não aprovou ${c.candidato.nome} para "${c.vaga.titulo}"`,
+        time: c.updatedAt,
+        type: 'rejeicao',
+      });
+    });
+
+    // Ordena por data mais recente e retorna as 15 mais recentes
     return activities
       .sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime())
-      .slice(0, 10)
+      .slice(0, 15)
       .map(a => ({
         ...a,
         time: a.time.toISOString(),

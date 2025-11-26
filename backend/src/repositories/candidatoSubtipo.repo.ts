@@ -6,6 +6,21 @@ export const CandidatoSubtipoRepo = {
     subtypeId: number
     barriers: number[]
   }>) {
+    return this.replaceSubtiposAndAccessibilities(candidatoId, disabilities, [])
+  },
+
+  async replaceSubtiposAndAccessibilities(
+    candidatoId: number, 
+    disabilities: Array<{
+      typeId: number
+      subtypeId: number
+      barriers: number[]
+    }>,
+    accessibilities: Array<{
+      acessibilidadeId: number
+      prioridade: string
+    }>
+  ) {
     // Validar se o candidato existe
     const candidato = await prisma.candidato.findUnique({
       where: { id: candidatoId }
@@ -16,13 +31,15 @@ export const CandidatoSubtipoRepo = {
 
     // Validar se todos os subtipos existem
     const subtypeIds = disabilities.map(d => d.subtypeId)
-    const existingSubtypes = await prisma.subtipoDeficiencia.findMany({
-      where: { id: { in: subtypeIds } }
-    })
-    const existingSubtypeIds = new Set(existingSubtypes.map(s => s.id))
-    const invalidSubtypes = subtypeIds.filter(id => !existingSubtypeIds.has(id))
-    if (invalidSubtypes.length > 0) {
-      throw new Error(`Subtipos inválidos: ${invalidSubtypes.join(', ')}`)
+    if (subtypeIds.length > 0) {
+      const existingSubtypes = await prisma.subtipoDeficiencia.findMany({
+        where: { id: { in: subtypeIds } }
+      })
+      const existingSubtypeIds = new Set(existingSubtypes.map(s => s.id))
+      const invalidSubtypes = subtypeIds.filter(id => !existingSubtypeIds.has(id))
+      if (invalidSubtypes.length > 0) {
+        throw new Error(`Subtipos inválidos: ${invalidSubtypes.join(', ')}`)
+      }
     }
 
     // Validar se todas as barreiras existem
@@ -38,11 +55,27 @@ export const CandidatoSubtipoRepo = {
       }
     }
 
-    // Remover todos os subtipos e barreiras existentes
+    // Validar se todas as acessibilidades existem
+    const accessibilityIds = accessibilities.map(a => a.acessibilidadeId)
+    if (accessibilityIds.length > 0) {
+      const existingAccessibilities = await prisma.acessibilidade.findMany({
+        where: { id: { in: accessibilityIds } }
+      })
+      const existingAccessibilityIds = new Set(existingAccessibilities.map(a => a.id))
+      const invalidAccessibilities = accessibilityIds.filter(id => !existingAccessibilityIds.has(id))
+      if (invalidAccessibilities.length > 0) {
+        throw new Error(`Acessibilidades inválidas: ${invalidAccessibilities.join(', ')}`)
+      }
+    }
+
+    // Remover todos os subtipos, barreiras e acessibilidades existentes
     await prisma.candidatoSubtipoBarreira.deleteMany({
       where: { candidatoId }
     })
     await prisma.candidatoSubtipo.deleteMany({
+      where: { candidatoId }
+    })
+    await prisma.candidatoAcessibilidade.deleteMany({
       where: { candidatoId }
     })
 
@@ -69,7 +102,19 @@ export const CandidatoSubtipoRepo = {
       }
     }
 
-    // Retornar candidato atualizado com subtipos e barreiras
+    // Adicionar novas acessibilidades do candidato
+    if (accessibilities.length > 0) {
+      await prisma.candidatoAcessibilidade.createMany({
+        data: accessibilities.map(a => ({
+          candidatoId,
+          acessibilidadeId: a.acessibilidadeId,
+          prioridade: a.prioridade || 'importante',
+        })),
+        skipDuplicates: true,
+      })
+    }
+
+    // Retornar candidato atualizado com subtipos, barreiras e acessibilidades
     return prisma.candidato.findUnique({
       where: { id: candidatoId },
       include: {
@@ -85,6 +130,11 @@ export const CandidatoSubtipoRepo = {
                 barreira: true,
               },
             },
+          },
+        },
+        acessibilidades: {
+          include: {
+            acessibilidade: true,
           },
         },
       },

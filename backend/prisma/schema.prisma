@@ -169,6 +169,7 @@ model Candidato {
   profileData        Json?
   cpf                String?                     @unique
   curriculoUrl       String?
+  laudoMedicoUrl     String?
   cep                String?
   cidade             String?
   dataNascimento     DateTime?
@@ -338,4 +339,21 @@ model Mensagem {
 
   @@index([conversaId])
   @@index([remetenteId])
+}
+
+// Sistema de Logs de Atividades para Admin
+model ActivityLog {
+  id          Int      @id @default(autoincrement())
+  tipo        String // CANDIDATURA, VAGA, CADASTRO, CONTRATACAO, REJEICAO, LOGIN, PERFIL, CURRICULO, CHAT, MATCH
+  acao        String // Descrição da ação
+  usuarioNome String // Nome do usuário que realizou a ação
+  usuarioTipo String // CANDIDATO, EMPRESA, ADMIN
+  usuarioId   Int? // ID do usuário (opcional)
+  entidadeId  Int? // ID da entidade relacionada (vaga, candidatura, etc)
+  detalhes    Json? // Detalhes adicionais da ação
+  createdAt   DateTime @default(now())
+
+  @@index([tipo])
+  @@index([usuarioTipo])
+  @@index([createdAt])
 }

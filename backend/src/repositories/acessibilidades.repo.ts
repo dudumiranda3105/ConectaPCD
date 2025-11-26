@@ -67,4 +67,10 @@ export const AcessRepo = {
       include: { barreiras: { include: { barreira: true } } },
     });
   },
+  async delete(id: number) {
+    // Primeiro remove todas as conexões com barreiras
+    await prisma.barreiraAcessibilidade.deleteMany({ where: { acessibilidadeId: id } });
+    // Depois remove a acessibilidade
+    return prisma.acessibilidade.delete({ where: { id } });
+  },
 };

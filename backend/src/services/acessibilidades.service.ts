@@ -21,4 +21,9 @@ export const AcessService = {
   disconnect(acessibilidadeId: number, barreiraId: number) {
     return AcessRepo.removeBarreira(acessibilidadeId, barreiraId);
   },
+  async delete(id: number) {
+    const existing = await AcessRepo.findById(id);
+    if (!existing) throw Object.assign(new Error('Acessibilidade não encontrada'), { status: 404 });
+    return AcessRepo.delete(id);
+  },
 };

@@ -9,30 +9,34 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { DisabilityTypesWithSubtypesTable } from '@/components/dashboard/admin/DisabilityTypesWithSubtypesTable'
 import { DisabilitySubtypesTable } from '@/components/dashboard/admin/DisabilitySubtypesTable'
-import { Accessibility, Layers, FolderTree, Search, Loader2, Shield, Link2, AlertCircle } from 'lucide-react'
+import { AcessibilidadesTable } from '@/components/dashboard/admin/AcessibilidadesTable'
+import { Accessibility, Layers, FolderTree, Search, Loader2, Shield, Link2, AlertCircle, Sparkles } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { getDisabilityTypes, getSubtypes } from '@/services/disabilities'
 import { getBarreiras } from '@/services/barreiras'
+import { acessibilidadesService } from '@/services/acessibilidades'
 import BarriersManagementPage from './BarriersManagementPage'
 import BarrierConnectionsPage from './BarrierConnectionsPage'
 
 export default function DisabilityManagementPage() {
   const [searchTerm, setSearchTerm] = useState('')
-  const [stats, setStats] = useState({ types: 0, subtypes: 0, barriers: 0 })
+  const [stats, setStats] = useState({ types: 0, subtypes: 0, barriers: 0, acessibilidades: 0 })
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const [types, subtypes, barriers] = await Promise.all([
+        const [types, subtypes, barriers, acessibilidades] = await Promise.all([
           getDisabilityTypes(),
           getSubtypes(),
           getBarreiras(),
+          acessibilidadesService.list(),
         ])
         setStats({
           types: types.length,
           subtypes: subtypes.length,
           barriers: barriers.length,
+          acessibilidades: acessibilidades.length,
         })
       } catch (error) {
         console.error('Erro ao carregar estatísticas:', error)
@@ -73,7 +77,7 @@ export default function DisabilityManagementPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card className="border-2 border-teal-200 dark:border-teal-800 bg-teal-50 dark:bg-teal-950/30">
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
@@ -127,6 +131,24 @@ export default function DisabilityManagementPage() {
             </div>
           </CardContent>
         </Card>
+
+        <Card className="border-2 border-violet-200 dark:border-violet-800 bg-violet-50 dark:bg-violet-950/30">
+          <CardContent className="p-6">
+            <div className="flex items-center gap-4">
+              <div className="h-12 w-12 rounded-xl bg-violet-500 flex items-center justify-center">
+                <Sparkles className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Acessibilidades</p>
+                {loading ? (
+                  <Loader2 className="h-6 w-6 animate-spin text-violet-600" />
+                ) : (
+                  <p className="text-3xl font-bold text-violet-600">{stats.acessibilidades}</p>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Tabs Card */}
@@ -134,7 +156,7 @@ export default function DisabilityManagementPage() {
         <div className="h-1 bg-gradient-to-r from-teal-500 via-emerald-500 to-green-500" />
         <CardContent className="p-6">
           <Tabs defaultValue="types" className="w-full">
-            <TabsList className="grid w-full grid-cols-4 mb-6 bg-muted/50 p-1 rounded-xl">
+            <TabsList className="grid w-full grid-cols-5 mb-6 bg-muted/50 p-1 rounded-xl">
               <TabsTrigger 
                 value="types" 
                 className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-teal-500 data-[state=active]:to-emerald-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all"
@@ -157,8 +179,15 @@ export default function DisabilityManagementPage() {
                 <span className="hidden sm:inline">Barreiras</span>
               </TabsTrigger>
               <TabsTrigger 
-                value="connections"
+                value="acessibilidades"
                 className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-500 data-[state=active]:to-purple-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all"
+              >
+                <Sparkles className="h-4 w-4 mr-2" />
+                <span className="hidden sm:inline">Acessibilidades</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="connections"
+                className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-orange-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all"
               >
                 <Link2 className="h-4 w-4 mr-2" />
                 <span className="hidden sm:inline">Conexões</span>
@@ -202,6 +231,10 @@ export default function DisabilityManagementPage() {
 
             <TabsContent value="barriers" className="mt-0">
               <BarriersManagementPage />
+            </TabsContent>
+
+            <TabsContent value="acessibilidades" className="mt-0">
+              <AcessibilidadesTable />
             </TabsContent>
 
             <TabsContent value="connections" className="mt-0">

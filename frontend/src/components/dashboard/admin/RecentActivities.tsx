@@ -7,7 +7,7 @@ import {
 } from '@/components/ui/card'
 import { useState, useEffect } from 'react'
 import { adminService } from '@/services/adminService'
-import { Clock, UserPlus, Briefcase, FileCheck, Loader2, Activity } from 'lucide-react'
+import { Clock, UserPlus, Briefcase, FileCheck, Loader2, Activity, UserCheck, UserX, LogIn, User, FileText, MessageSquare, Sparkles, XCircle, Eye, CheckCircle } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
@@ -19,6 +19,28 @@ const getActivityIcon = (type: string) => {
       return <Briefcase className="h-4 w-4 text-emerald-600" />
     case 'cadastro':
       return <UserPlus className="h-4 w-4 text-violet-600" />
+    case 'contratacao':
+      return <UserCheck className="h-4 w-4 text-green-600" />
+    case 'rejeicao':
+      return <UserX className="h-4 w-4 text-red-600" />
+    case 'login':
+      return <LogIn className="h-4 w-4 text-indigo-600" />
+    case 'perfil':
+      return <User className="h-4 w-4 text-cyan-600" />
+    case 'curriculo':
+      return <FileText className="h-4 w-4 text-orange-600" />
+    case 'laudo':
+      return <FileText className="h-4 w-4 text-pink-600" />
+    case 'chat':
+      return <MessageSquare className="h-4 w-4 text-sky-600" />
+    case 'match':
+      return <Sparkles className="h-4 w-4 text-yellow-600" />
+    case 'vaga_fechada':
+      return <XCircle className="h-4 w-4 text-gray-600" />
+    case 'aprovacao':
+      return <CheckCircle className="h-4 w-4 text-teal-600" />
+    case 'visualizacao':
+      return <Eye className="h-4 w-4 text-slate-600" />
     default:
       return <Clock className="h-4 w-4 text-muted-foreground" />
   }
@@ -43,6 +65,72 @@ const getActivityStyles = (type: string) => {
         bg: 'bg-violet-50 dark:bg-violet-950/30',
         border: 'border-violet-200 dark:border-violet-800',
         iconBg: 'bg-violet-100 dark:bg-violet-900/50',
+      }
+    case 'contratacao':
+      return {
+        bg: 'bg-green-50 dark:bg-green-950/30',
+        border: 'border-green-300 dark:border-green-800',
+        iconBg: 'bg-green-100 dark:bg-green-900/50',
+      }
+    case 'rejeicao':
+      return {
+        bg: 'bg-red-50 dark:bg-red-950/30',
+        border: 'border-red-200 dark:border-red-800',
+        iconBg: 'bg-red-100 dark:bg-red-900/50',
+      }
+    case 'login':
+      return {
+        bg: 'bg-indigo-50 dark:bg-indigo-950/30',
+        border: 'border-indigo-200 dark:border-indigo-800',
+        iconBg: 'bg-indigo-100 dark:bg-indigo-900/50',
+      }
+    case 'perfil':
+      return {
+        bg: 'bg-cyan-50 dark:bg-cyan-950/30',
+        border: 'border-cyan-200 dark:border-cyan-800',
+        iconBg: 'bg-cyan-100 dark:bg-cyan-900/50',
+      }
+    case 'curriculo':
+      return {
+        bg: 'bg-orange-50 dark:bg-orange-950/30',
+        border: 'border-orange-200 dark:border-orange-800',
+        iconBg: 'bg-orange-100 dark:bg-orange-900/50',
+      }
+    case 'laudo':
+      return {
+        bg: 'bg-pink-50 dark:bg-pink-950/30',
+        border: 'border-pink-200 dark:border-pink-800',
+        iconBg: 'bg-pink-100 dark:bg-pink-900/50',
+      }
+    case 'chat':
+      return {
+        bg: 'bg-sky-50 dark:bg-sky-950/30',
+        border: 'border-sky-200 dark:border-sky-800',
+        iconBg: 'bg-sky-100 dark:bg-sky-900/50',
+      }
+    case 'match':
+      return {
+        bg: 'bg-yellow-50 dark:bg-yellow-950/30',
+        border: 'border-yellow-200 dark:border-yellow-800',
+        iconBg: 'bg-yellow-100 dark:bg-yellow-900/50',
+      }
+    case 'vaga_fechada':
+      return {
+        bg: 'bg-gray-50 dark:bg-gray-950/30',
+        border: 'border-gray-200 dark:border-gray-800',
+        iconBg: 'bg-gray-100 dark:bg-gray-900/50',
+      }
+    case 'aprovacao':
+      return {
+        bg: 'bg-teal-50 dark:bg-teal-950/30',
+        border: 'border-teal-200 dark:border-teal-800',
+        iconBg: 'bg-teal-100 dark:bg-teal-900/50',
+      }
+    case 'visualizacao':
+      return {
+        bg: 'bg-slate-50 dark:bg-slate-950/30',
+        border: 'border-slate-200 dark:border-slate-800',
+        iconBg: 'bg-slate-100 dark:bg-slate-900/50',
       }
     default:
       return {
@@ -75,7 +163,7 @@ export const RecentActivities = () => {
   }, [])
 
   return (
-    <Card className="shadow-lg border-2 h-full overflow-hidden hover:shadow-xl transition-all">
+    <Card className="shadow-lg border-2 h-full overflow-hidden hover:shadow-xl transition-all flex flex-col">
       {/* Gradient top border */}
       <div className="h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500" />
       
@@ -92,14 +180,14 @@ export const RecentActivities = () => {
           </div>
         </div>
       </CardHeader>
-      <CardContent className="pt-0">
+      <CardContent className="pt-0 flex-1 flex flex-col overflow-hidden">
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-16 gap-3">
+          <div className="flex flex-col items-center justify-center flex-1 gap-3">
             <Loader2 className="h-10 w-10 animate-spin text-indigo-500" />
             <p className="text-sm text-muted-foreground">Carregando atividades...</p>
           </div>
         ) : error ? (
-          <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
+          <div className="flex flex-col items-center justify-center flex-1 text-muted-foreground">
             <div className="h-16 w-16 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center mb-3">
               <Activity className="h-8 w-8 text-red-500" />
             </div>
@@ -107,7 +195,7 @@ export const RecentActivities = () => {
             <p className="text-xs">{error}</p>
           </div>
         ) : activities.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16">
+          <div className="flex flex-col items-center justify-center flex-1">
             <div className="h-20 w-20 rounded-full bg-muted flex items-center justify-center mb-4">
               <Clock className="h-10 w-10 text-muted-foreground/30" />
             </div>
@@ -115,23 +203,23 @@ export const RecentActivities = () => {
             <p className="text-xs text-muted-foreground mt-1">As ações aparecerão aqui</p>
           </div>
         ) : (
-          <div className="space-y-3 max-h-[500px] overflow-y-auto pr-2">
+          <div className="space-y-2 flex-1 overflow-y-auto pr-1 pb-2">
             {activities.map((activity, index) => {
               const styles = getActivityStyles(activity.type)
               return (
                 <div
                   key={index}
-                  className={`flex items-start gap-3 p-4 rounded-xl border-2 transition-all hover:scale-[1.02] hover:shadow-md ${styles.bg} ${styles.border}`}
+                  className={`flex items-center gap-3 p-3 rounded-lg border transition-all hover:shadow-sm ${styles.bg} ${styles.border}`}
                 >
-                  <div className={`mt-0.5 h-8 w-8 rounded-lg flex items-center justify-center ${styles.iconBg}`}>
+                  <div className={`shrink-0 h-8 w-8 rounded-lg flex items-center justify-center ${styles.iconBg}`}>
                     {getActivityIcon(activity.type)}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm leading-relaxed">
+                    <p className="text-sm leading-tight">
                       <span className="font-semibold text-foreground">{activity.user}</span>{' '}
                       <span className="text-muted-foreground">{activity.action}</span>
                     </p>
-                    <p className="text-xs text-muted-foreground mt-1.5 flex items-center gap-1">
+                    <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
                       <Clock className="h-3 w-3" />
                       {formatDistanceToNow(new Date(activity.time), {
                         addSuffix: true,

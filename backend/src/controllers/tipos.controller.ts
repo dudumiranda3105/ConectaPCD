@@ -16,7 +16,7 @@ export const TiposController = {
     res.status(201).json(created);
   },
   async update(req: Request, res: Response) {
-    const id = parseInt(req.params.id);
+    const id = parseInt(req.params.id || '0');
     const { nome, descricao } = req.body ?? {};
     const updated = await TiposService.update(id, nome, descricao);
     res.json(updated);

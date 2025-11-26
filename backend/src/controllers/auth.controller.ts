@@ -1,9 +1,16 @@
 import { Request, Response, Router } from "express";
 import * as authService from "../services/auth.service";
+import { PasswordResetController } from "./passwordReset.controller";
+import { authLimiter, registerLimiter, passwordResetLimiter } from "../middleware/rateLimiter";
 
 const router = Router();
 
-router.post("/register", async (req: Request, res: Response) => {
+// Rotas de reset de senha (com rate limiting)
+router.post("/forgot-password", passwordResetLimiter, PasswordResetController.forgotPassword);
+router.get("/validate-reset-token/:token", PasswordResetController.validateToken);
+router.post("/reset-password", passwordResetLimiter, PasswordResetController.resetPassword);
+
+router.post("/register", registerLimiter, async (req: Request, res: Response) => {
   try {
     const { name, email, password, role } = req.body;
     // log keys received to help debug missing fields (avoid logging password value)
@@ -30,7 +37,7 @@ router.post("/register", async (req: Request, res: Response) => {
   }
 });
 
-router.post("/login", async (req: Request, res: Response) => {
+router.post("/login", authLimiter, async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
     // log keys received to help debug missing fields (avoid logging password value)

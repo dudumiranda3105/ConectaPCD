@@ -20,4 +20,7 @@ router.put("/:candidatoId/disabilities", authMiddleware, CandidatoSubtipoControl
 router.get("/:id/subtipos/barreiras", CandidatoSubtipoBarreirasController.listar);
 router.post("/:id/subtipos/:subtipoId/barreiras", CandidatoSubtipoBarreirasController.vincular);
 
+// Candidaturas aprovadas (contratações)
+router.get("/:id/candidaturas/aprovadas", CandidatosController.listarCandidaturasAprovadas);
+
 export default router;

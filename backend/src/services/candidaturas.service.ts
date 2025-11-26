@@ -1,5 +1,7 @@
 import { CandidaturasRepo } from "../repositories/candidaturas.repo";
 import { prisma } from "../repositories/prisma";
+import { MatchingService } from "./matching.service";
+import { ActivityLogService } from "./activityLog.service";
 
 export const CandidaturasService = {
   async candidatar(candidatoId: number, vagaId: number) {
@@ -19,7 +21,23 @@ export const CandidaturasService = {
     const existing = await CandidaturasRepo.findByCandidatoAndVaga(candidatoId, vagaId);
     if (existing) throw new Error("Você já se candidatou a esta vaga");
 
-    return CandidaturasRepo.create(candidatoId, vagaId);
+    // Criar a candidatura
+    const candidatura = await CandidaturasRepo.create(candidatoId, vagaId);
+    
+    // Registrar atividade de candidatura
+    await ActivityLogService.logCandidatura(candidato.nome, candidatoId, vaga.titulo, vagaId);
+    
+    // Calcular e salvar o match score para esta candidatura
+    try {
+      console.log(`[CandidaturasService] Calculando match score para candidato ${candidatoId} na vaga ${vagaId}`);
+      await MatchingService.calcularMatch(candidatoId, vagaId);
+      console.log(`[CandidaturasService] Match score calculado e salvo com sucesso`);
+    } catch (error) {
+      console.error(`[CandidaturasService] Erro ao calcular match score:`, error);
+      // Não falhar a candidatura se o cálculo de match falhar
+    }
+
+    return candidatura;
   },
 
   async listarPorCandidato(candidatoId: number) {
@@ -31,9 +49,53 @@ export const CandidaturasService = {
   },
 
   async atualizarStatus(id: number, status: string) {
-    if (!["Pendente", "Aceita", "Rejeitada", "EM_PROCESSO"].includes(status)) {
+    if (!["Pendente", "Aceita", "Rejeitada", "EM_PROCESSO", "APROVADA"].includes(status)) {
       throw new Error("Status inválido");
     }
-    return CandidaturasRepo.updateStatus(id, status);
+    
+    const result = await CandidaturasRepo.updateStatus(id, status);
+    
+    // Se for contratação ou rejeição, registrar atividade
+    if (status === 'APROVADA' || status === 'Rejeitada') {
+      const candidatura = await prisma.candidatura.findUnique({
+        where: { id },
+        include: {
+          candidato: { select: { nome: true } },
+          vaga: { 
+            select: { 
+              titulo: true,
+              empresaId: true,
+              empresa: { select: { nome: true, nomeFantasia: true, razaoSocial: true } }
+            }
+          },
+        },
+      });
+      
+      if (candidatura) {
+        const empresaNome = candidatura.vaga.empresa.nomeFantasia || 
+                          candidatura.vaga.empresa.razaoSocial || 
+                          candidatura.vaga.empresa.nome;
+        
+        if (status === 'APROVADA') {
+          await ActivityLogService.logContratacao(
+            empresaNome,
+            candidatura.vaga.empresaId,
+            candidatura.candidato.nome,
+            candidatura.vaga.titulo,
+            id
+          );
+        } else {
+          await ActivityLogService.logRejeicao(
+            empresaNome,
+            candidatura.vaga.empresaId,
+            candidatura.candidato.nome,
+            candidatura.vaga.titulo,
+            id
+          );
+        }
+      }
+    }
+    
+    return result;
   },
 };

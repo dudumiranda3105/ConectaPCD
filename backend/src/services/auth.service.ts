@@ -1,6 +1,7 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import * as authRepo from "../repositories/auth.repo";
+import { ActivityLogService } from "./activityLog.service";
 
 const JWT_SECRET = process.env.JWT_SECRET || "dev_secret_change_this";
 
@@ -39,6 +40,9 @@ export const register = async (payload: {
     };
     userType = "empresa";
     entityId = empresa.id;
+    
+    // Registrar atividade de cadastro de empresa
+    await ActivityLogService.logCadastro(payload.name, 'EMPRESA', empresa.id);
   } else if (role === "ADMIN") {
     const admin = await authRepo.createAdmin({
       name: payload.name,
@@ -69,6 +73,9 @@ export const register = async (payload: {
     };
     userType = "candidato";
     entityId = candidato.id;
+    
+    // Registrar atividade de cadastro de candidato
+    await ActivityLogService.logCadastro(payload.name, 'CANDIDATO', candidato.id);
   }
 
   const token = jwt.sign(
@@ -118,6 +125,11 @@ export const login = async (email: string, password: string) => {
   } else if (user.userType === "candidato") {
     userResponse.candidatoId = user.id;
   }
+
+  // Registrar atividade de login
+  const activityUserType = user.userType === 'empresa' ? 'EMPRESA' : 
+                           user.userType === 'admin' ? 'ADMIN' : 'CANDIDATO';
+  await ActivityLogService.logLogin(user.name, activityUserType, user.id);
 
   return { user: userResponse, token };
 };

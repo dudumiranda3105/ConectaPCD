@@ -17,11 +17,11 @@ export const MatchedJobs = () => {
   const [refreshing, setRefreshing] = useState(false)
 
   const loadMatches = async (forceRefresh = false) => {
-    if (!user?.id) return
+    if (!user?.candidatoId) return
 
     try {
       setLoading(true)
-      const matchScores = await getOrCalculateMatches(user.id)
+      const matchScores = await getOrCalculateMatches(user.candidatoId)
       
       // Ordena por score total (maior primeiro) e pega os top 3
       const topMatches = matchScores
@@ -44,7 +44,7 @@ export const MatchedJobs = () => {
 
   useEffect(() => {
     loadMatches()
-  }, [user?.id])
+  }, [user?.candidatoId])
 
   const handleRefresh = async () => {
     setRefreshing(true)
@@ -116,10 +116,10 @@ export const MatchedJobs = () => {
           <Button
             variant="outline"
             size="lg"
-            onClick={() => navigate('/dashboard/candidato/vagas-recomendadas')}
+            onClick={() => navigate('/dashboard/candidato/smart-match')}
             className="bg-gradient-to-r from-indigo-500/10 to-violet-500/10 border-2 border-indigo-500/20 hover:border-indigo-500/40 hover:from-indigo-500/20 hover:to-violet-500/20"
           >
-            Ver Todas as Recomendações
+            Ver Smart Match
             <ArrowRight className="h-4 w-4 ml-2" />
           </Button>
         </div>

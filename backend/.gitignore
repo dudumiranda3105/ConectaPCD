@@ -1,5 +1,66 @@
-node_modules
-# Keep environment variables out of version control
-.env
+# =====================================================
+# Backend .gitignore
+# =====================================================
 
-/generated/prisma
+# Dependencies
+node_modules/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Prisma generated client
+/generated/prisma/
+
+# Build output
+dist/
+build/
+
+# TypeScript
+*.tsbuildinfo
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# Runtime
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Testing
+coverage/
+.nyc_output/
+__snapshots__/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Uploads (keep directory structure)
+uploads/*
+!uploads/.gitkeep
+!uploads/avatars/.gitkeep
+!uploads/curriculos/.gitkeep
+!uploads/laudos/.gitkeep
+
+# Temporary
+tmp/
+temp/
+.cache/
+
+# Security
+*.pem
+*.key
+*.crt

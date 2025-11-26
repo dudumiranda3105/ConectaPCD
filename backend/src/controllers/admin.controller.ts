@@ -1,6 +1,17 @@
 import { Request, Response } from 'express';
 import { AdminService } from '../services/admin.service';
 
+// Controlador para estatísticas públicas (sem autenticação)
+export const getPublicStats = async (_req: Request, res: Response) => {
+  try {
+    const stats = await AdminService.getPublicStats();
+    res.json(stats);
+  } catch (error: any) {
+    console.error('Erro ao buscar estatísticas públicas:', error);
+    res.status(500).json({ error: 'Erro ao buscar estatísticas' });
+  }
+};
+
 export const AdminController = {
   async getStats(req: Request, res: Response) {
     try {

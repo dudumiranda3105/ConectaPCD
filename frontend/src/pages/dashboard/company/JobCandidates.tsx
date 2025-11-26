@@ -29,6 +29,7 @@ import {
   Eye,
   Filter,
   ExternalLink,
+  MessageSquare,
 } from 'lucide-react'
 import { listarCandidaturasVaga } from '@/services/vagas'
 
@@ -50,12 +51,12 @@ interface Candidatura {
       }
     }>
     acessibilidades: Array<{
+      acessibilidadeId: number
+      vagaId: number
       acessibilidade: {
         id: number
         descricao: string
       }
-      disponivel: boolean
-      qualidade: string
     }>
   }
   candidato: {
@@ -158,89 +159,101 @@ export const JobCandidates = () => {
         }
       }
 
-      // 1. Score de Subtipos
-      const candidatoSubtipos = new Set(candidato.subtipos?.map(s => s.subtipoId) || [])
-      const vagaSubtipos = new Set((vaga.subtiposAceitos || []).map(s => s.subtipo?.id).filter(Boolean))
+      console.log('[calcularMatchScore] ====== INÍCIO DO CÁLCULO ======')
+      console.log('[calcularMatchScore] Candidato:', candidato.nome)
 
-      const subtiposCompativeis = Array.from(candidatoSubtipos).filter(id => vagaSubtipos.has(id))
-      const scoreSubtipos = candidatoSubtipos.size > 0
-        ? Math.round((subtiposCompativeis.length / candidatoSubtipos.size) * 100)
-        : 100
+      // 1. Score de Subtipos - Verificar se candidato tem deficiência aceita pela vaga
+      const candidatoSubtiposIds = candidato.subtipos?.map(s => s.subtipoId || s.subtipo?.id).filter(Boolean) || []
+      const candidatoSubtipos = new Set(candidatoSubtiposIds)
+      
+      const vagaSubtiposIds = (vaga.subtiposAceitos || []).map(s => s.subtipo?.id).filter(Boolean)
+      const vagaSubtipos = new Set(vagaSubtiposIds)
 
-      // 2. Mapear mitigações por recursos assistivos
-      const mitigacoesBarreiras = new Map<number, string>()
-      candidato.recursosAssistivos?.forEach(cr => {
-        cr.recurso.mitigacoes?.forEach(m => {
-          const atual = mitigacoesBarreiras.get(m.barreiraId)
-          const nova = m.eficiencia || 'baixa'
-          const rank = (e: string) => e === 'alta' ? 3 : e === 'media' ? 2 : 1
-          if (!atual || rank(nova) > rank(atual)) {
-            mitigacoesBarreiras.set(m.barreiraId, nova)
-          }
-        })
+      console.log('[calcularMatchScore] Subtipos do candidato:', Array.from(candidatoSubtipos))
+      console.log('[calcularMatchScore] Subtipos aceitos pela vaga:', Array.from(vagaSubtipos))
+
+      let scoreSubtipos = 100 // Default: compatível
+
+      if (vagaSubtipos.size > 0 && candidatoSubtipos.size > 0) {
+        // Vaga tem restrições E candidato tem subtipos
+        const subtiposCompativeis = Array.from(candidatoSubtipos).filter(id => vagaSubtipos.has(id))
+        scoreSubtipos = subtiposCompativeis.length > 0 
+          ? Math.round((subtiposCompativeis.length / candidatoSubtipos.size) * 100)
+          : 0
+      }
+      // Se vaga não tem restrições OU candidato não tem subtipos, score = 100
+
+      // 2. Acessibilidades oferecidas pela vaga
+      const vagaAcessibilidades = vaga.acessibilidades || []
+      const oferecidas = new Map<number, { id: number; descricao: string }>()
+      
+      vagaAcessibilidades.forEach(va => {
+        if (va.acessibilidade) {
+          oferecidas.set(va.acessibilidade.id, va.acessibilidade)
+        }
       })
 
-      // 3. Necessidades derivadas das barreiras (ajustadas por recursos)
+      const ofertasVaga = Array.from(oferecidas.values())
+      console.log('[calcularMatchScore] Acessibilidades oferecidas pela vaga:', ofertasVaga.length)
+
+      // 3. Necessidades do candidato
+      const candidatoAcessibilidades = candidato.acessibilidades || []
       const necessidadesMap = new Map<number, { id: number; descricao: string; prioridade: string }>()
 
-      candidato.subtipos?.forEach(cs => {
-        cs.barreiras?.forEach(csb => {
-          const eficiencia = mitigacoesBarreiras.get(csb.barreiraId)
-
-          // Se eficiência é alta, a barreira está totalmente mitigada
-          if (eficiencia === 'alta') return
-
-          // Ajustar prioridade baseado na mitigação
-          const prioridade = eficiencia === 'media' ? 'desejavel' : 'importante'
-
-          // Adicionar necessidade (simplificado: não temos a relação barreira->acessibilidade aqui)
-          // Por enquanto, vamos considerar as acessibilidades diretas do candidato
-        })
-      })
-
-      // Usar acessibilidades diretas do candidato
-      candidato.acessibilidades?.forEach(ca => {
-        if (!necessidadesMap.has(ca.acessibilidadeId)) {
-          necessidadesMap.set(ca.acessibilidadeId, {
-            id: ca.acessibilidadeId,
-            descricao: ca.acessibilidade?.descricao || 'Acessibilidade',
-            prioridade: ca.prioridade
+      candidatoAcessibilidades.forEach(ca => {
+        const acessId = ca.acessibilidadeId || ca.acessibilidade?.id
+        if (acessId && ca.acessibilidade) {
+          necessidadesMap.set(acessId, {
+            id: acessId,
+            descricao: ca.acessibilidade.descricao || 'Acessibilidade',
+            prioridade: ca.prioridade || 'importante'
           })
         }
       })
 
       const necessidades = Array.from(necessidadesMap.values())
+      console.log('[calcularMatchScore] Necessidades do candidato:', necessidades.length)
 
-      // 4. Acessibilidades oferecidas pela vaga
-      const vagaAcessibilidades = vaga.acessibilidades || []
-      const oferecidas = new Map(
-        vagaAcessibilidades
-          .filter(va => va.disponivel && va.acessibilidade)
-          .map(va => [va.acessibilidade.id, va.acessibilidade])
-      )
-
-      // 5. Calcular atendimento
+      // 4. Calcular atendimento
       const atendidas = necessidades.filter(n => oferecidas.has(n.id))
       const naoAtendidas = necessidades.filter(n => !oferecidas.has(n.id))
-      const extras = vagaAcessibilidades
-        .filter(va => va.disponivel && va.acessibilidade && !necessidades.some(n => n.id === va.acessibilidade.id))
-        .map(va => va.acessibilidade)
+      const extras = ofertasVaga.filter(o => !necessidades.some(n => n.id === o.id))
 
-      // 6. Score ponderado por prioridade
-      let pontos = 0
-      let maxPontos = 0
-      necessidades.forEach(n => {
-        const peso = n.prioridade === 'essencial' ? 3 : n.prioridade === 'importante' ? 2 : 1
-        maxPontos += peso
-        if (oferecidas.has(n.id)) pontos += peso
-      })
+      // 5. Score de acessibilidades
+      let scoreAcessibilidades = 100
 
-      const scoreAcessibilidades = maxPontos > 0
-        ? Math.round((pontos / maxPontos) * 100)
-        : 100
+      if (necessidades.length > 0) {
+        // Candidato tem necessidades específicas - calcular match
+        let pontos = 0
+        let maxPontos = 0
+        necessidades.forEach(n => {
+          const peso = n.prioridade === 'essencial' ? 3 : n.prioridade === 'importante' ? 2 : 1
+          maxPontos += peso
+          if (oferecidas.has(n.id)) pontos += peso
+        })
+        scoreAcessibilidades = maxPontos > 0 ? Math.round((pontos / maxPontos) * 100) : 100
+      } else {
+        // Candidato NÃO tem necessidades específicas cadastradas
+        // Dar score baseado na quantidade de acessibilidades que a vaga oferece
+        // Quanto mais acessibilidades a vaga oferece, melhor para qualquer PCD
+        if (oferecidas.size >= 5) {
+          scoreAcessibilidades = 100 // Vaga muito acessível
+        } else if (oferecidas.size >= 3) {
+          scoreAcessibilidades = 85 // Vaga moderadamente acessível
+        } else if (oferecidas.size >= 1) {
+          scoreAcessibilidades = 70 // Vaga com alguma acessibilidade
+        } else {
+          scoreAcessibilidades = 50 // Vaga sem acessibilidades definidas
+        }
+      }
 
-      // 7. Score total (média ponderada: 30% subtipos + 70% acessibilidades)
+      // 6. Score total (média ponderada: 30% subtipos + 70% acessibilidades)
       const scoreTotal = Math.round((scoreSubtipos * 0.3) + (scoreAcessibilidades * 0.7))
+
+      console.log('[calcularMatchScore] ====== RESULTADO ======')
+      console.log('[calcularMatchScore] Score Subtipos:', scoreSubtipos)
+      console.log('[calcularMatchScore] Score Acessibilidades:', scoreAcessibilidades)
+      console.log('[calcularMatchScore] Score Total:', scoreTotal)
 
       return {
         score: scoreTotal,
@@ -278,13 +291,73 @@ export const JobCandidates = () => {
 
         console.log('[JobCandidates] Buscando candidaturas para vaga:', jobId)
         const data = await listarCandidaturasVaga(token, parseInt(jobId))
-        console.log('[JobCandidates] Candidaturas recebidas:', data)
+        console.log('[JobCandidates] Candidaturas recebidas (raw):', JSON.stringify(data, null, 2))
 
-        // Calcular match score para cada candidatura
-        const candidaturasComMatch = data.map((candidatura: Candidatura) => ({
-          ...candidatura,
-          matchScore: calcularMatchScore(candidatura)
-        }))
+        // Usar match score do banco de dados quando disponível, senão calcular localmente
+        const candidaturasComMatch = data.map((candidatura: any) => {
+          console.log('[JobCandidates] Processando candidatura:', candidatura.id)
+          
+          // Verificar se tem matchScoreDB do backend
+          if (candidatura.matchScoreDB) {
+            console.log('[JobCandidates] Usando matchScore do banco de dados:', candidatura.matchScoreDB)
+            
+            // Converter detalhes do formato do banco para o formato esperado pelo componente
+            const detalhesDB = candidatura.matchScoreDB.detalhes || {}
+            const detalhesConvertidos = {
+              atendidas: [] as Array<{ id: number; descricao: string }>,
+              naoAtendidas: [] as Array<{ id: number; descricao: string; prioridade: string }>,
+              extras: [] as Array<{ id: number; descricao: string }>
+            }
+            
+            // Se o detalhes tem o formato do banco (barreirasPorSubtipo), extrair informações
+            if (detalhesDB.barreirasPorSubtipo) {
+              detalhesDB.barreirasPorSubtipo.forEach((subtipo: any) => {
+                subtipo.barreiras?.forEach((barreira: any) => {
+                  if (barreira.atendida) {
+                    detalhesConvertidos.atendidas.push({
+                      id: barreira.id,
+                      descricao: barreira.descricao
+                    })
+                  } else {
+                    detalhesConvertidos.naoAtendidas.push({
+                      id: barreira.id,
+                      descricao: barreira.descricao,
+                      prioridade: 'importante'
+                    })
+                  }
+                })
+              })
+            }
+            // Se já tem o formato esperado, usar diretamente
+            else if (detalhesDB.atendidas) {
+              detalhesConvertidos.atendidas = detalhesDB.atendidas || []
+              detalhesConvertidos.naoAtendidas = detalhesDB.naoAtendidas || []
+              detalhesConvertidos.extras = detalhesDB.extras || []
+            }
+            
+            return {
+              ...candidatura,
+              matchScore: {
+                score: candidatura.matchScoreDB.scoreTotal,
+                scoreAcessibilidades: candidatura.matchScoreDB.scoreAcessibilidades,
+                scoreSubtipos: candidatura.matchScoreDB.scoreSubtipos,
+                acessibilidadesAtendidas: candidatura.matchScoreDB.acessibilidadesAtendidas,
+                acessibilidadesTotal: candidatura.matchScoreDB.acessibilidadesTotal,
+                detalhes: detalhesConvertidos
+              }
+            }
+          }
+          
+          // Fallback: calcular localmente se não tiver no banco
+          console.log('[JobCandidates] matchScoreDB não disponível, calculando localmente')
+          const matchScore = calcularMatchScore(candidatura)
+          console.log('[JobCandidates] Match calculado localmente:', matchScore)
+          
+          return {
+            ...candidatura,
+            matchScore
+          }
+        })
 
         console.log('[JobCandidates] Candidaturas com match:', candidaturasComMatch)
         setCandidaturas(candidaturasComMatch)
@@ -655,14 +728,14 @@ export const JobCandidates = () => {
                       </CardHeader>
                       <CardContent className="space-y-4">
                         {/* Atendidas */}
-                        {candidatura.matchScore.detalhes.atendidas.length > 0 && (
+                        {candidatura.matchScore.detalhes.atendidas?.length > 0 && (
                           <div className="p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/20">
                             <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-400 mb-3 flex items-center gap-2">
                               <CheckCircle2 className="h-4 w-4" />
                               Acessibilidades Atendidas ({candidatura.matchScore.detalhes.atendidas.length})
                             </p>
                             <div className="flex flex-wrap gap-2">
-                              {candidatura.matchScore.detalhes.atendidas.map(acc => (
+                              {candidatura.matchScore.detalhes.atendidas.map((acc: any) => (
                                 <Badge key={acc.id} className="bg-emerald-100 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border-0 rounded-lg">
                                   <CheckCircle2 className="mr-1.5 h-3 w-3" />
                                   {acc.descricao}
@@ -673,14 +746,14 @@ export const JobCandidates = () => {
                         )}
 
                         {/* Não Atendidas */}
-                        {candidatura.matchScore.detalhes.naoAtendidas.length > 0 && (
+                        {candidatura.matchScore.detalhes.naoAtendidas?.length > 0 && (
                           <div className="p-4 rounded-xl bg-amber-500/5 border border-amber-500/20">
                             <p className="text-sm font-semibold text-amber-700 dark:text-amber-400 mb-3 flex items-center gap-2">
                               <AlertCircle className="h-4 w-4" />
                               Necessidades Não Atendidas ({candidatura.matchScore.detalhes.naoAtendidas.length})
                             </p>
                             <div className="flex flex-wrap gap-2">
-                              {candidatura.matchScore.detalhes.naoAtendidas.map(acc => (
+                              {candidatura.matchScore.detalhes.naoAtendidas.map((acc: any) => (
                                 <Badge key={acc.id} className="bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border-0 rounded-lg">
                                   {acc.descricao}
                                   {acc.prioridade === 'essencial' && <span className="ml-1.5">🔴</span>}
@@ -692,14 +765,14 @@ export const JobCandidates = () => {
                         )}
 
                         {/* Extras */}
-                        {candidatura.matchScore.detalhes.extras.length > 0 && (
+                        {candidatura.matchScore.detalhes.extras?.length > 0 && (
                           <div className="p-4 rounded-xl bg-blue-500/5 border border-blue-500/20">
                             <p className="text-sm font-semibold text-blue-700 dark:text-blue-400 mb-3 flex items-center gap-2">
                               <Star className="h-4 w-4" />
                               Acessibilidades Extras Oferecidas ({candidatura.matchScore.detalhes.extras.length})
                             </p>
                             <div className="flex flex-wrap gap-2">
-                              {candidatura.matchScore.detalhes.extras.map(acc => (
+                              {candidatura.matchScore.detalhes.extras.map((acc: any) => (
                                 <Badge key={acc.id} className="bg-blue-100 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 border-0 rounded-lg">
                                   <Star className="mr-1.5 h-3 w-3" />
                                   {acc.descricao}
@@ -744,10 +817,19 @@ export const JobCandidates = () => {
                         </a>
                       </Button>
                     )}
-                    <Button variant="outline" size="sm" className="gap-1.5 sm:gap-2 rounded-lg sm:rounded-xl border-2 hover:border-emerald-500/50 ml-auto text-xs sm:text-sm h-9 sm:h-10">
-                      <Mail className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                      <span className="hidden xs:inline">Entrar em </span>Contato
-                    </Button>
+                    
+                    {/* Botão de Chat - apenas para candidaturas em processo */}
+                    {candidatura.status === 'EM_PROCESSO' && (
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="gap-1.5 sm:gap-2 rounded-lg sm:rounded-xl border-2 hover:border-indigo-500/50 text-xs sm:text-sm h-9 sm:h-10"
+                        onClick={() => navigate(`/dashboard/empresa/chat/${candidatura.id}`)}
+                      >
+                        <MessageSquare className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                        <span className="hidden xs:inline">Enviar </span>Mensagem
+                      </Button>
+                    )}
 
                     {candidatura.status !== 'EM_PROCESSO' && (
                       <Button

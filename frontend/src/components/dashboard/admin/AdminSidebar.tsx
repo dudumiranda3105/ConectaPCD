@@ -11,9 +11,13 @@ import {
   Accessibility,
   ChevronRight,
   Zap,
+  Sun,
+  Moon,
+  Monitor,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/use-auth'
+import { useTheme } from '@/providers/ThemeProvider'
 import { cn } from '@/lib/utils'
 
 const navItems = [
@@ -39,6 +43,7 @@ const colorVariants: Record<string, { active: string; icon: string }> = {
 export const AdminSidebar = () => {
   const { logout, user } = useAuth()
   const { pathname } = useLocation()
+  const { theme, setTheme } = useTheme()
 
   const adminName = (user as any)?.name || 'Administrador'
   
@@ -137,7 +142,47 @@ export const AdminSidebar = () => {
       </div>
 
       {/* Footer */}
-      <div className="p-3 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
+      <div className="p-3 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 space-y-2">
+        {/* Theme Toggle */}
+        <div className="flex items-center gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setTheme('light')}
+            className={cn(
+              "flex-1 h-9 rounded-lg gap-1.5 transition-all",
+              theme === 'light' ? "bg-white dark:bg-slate-700 shadow-sm" : "hover:bg-slate-200/50 dark:hover:bg-slate-700/50"
+            )}
+          >
+            <Sun className="h-4 w-4" />
+            <span className="text-xs">Claro</span>
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setTheme('dark')}
+            className={cn(
+              "flex-1 h-9 rounded-lg gap-1.5 transition-all",
+              theme === 'dark' ? "bg-white dark:bg-slate-700 shadow-sm" : "hover:bg-slate-200/50 dark:hover:bg-slate-700/50"
+            )}
+          >
+            <Moon className="h-4 w-4" />
+            <span className="text-xs">Escuro</span>
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setTheme('system')}
+            className={cn(
+              "flex-1 h-9 rounded-lg gap-1.5 transition-all",
+              theme === 'system' ? "bg-white dark:bg-slate-700 shadow-sm" : "hover:bg-slate-200/50 dark:hover:bg-slate-700/50"
+            )}
+          >
+            <Monitor className="h-4 w-4" />
+            <span className="text-xs">Auto</span>
+          </Button>
+        </div>
+
         <Button
           variant="ghost"
           className="w-full justify-start rounded-xl h-12 hover:bg-rose-500/10 hover:text-rose-600 dark:hover:text-rose-400 transition-all group"

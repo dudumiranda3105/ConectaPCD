@@ -9,16 +9,50 @@ import { useJobStore } from '@/stores/job-store'
 import { listarVagasPublicas } from '@/services/vagas'
 import { listarCandidaturasCandidato } from '@/services/candidaturas'
 import { acessibilidadesService, Acessibilidade } from '@/services/acessibilidades'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { calculateMatches, getMatchScores, MatchScore, createScoreMap } from '@/services/match'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Briefcase, Sparkles, CheckCircle2 } from 'lucide-react'
+import { Briefcase, Sparkles, CheckCircle2, RefreshCw } from 'lucide-react'
+
+// Interface para dados completos da vaga do backend
+interface VagaBackend {
+  id: number
+  titulo: string
+  descricao: string
+  isActive: boolean
+  regimeTrabalho?: string
+  tipo?: string
+  beneficios?: string
+  createdAt: string
+  empresa?: {
+    id: number
+    nome: string
+    companyData?: any
+  }
+  subtiposAceitos?: Array<{
+    subtipoId: number
+    subtipo: {
+      id: number
+      nome: string
+      tipoId: number
+    }
+  }>
+  acessibilidades?: Array<{
+    acessibilidadeId: number
+    acessibilidade: {
+      id: number
+      descricao: string
+    }
+  }>
+}
 
 export default function CandidateDashboard() {
   const { user } = useAuth() as { user: User | null }
   const { jobs, setJobs } = useJobStore()
   const [loading, setLoading] = useState(true)
   const [appliedJobs, setAppliedJobs] = useState<Set<string>>(new Set())
+  const [matchScoreMap, setMatchScoreMap] = useState<Map<number, MatchScore>>(new Map())
+  const [loadingMatches, setLoadingMatches] = useState(false)
   const [filters, setFilters] = useState({
     sector: 'all',
     city: '',
@@ -27,6 +61,51 @@ export default function CandidateDashboard() {
   })
   const [acessibilidades, setAcessibilidades] = useState<Acessibilidade[]>([])
   const [loadingAcessibilidades, setLoadingAcessibilidades] = useState(true)
+
+  // Carregar match scores do banco de dados
+  const loadMatchScores = useCallback(async (forceRecalculate = false) => {
+    const token = localStorage.getItem('auth_token')
+    if (!token || !user?.candidatoId) return
+
+    try {
+      setLoadingMatches(true)
+      console.log('[CandidateDashboard] Carregando match scores do banco...')
+      
+      let scores: MatchScore[]
+      
+      if (forceRecalculate) {
+        // Recalcular todos os scores e salvar no banco
+        console.log('[CandidateDashboard] Recalculando todos os matches...')
+        const results = await calculateMatches(user.candidatoId, token)
+        scores = results as unknown as MatchScore[]
+      } else {
+        // Tentar buscar do cache primeiro
+        scores = await getMatchScores(user.candidatoId, token)
+        
+        // Se não houver scores no cache, calcular
+        if (!scores || scores.length === 0) {
+          console.log('[CandidateDashboard] Cache vazio, calculando matches...')
+          const results = await calculateMatches(user.candidatoId, token)
+          scores = results as unknown as MatchScore[]
+        }
+      }
+      
+      console.log('[CandidateDashboard] Match scores carregados:', scores.length)
+      const scoreMap = createScoreMap(scores)
+      setMatchScoreMap(scoreMap)
+    } catch (error) {
+      console.error('[CandidateDashboard] Erro ao carregar match scores:', error)
+    } finally {
+      setLoadingMatches(false)
+    }
+  }, [user?.candidatoId])
+
+  // Carregar match scores quando o usuário estiver disponível
+  useEffect(() => {
+    if (user?.candidatoId) {
+      loadMatchScores()
+    }
+  }, [user?.candidatoId, loadMatchScores])
 
   // Carregar acessibilidades do banco de dados
   useEffect(() => {
@@ -48,6 +127,7 @@ export default function CandidateDashboard() {
       try {
         const vagas = await listarVagasPublicas()
         console.log('[CandidateDashboard] Vagas recebidas do backend:', vagas)
+        
         // Mapear vagas do backend para o tipo Job usado no frontend
         const mapped: Job[] = vagas.map((v: any) => {
           const cd = v.empresa?.companyData || {}
@@ -56,7 +136,6 @@ export default function CandidateDashboard() {
           const location = [cidade, estado].filter(Boolean).join(' - ') || 'Brasil'
           const setor = cd.setorAtividade || 'Tecnologia'
           const status = v.isActive ? 'Ativa' : 'Fechada'
-          console.log('[CandidateDashboard] Mapeando vaga:', { id: v.id, titulo: v.titulo, isActive: v.isActive, status, empresa: v.empresa })
           return {
             id: String(v.id),
             title: v.titulo || 'Sem título',
@@ -65,14 +144,14 @@ export default function CandidateDashboard() {
             logo: 'https://img.usecurling.com/i?q=company&color=blue',
             location,
             sector: setor,
-            regime: v.regimeTrabalho || 'Presencial',
-            type: v.tipo || 'Tempo integral',
+            regime: (v.regimeTrabalho || 'Presencial') as 'Presencial' | 'Híbrido' | 'Remoto',
+            type: (v.tipo || 'Tempo integral') as 'Tempo integral' | 'Meio período' | 'Contrato' | 'Temporário' | 'Estágio',
             accessibilities: v.acessibilidades?.map((a: any) => a.acessibilidade?.descricao).filter(Boolean) || [],
             status,
             applications: 0,
             createdAt: v.createdAt || new Date().toISOString(),
             benefits: v.beneficios || '',
-          }
+          } as Job
         })
         console.log('[CandidateDashboard] Jobs mapeados:', mapped)
         setJobs(mapped)
@@ -158,47 +237,20 @@ export default function CandidateDashboard() {
     return result
   }, [filters, jobs])
 
+  // Função para obter o match score do banco de dados
   const calculateMatchScore = useCallback(
-    (job: Job) => {
-      try {
-        const candidateDisabilities = user?.profileData?.disabilities || []
-        if (candidateDisabilities.length === 0) return 85
-
-        const requiredAccessibilities = new Set<string>()
-
-        // This is a simplified logic. A real-world scenario would be more complex.
-        candidateDisabilities.forEach((disability) => {
-          if (disability?.typeId === 3) {
-            // Física/Motora
-            requiredAccessibilities.add('Rampas de acesso')
-            requiredAccessibilities.add('Mobiliário adaptado')
-          }
-          if (disability?.typeId === 1) {
-            // Visual
-            requiredAccessibilities.add('Software de leitura de tela')
-          }
-        })
-
-        if (requiredAccessibilities.size === 0) return 85
-      } catch (error) {
-        console.error('Erro ao calcular match score:', error)
-        return 75
+    (job: Job): number => {
+      const vagaId = parseInt(job.id, 10)
+      const score = matchScoreMap.get(vagaId)
+      if (score) {
+        console.log('[calculateMatchScore] Score do banco para vaga', job.title, ':', score.scoreTotal)
+        return score.scoreTotal
       }
-
-        // Simple scoring based on job data
-        let score = 60 // Base score
-        
-        if (job.accessibilities && job.accessibilities.length > 0) {
-          score += 20 // Bonus for having accessibilities
-        }
-        
-        if (job.sector && job.sector.toLowerCase() === 'tecnologia') {
-          score += 10 // Bonus for tech sector
-        }
-        
-        return Math.min(score, 95) // Max 95% to be realistic
+      // Se não encontrou no mapa, retorna um valor padrão enquanto carrega
+      console.log('[calculateMatchScore] Score não encontrado para vaga', job.title, '- usando default')
+      return loadingMatches ? 0 : 75
     },
-    [user],
+    [matchScoreMap, loadingMatches],
   )
 
 

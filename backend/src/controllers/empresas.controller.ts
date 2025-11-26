@@ -45,5 +45,16 @@ export const EmpresasController = {
     } catch (e: any) {
       res.status(500).json({ error: e.message ?? 'Erro ao buscar candidaturas em processo' });
     }
+  },
+
+  async listarCandidaturasAprovadas(req: Request, res: Response) {
+    try {
+      const id = Number(req.params.id);
+      if (isNaN(id)) return res.status(400).json({ error: 'ID inválido' });
+      const data = await EmpresasService.listarCandidaturasAprovadas(id);
+      res.json(data);
+    } catch (e: any) {
+      res.status(500).json({ error: e.message ?? 'Erro ao buscar candidaturas aprovadas' });
+    }
   }
 };

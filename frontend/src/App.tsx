@@ -5,6 +5,7 @@ import { TooltipProvider } from '@/components/ui/tooltip'
 import { AuthProvider } from './providers/AuthProvider'
 import { ThemeProvider } from './providers/ThemeProvider'
 import { AccessibilityProvider } from './providers/AccessibilityProvider'
+import { NotificationProvider } from './providers/NotificationProvider'
 import Layout from './components/Layout'
 import { CandidateLayout } from './components/layouts/CandidateLayout'
 import { CompanyLayout } from './components/layouts/CompanyLayout'
@@ -17,11 +18,13 @@ import ProfileSelectorPage from './pages/auth/ProfileSelector'
 import CandidateSignupPage from './pages/auth/CandidateSignup'
 import CompanySignupPage from './pages/auth/CompanySignup'
 import AdminLoginPage from './pages/auth/AdminLogin'
+import ForgotPasswordPage from './pages/auth/ForgotPassword'
+import ResetPasswordPage from './pages/auth/ResetPassword'
 import CandidateDashboard from './pages/dashboard/candidate/CandidateDashboard'
 import CandidateProfilePage from './pages/dashboard/candidate/ProfilePage'
 import CandidateSettingsPage from './pages/dashboard/candidate/SettingsPage'
 import JobDetailsPage from './pages/dashboard/candidate/JobDetailsPage'
-import MatchesPage from './pages/dashboard/candidate/MatchesPage'
+import SmartMatchPage from './pages/dashboard/candidate/SmartMatchPage'
 import CompanyDashboard from './pages/dashboard/company/CompanyDashboard'
 import CompanyJobDetailsPage from './pages/dashboard/company/JobDetailsPage'
 import AdminDashboard from './pages/dashboard/admin/AdminDashboard'
@@ -31,6 +34,7 @@ import AnalyticsPage from './pages/dashboard/company/AnalyticsPage'
 import SettingsPage from './pages/dashboard/company/SettingsPage'
 import JobCandidatesPage from './pages/dashboard/company/JobCandidatesPage'
 import ApplicationsInProcessPage from './pages/dashboard/company/ApplicationsInProcessPage'
+import HiredCandidatesPage from './pages/dashboard/company/HiredCandidatesPage'
 import AdminUsersPage from './pages/dashboard/admin/UsersPage'
 import AdminCompaniesPage from './pages/dashboard/admin/CompaniesPage'
 import AdminJobsPage from './pages/dashboard/admin/JobsPage'
@@ -42,16 +46,20 @@ import SystemManagementPage from './pages/dashboard/admin/SystemManagementPage'
 import DisabilityManagementPage from './pages/dashboard/admin/DisabilityManagementPage'
 import ConversasPage from './pages/dashboard/ConversasPage'
 import ChatPage from './pages/dashboard/ChatPage'
+import HiredJobsPage from './pages/dashboard/candidate/HiredJobsPage'
+import { PWAInstallPrompt } from './components/PWAInstallPrompt'
 
 const App = () => (
   <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
     <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
       <AuthProvider>
-        <AccessibilityProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <Routes>
+        <NotificationProvider>
+          <AccessibilityProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Sonner />
+              <PWAInstallPrompt />
+              <Routes>
               <Route element={<Layout />}>
                 <Route path="/" element={<Index />} />
                 <Route path="/login" element={<LoginPage />} />
@@ -65,6 +73,8 @@ const App = () => (
                   element={<CompanySignupPage />}
                 />
                 <Route path="/admin/login" element={<AdminLoginPage />} />
+                <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                <Route path="/reset-password" element={<ResetPasswordPage />} />
                 <Route path="/privacidade" element={<PrivacyPolicyPage />} />
                 <Route path="/termos" element={<TermsOfUsePage />} />
                 <Route path="/sobre" element={<AboutPage />} />
@@ -81,8 +91,12 @@ const App = () => (
                     element={<JobDetailsPage />}
                   />
                   <Route
-                    path="/dashboard/candidato/vagas-recomendadas"
-                    element={<MatchesPage />}
+                    path="/dashboard/candidato/smart-match"
+                    element={<SmartMatchPage />}
+                  />
+                  <Route
+                    path="/dashboard/candidato/contratacoes"
+                    element={<HiredJobsPage />}
                   />
                   <Route
                     path="/dashboard/candidato/perfil"
@@ -134,6 +148,14 @@ const App = () => (
                     element={<ApplicationsInProcessPage />}
                   />
                   <Route
+                    path="/dashboard/empresa/contratados"
+                    element={<HiredCandidatesPage />}
+                  />
+                  <Route
+                    path="/dashboard/empresa/conversas"
+                    element={<ConversasPage />}
+                  />
+                  <Route
                     path="/dashboard/empresa/conversas"
                     element={<ConversasPage />}
                   />
@@ -169,6 +191,7 @@ const App = () => (
             </Routes>
           </TooltipProvider>
         </AccessibilityProvider>
+        </NotificationProvider>
       </AuthProvider>
     </ThemeProvider>
   </BrowserRouter>

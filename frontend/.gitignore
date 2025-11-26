@@ -1,5 +1,25 @@
+# =====================================================
+# Frontend .gitignore
+# =====================================================
+
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+dist-ssr/
+build/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+*.local
+
+# =====================================================
 # Logs
-logs
+# =====================================================
+logs/
 *.log
 npm-debug.log*
 yarn-debug.log*
@@ -7,25 +27,58 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
+# =====================================================
+# Testing - Playwright
+# =====================================================
+playwright-report/
+playwright/.cache/
+test-results/
+e2e-results/
+blob-report/
+.playwright/
 
-# Editor directories and files
+# =====================================================
+# IDE / Editor
+# =====================================================
 .vscode/*
 !.vscode/extensions.json
-.idea
-.DS_Store
+!.vscode/settings.json
+.idea/
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+*.swp
+*.swo
 
-# Evaluation screenshots
-screenshot.png
+# =====================================================
+# OS
+# =====================================================
+.DS_Store
+Thumbs.db
+
+# =====================================================
+# TypeScript
+# =====================================================
+*.tsbuildinfo
+
+# =====================================================
+# Cache
+# =====================================================
+.cache/
 .eslintcache
+.parcel-cache/
 
-# Environment variables
-.env*
+# =====================================================
+# Screenshots / Evaluation
+# =====================================================
+screenshot.png
+screenshots/
+
+# =====================================================
+# Coverage
+# =====================================================
+coverage/
+.nyc_output/
+

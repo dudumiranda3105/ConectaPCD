@@ -51,10 +51,10 @@ export const CandidaturasRepo = {
         status: status,
       },
       include: {
-        vaga: { select: { id: true, titulo: true } },
-        candidato: { select: { id: true, nome: true, email: true, telefone: true, avatarUrl: true, cidade: true, estado: true, escolaridade: true } },
+        vaga: { select: { id: true, titulo: true, descricao: true, regimeTrabalho: true } },
+        candidato: { select: { id: true, nome: true, email: true, telefone: true, avatarUrl: true, cidade: true, estado: true, escolaridade: true, curriculoUrl: true } },
       },
-      orderBy: { createdAt: "desc" },
+      orderBy: { updatedAt: "desc" },
     });
   },
 };

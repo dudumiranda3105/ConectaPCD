@@ -52,7 +52,13 @@ import {
   Sparkles,
   Star,
   Heart,
-  Zap
+  Zap,
+  FileText,
+  Building2,
+  Target,
+  Rocket,
+  X,
+  Plus
 } from 'lucide-react'
 
 interface JobPublicationModalProps {
@@ -73,6 +79,8 @@ export const JobPublicationModal = ({
   const [disabilityTypes, setDisabilityTypes] = useState<DisabilityType[]>([])
   const [subtypes, setSubtypes] = useState<DisabilitySubtype[]>([])
   const [loadingData, setLoadingData] = useState(true)
+  const [benefitInput, setBenefitInput] = useState('')
+  const [benefitTags, setBenefitTags] = useState<string[]>([])
   
   const form = useForm<JobPostingFormValues>({
     resolver: zodResolver(jobPostingSchema),
@@ -99,6 +107,7 @@ export const JobPublicationModal = ({
           getDisabilityTypes(),
           getSubtypes(),
         ])
+        console.log('[JobPublicationModal] Acessibilidades carregadas:', acessData)
         setAcessibilidades(acessData)
         setDisabilityTypes(typesData)
         setSubtypes(subtypesData)
@@ -119,11 +128,21 @@ export const JobPublicationModal = ({
         : []
       console.log('[JobPublicationModal] Acessibilidades a serem definidas:', accessibilities)
       
+      // Carregar benefícios como tags
+      if (jobToEdit.benefits) {
+        const tags = jobToEdit.benefits.split(',').map(b => b.trim()).filter(b => b.length > 0)
+        setBenefitTags(tags)
+      } else {
+        setBenefitTags([])
+      }
+      
       form.reset({
         ...jobToEdit,
         accessibilities: accessibilities
       })
     } else {
+      setBenefitTags([])
+      setBenefitInput('')
       form.reset({
         title: '',
         description: '',
@@ -135,6 +154,30 @@ export const JobPublicationModal = ({
       })
     }
   }, [jobToEdit, form, isOpen])
+
+  // Atualizar o campo benefits do form quando as tags mudam
+  useEffect(() => {
+    form.setValue('benefits', benefitTags.join(', '))
+  }, [benefitTags, form])
+
+  const addBenefitTag = (value: string) => {
+    const trimmed = value.trim()
+    if (trimmed && !benefitTags.includes(trimmed)) {
+      setBenefitTags([...benefitTags, trimmed])
+    }
+    setBenefitInput('')
+  }
+
+  const removeBenefitTag = (tagToRemove: string) => {
+    setBenefitTags(benefitTags.filter(tag => tag !== tagToRemove))
+  }
+
+  const handleBenefitKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      addBenefitTag(benefitInput)
+    }
+  }
 
   const onSubmit = async (data: JobPostingFormValues) => {
     console.log('[JobPublicationModal] onSubmit chamado com dados:', data)
@@ -159,10 +202,33 @@ export const JobPublicationModal = ({
               transform: translateY(0);
             }
           }
+          
+          @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-6px); }
+          }
+          
+          @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+          }
+          
+          @keyframes glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(99, 102, 241, 0.3); }
+            50% { box-shadow: 0 0 40px rgba(99, 102, 241, 0.5); }
+          }
 
           .animate-fade-in {
             animation: fadeIn 0.5s ease-out forwards;
             opacity: 0;
+          }
+          
+          .animate-float {
+            animation: float 3s ease-in-out infinite;
+          }
+          
+          .animate-glow {
+            animation: glow 2s ease-in-out infinite;
           }
 
           .modal-scroll-area {
@@ -211,6 +277,34 @@ export const JobPublicationModal = ({
 
           .accessibility-scroll::-webkit-scrollbar-thumb:hover {
             background: linear-gradient(180deg, #059669 0%, #0d9488 100%);
+          }
+          
+          .section-card {
+            position: relative;
+            overflow: hidden;
+          }
+          
+          .section-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent-start), var(--accent-end));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+          }
+          
+          .section-card:hover::before {
+            opacity: 1;
+          }
+          
+          .gradient-text {
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
           }
 
           [role="dialog"] button[aria-label="Close"] {
@@ -261,44 +355,61 @@ export const JobPublicationModal = ({
         </DialogDescription>
 
         {/* ===== HEADER PREMIUM ===== */}
-        <div className="relative bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 px-6 py-10 overflow-hidden">
+        <div className="relative bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 px-6 py-8 overflow-hidden">
           {/* Animated Background Elements */}
           <div className="absolute inset-0 opacity-30">
-            <div className="absolute top-0 right-0 w-80 h-80 bg-white rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 animate-pulse"></div>
-            <div className="absolute bottom-0 left-0 w-72 h-72 bg-white rounded-full blur-3xl translate-y-1/2 -translate-x-1/4 animate-pulse" style={{animationDelay: '1s'}}></div>
+            <div className="absolute top-0 right-0 w-96 h-96 bg-white rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 animate-pulse"></div>
+            <div className="absolute bottom-0 left-0 w-80 h-80 bg-pink-300 rounded-full blur-3xl translate-y-1/2 -translate-x-1/4 animate-pulse" style={{animationDelay: '1s'}}></div>
+            <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-cyan-300 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2 animate-pulse" style={{animationDelay: '2s'}}></div>
           </div>
 
           {/* Grid Pattern */}
           <div className="absolute inset-0 bg-grid-white/[0.08] [mask-image:linear-gradient(0deg,transparent,white,transparent)]"></div>
 
           {/* Floating accent elements */}
-          <div className="absolute top-8 right-12 h-3 w-3 rounded-full bg-white/40 blur-sm"></div>
-          <div className="absolute bottom-16 left-12 h-2 w-2 rounded-full bg-white/30 blur-sm"></div>
+          <div className="absolute top-6 right-20 h-2 w-2 rounded-full bg-yellow-300/60 animate-float"></div>
+          <div className="absolute top-12 right-32 h-3 w-3 rounded-full bg-pink-300/50 animate-float" style={{animationDelay: '0.5s'}}></div>
+          <div className="absolute bottom-8 left-16 h-2.5 w-2.5 rounded-full bg-cyan-300/50 animate-float" style={{animationDelay: '1s'}}></div>
+          <div className="absolute bottom-16 left-28 h-2 w-2 rounded-full bg-emerald-300/40 animate-float" style={{animationDelay: '1.5s'}}></div>
 
           <div className="relative z-10">
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex items-start gap-4 flex-1">
-                <div className="h-16 w-16 rounded-2xl bg-white/20 backdrop-blur-xl flex items-center justify-center shadow-2xl border border-white/40 flex-shrink-0 transform hover:scale-110 transition-transform duration-300">
+            <div className="flex items-center gap-5">
+              <div className="relative group">
+                <div className="absolute inset-0 bg-white/30 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-500"></div>
+                <div className="relative h-16 w-16 rounded-2xl bg-white/20 backdrop-blur-xl flex items-center justify-center shadow-2xl border border-white/40 transform group-hover:scale-110 group-hover:rotate-3 transition-all duration-500">
                   {jobToEdit ? (
-                    <Edit3 className="h-8 w-8 text-white" />
+                    <Edit3 className="h-8 w-8 text-white drop-shadow-lg" />
                   ) : (
-                    <PlusCircle className="h-8 w-8 text-white" />
+                    <Rocket className="h-8 w-8 text-white drop-shadow-lg" />
                   )}
                 </div>
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h2 className="text-4xl font-bold text-white drop-shadow-lg">
-                      {jobToEdit ? 'Editar Vaga' : 'Publicar Nova Vaga'}
-                    </h2>
-                    <Sparkles className="h-6 w-6 text-yellow-200 animate-spin" style={{animationDuration: '3s'}} />
-                  </div>
-                  <p className="text-blue-100 text-sm mt-2 leading-relaxed font-medium">
-                    {jobToEdit
-                      ? 'Atualize os detalhes da vaga e publique novamente para os candidatos'
-                      : 'Crie uma vaga atraente e encontre o candidato ideal para sua equipe'}
-                  </p>
-                </div>
               </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-3 mb-2">
+                  <h2 className="text-3xl font-bold text-white drop-shadow-lg tracking-tight">
+                    {jobToEdit ? 'Editar Vaga' : 'Publicar Nova Vaga'}
+                  </h2>
+                  <div className="flex items-center gap-1">
+                    <Sparkles className="h-5 w-5 text-yellow-300 animate-pulse" />
+                    <Sparkles className="h-4 w-4 text-pink-300 animate-pulse" style={{animationDelay: '0.3s'}} />
+                  </div>
+                </div>
+                <p className="text-blue-100/90 text-sm leading-relaxed max-w-md">
+                  {jobToEdit
+                    ? 'Atualize os detalhes e publique novamente'
+                    : 'Crie uma vaga atraente e encontre o candidato ideal para sua equipe'}
+                </p>
+              </div>
+            </div>
+            
+            {/* Progress indicator */}
+            <div className="mt-6 flex items-center gap-2">
+              {[1, 2, 3, 4].map((step) => (
+                <div key={step} className="flex items-center gap-2">
+                  <div className={`h-2 rounded-full transition-all duration-300 ${step === 1 ? 'w-8 bg-white' : 'w-2 bg-white/40'}`}></div>
+                </div>
+              ))}
+              <span className="ml-2 text-xs text-white/60 font-medium">4 seções para preencher</span>
             </div>
           </div>
         </div>
@@ -348,26 +459,28 @@ export const JobPublicationModal = ({
               {/* ===== SECTION 1: TÍTULO E DESCRIÇÃO ===== */}
               <div className="space-y-4 animate-fade-in">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 text-white font-bold text-sm shadow-lg">1</div>
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-bold text-sm shadow-lg shadow-blue-500/25">1</div>
                   <h3 className="text-lg font-bold text-slate-900 dark:text-white">Informações Principais</h3>
-                  <div className="flex-1 h-px bg-gradient-to-r from-blue-200 to-transparent dark:from-blue-800"></div>
+                  <div className="flex-1 h-px bg-gradient-to-r from-blue-300/50 via-indigo-200/30 to-transparent dark:from-blue-700/50 dark:via-indigo-800/30"></div>
                 </div>
 
-                <div className="space-y-4 bg-gradient-to-br from-blue-50/60 to-indigo-50/60 dark:from-blue-950/30 dark:to-indigo-950/30 rounded-2xl p-6 border border-blue-200/60 dark:border-blue-800/40 backdrop-blur-sm hover:border-blue-300/80 dark:hover:border-blue-700/60 transition-all duration-300 shadow-sm hover:shadow-md">
+                <div className="section-card space-y-5 bg-gradient-to-br from-slate-50 to-blue-50/50 dark:from-slate-900/50 dark:to-blue-950/30 rounded-2xl p-6 border border-slate-200/80 dark:border-slate-700/50 backdrop-blur-sm hover:border-blue-300/80 dark:hover:border-blue-700/60 transition-all duration-300 shadow-sm hover:shadow-lg" style={{'--accent-start': '#3b82f6', '--accent-end': '#6366f1'} as React.CSSProperties}>
                   {/* Título */}
                   <FormField
                     control={form.control}
                     name="title"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="flex items-center gap-2 font-semibold text-slate-900 dark:text-white text-sm">
-                          <Briefcase className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                        <FormLabel className="flex items-center gap-2 font-semibold text-slate-700 dark:text-slate-200 text-sm mb-2">
+                          <div className="p-1.5 rounded-lg bg-blue-100 dark:bg-blue-900/50">
+                            <FileText className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                          </div>
                           Título da Vaga
                         </FormLabel>
                         <FormControl>
                           <Input
                             placeholder="Ex: Desenvolvedor Frontend Senior"
-                            className="h-11 text-base border-2 border-blue-200 dark:border-blue-800 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-900/50 bg-white dark:bg-slate-900 transition-all duration-200 placeholder:text-slate-400"
+                            className="h-12 text-base border-2 border-slate-200 dark:border-slate-700 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 dark:focus:ring-blue-500/20 bg-white dark:bg-slate-900 transition-all duration-200 placeholder:text-slate-400 rounded-xl"
                             {...field}
                           />
                         </FormControl>
@@ -382,16 +495,16 @@ export const JobPublicationModal = ({
                     name="description"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="font-semibold text-slate-900 dark:text-white text-sm">Descrição Detalhada</FormLabel>
+                        <FormLabel className="font-semibold text-slate-700 dark:text-slate-200 text-sm mb-2 block">Descrição Detalhada</FormLabel>
                         <FormControl>
                           <Textarea
                             placeholder="Descreva responsabilidades, requisitos e o dia a dia..."
-                            className="min-h-[140px] resize-none text-base border-2 border-blue-200 dark:border-blue-800 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-900/50 bg-white dark:bg-slate-900 transition-all duration-200 placeholder:text-slate-400"
+                            className="min-h-[120px] resize-none text-base border-2 border-slate-200 dark:border-slate-700 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 dark:focus:ring-blue-500/20 bg-white dark:bg-slate-900 transition-all duration-200 placeholder:text-slate-400 rounded-xl"
                             {...field}
                           />
                         </FormControl>
-                        <FormDescription className="text-xs text-slate-600 dark:text-slate-400">
-                          <Star className="h-3 w-3 inline mr-1 text-amber-500" />
+                        <FormDescription className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1.5 mt-2">
+                          <Star className="h-3.5 w-3.5 text-amber-500" />
                           Uma descrição clara aumenta a qualidade das candidaturas recebidas.
                         </FormDescription>
                         <FormMessage />
@@ -401,30 +514,32 @@ export const JobPublicationModal = ({
                 </div>
               </div>
 
-              <Separator className="bg-slate-200 dark:bg-slate-800" />
+              <Separator className="bg-gradient-to-r from-transparent via-slate-200 dark:via-slate-700 to-transparent" />
 
               {/* ===== SECTION 2: DETALHES DA POSIÇÃO ===== */}
               <div className="space-y-4 animate-fade-in" style={{animationDelay: '0.1s'}}>
                 <div className="flex items-center gap-3">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-indigo-600 text-white font-bold text-sm shadow-lg">2</div>
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 text-white font-bold text-sm shadow-lg shadow-violet-500/25">2</div>
                   <h3 className="text-lg font-bold text-slate-900 dark:text-white">Detalhes da Posição</h3>
-                  <div className="flex-1 h-px bg-gradient-to-r from-indigo-200 to-transparent dark:from-indigo-800"></div>
+                  <div className="flex-1 h-px bg-gradient-to-r from-violet-300/50 via-purple-200/30 to-transparent dark:from-violet-700/50 dark:via-purple-800/30"></div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-gradient-to-br from-indigo-50/60 to-purple-50/60 dark:from-indigo-950/30 dark:to-purple-950/30 rounded-2xl p-6 border border-indigo-200/60 dark:border-indigo-800/40 backdrop-blur-sm hover:border-indigo-300/80 dark:hover:border-indigo-700/60 transition-all duration-300 shadow-sm hover:shadow-md">
+                <div className="section-card grid grid-cols-1 md:grid-cols-3 gap-4 bg-gradient-to-br from-slate-50 to-violet-50/50 dark:from-slate-900/50 dark:to-violet-950/30 rounded-2xl p-6 border border-slate-200/80 dark:border-slate-700/50 backdrop-blur-sm hover:border-violet-300/80 dark:hover:border-violet-700/60 transition-all duration-300 shadow-sm hover:shadow-lg" style={{'--accent-start': '#8b5cf6', '--accent-end': '#a855f7'} as React.CSSProperties}>
                   {/* Tipo */}
                   <FormField
                     control={form.control}
                     name="type"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="flex items-center gap-2 font-semibold text-slate-900 dark:text-white text-sm">
-                          <Briefcase className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+                        <FormLabel className="flex items-center gap-2 font-semibold text-slate-700 dark:text-slate-200 text-sm mb-2">
+                          <div className="p-1.5 rounded-lg bg-violet-100 dark:bg-violet-900/50">
+                            <Briefcase className="h-4 w-4 text-violet-600 dark:text-violet-400" />
+                          </div>
                           Tipo
                         </FormLabel>
                         <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
-                            <SelectTrigger className="h-11 border-2 border-indigo-200 dark:border-indigo-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 dark:focus:ring-indigo-900/50 bg-white dark:bg-slate-900 transition-all duration-200">
+                            <SelectTrigger className="h-12 border-2 border-slate-200 dark:border-slate-700 focus:border-violet-500 focus:ring-4 focus:ring-violet-500/10 dark:focus:ring-violet-500/20 bg-white dark:bg-slate-900 transition-all duration-200 rounded-xl">
                               <SelectValue placeholder="Selecione" />
                             </SelectTrigger>
                           </FormControl>
@@ -445,13 +560,15 @@ export const JobPublicationModal = ({
                     name="escolaridade"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="flex items-center gap-2 font-semibold text-slate-900 dark:text-white text-sm">
-                          <GraduationCap className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+                        <FormLabel className="flex items-center gap-2 font-semibold text-slate-700 dark:text-slate-200 text-sm mb-2">
+                          <div className="p-1.5 rounded-lg bg-violet-100 dark:bg-violet-900/50">
+                            <GraduationCap className="h-4 w-4 text-violet-600 dark:text-violet-400" />
+                          </div>
                           Escolaridade
                         </FormLabel>
                         <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
-                            <SelectTrigger className="h-11 border-2 border-indigo-200 dark:border-indigo-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 dark:focus:ring-indigo-900/50 bg-white dark:bg-slate-900 transition-all duration-200">
+                            <SelectTrigger className="h-12 border-2 border-slate-200 dark:border-slate-700 focus:border-violet-500 focus:ring-4 focus:ring-violet-500/10 dark:focus:ring-violet-500/20 bg-white dark:bg-slate-900 transition-all duration-200 rounded-xl">
                               <SelectValue placeholder="Selecione" />
                             </SelectTrigger>
                           </FormControl>
@@ -472,13 +589,15 @@ export const JobPublicationModal = ({
                     name="regime"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="flex items-center gap-2 font-semibold text-slate-900 dark:text-white text-sm">
-                          <MapPin className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+                        <FormLabel className="flex items-center gap-2 font-semibold text-slate-700 dark:text-slate-200 text-sm mb-2">
+                          <div className="p-1.5 rounded-lg bg-violet-100 dark:bg-violet-900/50">
+                            <MapPin className="h-4 w-4 text-violet-600 dark:text-violet-400" />
+                          </div>
                           Regime
                         </FormLabel>
                         <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
-                            <SelectTrigger className="h-11 border-2 border-indigo-200 dark:border-indigo-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 dark:focus:ring-indigo-900/50 bg-white dark:bg-slate-900 transition-all duration-200">
+                            <SelectTrigger className="h-12 border-2 border-slate-200 dark:border-slate-700 focus:border-violet-500 focus:ring-4 focus:ring-violet-500/10 dark:focus:ring-violet-500/20 bg-white dark:bg-slate-900 transition-all duration-200 rounded-xl">
                               <SelectValue placeholder="Selecione" />
                             </SelectTrigger>
                           </FormControl>
@@ -495,50 +614,107 @@ export const JobPublicationModal = ({
                 </div>
               </div>
 
-              <Separator className="bg-slate-200 dark:bg-slate-800" />
+              <Separator className="bg-gradient-to-r from-transparent via-slate-200 dark:via-slate-700 to-transparent" />
 
               {/* ===== SECTION 3: BENEFÍCIOS ===== */}
               <div className="space-y-4 animate-fade-in" style={{animationDelay: '0.2s'}}>
                 <div className="flex items-center gap-3">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-amber-500 to-amber-600 text-white font-bold text-sm shadow-lg">3</div>
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-white font-bold text-sm shadow-lg shadow-amber-500/25">3</div>
                   <h3 className="text-lg font-bold text-slate-900 dark:text-white">Benefícios Oferecidos</h3>
-                  <div className="flex-1 h-px bg-gradient-to-r from-amber-200 to-transparent dark:from-amber-800"></div>
+                  <div className="flex-1 h-px bg-gradient-to-r from-amber-300/50 via-orange-200/30 to-transparent dark:from-amber-700/50 dark:via-orange-800/30"></div>
                 </div>
 
                 <FormField
                   control={form.control}
                   name="benefits"
-                  render={({ field }) => (
-                    <FormItem className="bg-gradient-to-br from-amber-50/60 to-orange-50/60 dark:from-amber-950/30 dark:to-orange-950/30 rounded-2xl p-6 border border-amber-200/60 dark:border-amber-800/40 backdrop-blur-sm hover:border-amber-300/80 dark:hover:border-amber-700/60 transition-all duration-300 shadow-sm hover:shadow-md">
-                      <FormLabel className="flex items-center gap-2 font-semibold text-slate-900 dark:text-white text-sm">
-                        <Gift className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                  render={() => (
+                    <FormItem className="section-card bg-gradient-to-br from-slate-50 to-amber-50/50 dark:from-slate-900/50 dark:to-amber-950/30 rounded-2xl p-6 border border-slate-200/80 dark:border-slate-700/50 backdrop-blur-sm hover:border-amber-300/80 dark:hover:border-amber-700/60 transition-all duration-300 shadow-sm hover:shadow-lg" style={{'--accent-start': '#f59e0b', '--accent-end': '#ea580c'} as React.CSSProperties}>
+                      <FormLabel className="flex items-center gap-2 font-semibold text-slate-700 dark:text-slate-200 text-sm mb-3">
+                        <div className="p-1.5 rounded-lg bg-amber-100 dark:bg-amber-900/50">
+                          <Gift className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                        </div>
                         Benefícios
+                        {benefitTags.length > 0 && (
+                          <Badge variant="secondary" className="ml-2 text-xs bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300">
+                            {benefitTags.length} adicionado(s)
+                          </Badge>
+                        )}
                       </FormLabel>
-                      <FormControl>
+                      
+                      {/* Input para adicionar benefícios */}
+                      <div className="relative">
                         <Input
-                          placeholder="Vale Refeição, Plano de Saúde, Home Office, etc..."
-                          className="h-11 text-base border-2 border-amber-200 dark:border-amber-800 focus:border-amber-500 focus:ring-2 focus:ring-amber-200 dark:focus:ring-amber-900/50 bg-white dark:bg-slate-900 mt-2 transition-all duration-200 placeholder:text-slate-400"
-                          {...field}
+                          value={benefitInput}
+                          onChange={(e) => setBenefitInput(e.target.value)}
+                          onKeyDown={handleBenefitKeyDown}
+                          placeholder="Digite um benefício e pressione Enter..."
+                          className="h-12 text-base border-2 border-slate-200 dark:border-slate-700 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 dark:focus:ring-amber-500/20 bg-white dark:bg-slate-900 transition-all duration-200 placeholder:text-slate-400 rounded-xl pr-12"
                         />
-                      </FormControl>
-                      <FormDescription className="text-xs text-slate-600 dark:text-slate-400 mt-2">
-                        <Zap className="h-3 w-3 inline mr-1 text-amber-500" />
-                        Separe por vírgula. Quanto mais benefícios, mais candidatos interessados!
+                        <button
+                          type="button"
+                          onClick={() => addBenefitTag(benefitInput)}
+                          disabled={!benefitInput.trim()}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg bg-amber-500 hover:bg-amber-600 disabled:bg-slate-300 disabled:cursor-not-allowed text-white transition-all duration-200 shadow-sm hover:shadow-md"
+                        >
+                          <Plus className="h-4 w-4" />
+                        </button>
+                      </div>
+                      
+                      <FormDescription className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1.5 mt-2">
+                        <Zap className="h-3.5 w-3.5 text-amber-500" />
+                        Pressione Enter ou clique no + para adicionar cada benefício
                       </FormDescription>
+                      
+                      {/* Tags de benefícios */}
+                      {benefitTags.length > 0 && (
+                        <div className="mt-4 space-y-3">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                              Benefícios adicionados:
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => setBenefitTags([])}
+                              className="text-xs text-slate-500 hover:text-red-500 dark:text-slate-400 dark:hover:text-red-400 transition-colors"
+                            >
+                              Limpar todos
+                            </button>
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            {benefitTags.map((tag, index) => (
+                              <Badge
+                                key={index}
+                                className="group bg-gradient-to-r from-amber-100 to-orange-100 dark:from-amber-900/60 dark:to-orange-900/60 text-amber-800 dark:text-amber-200 border border-amber-300 dark:border-amber-600 py-1.5 px-3 flex items-center gap-2 shadow-sm hover:shadow-md transition-all cursor-default text-sm"
+                              >
+                                <Gift className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />
+                                <span>{tag}</span>
+                                <button
+                                  type="button"
+                                  onClick={() => removeBenefitTag(tag)}
+                                  className="ml-1 p-0.5 rounded-full hover:bg-amber-200 dark:hover:bg-amber-800 transition-colors group-hover:text-red-600 dark:group-hover:text-red-400"
+                                >
+                                  <X className="h-3.5 w-3.5" />
+                                </button>
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      
                       <FormMessage />
                     </FormItem>
                   )}
                 />
               </div>
 
-              <Separator className="bg-slate-200 dark:bg-slate-800" />
+              <Separator className="bg-gradient-to-r from-transparent via-slate-200 dark:via-slate-700 to-transparent" />
 
               {/* ===== SECTION 4: ACESSIBILIDADES ===== */}
               <div className="space-y-4 pb-2 animate-fade-in" style={{animationDelay: '0.3s'}}>
                 <div className="flex items-center gap-3">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-600 text-white font-bold text-sm shadow-lg">4</div>
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white font-bold text-sm shadow-lg shadow-emerald-500/25">4</div>
                   <h3 className="text-lg font-bold text-slate-900 dark:text-white">Acessibilidades Oferecidas</h3>
-                  <div className="flex-1 h-px bg-gradient-to-r from-emerald-200 to-transparent dark:from-emerald-800"></div>
+                  <div className="flex-1 h-px bg-gradient-to-r from-emerald-300/50 via-teal-200/30 to-transparent dark:from-emerald-700/50 dark:via-teal-800/30"></div>
                 </div>
 
                 <FormField
@@ -546,20 +722,20 @@ export const JobPublicationModal = ({
                   name="accessibilities"
                   render={() => (
                     <FormItem className="space-y-3">
-                      <div className="bg-gradient-to-br from-emerald-50/70 via-teal-50/60 to-green-50/70 dark:from-emerald-950/40 dark:via-teal-950/30 dark:to-green-950/40 rounded-2xl p-6 border-2 border-emerald-200/70 dark:border-emerald-800/50 backdrop-blur-sm hover:border-emerald-400/80 dark:hover:border-emerald-600/70 transition-all duration-300 shadow-md hover:shadow-xl">
+                      <div className="section-card bg-gradient-to-br from-slate-50 to-emerald-50/50 dark:from-slate-900/50 dark:to-emerald-950/30 rounded-2xl p-6 border border-slate-200/80 dark:border-slate-700/50 backdrop-blur-sm hover:border-emerald-300/80 dark:hover:border-emerald-700/60 transition-all duration-300 shadow-sm hover:shadow-lg" style={{'--accent-start': '#10b981', '--accent-end': '#14b8a6'} as React.CSSProperties}>
                         
                         {/* Header com ícone e descrição */}
                         <div className="mb-5">
                           <div className="flex items-center gap-3 mb-2">
-                            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg">
+                            <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/25">
                               <HeartHandshake className="h-5 w-5 text-white" />
                             </div>
                             <div className="flex-1">
-                              <FormLabel className="text-base font-bold text-slate-900 dark:text-white mb-1 block">
+                              <FormLabel className="text-base font-bold text-slate-800 dark:text-white mb-1 block">
                                 Selecione as Acessibilidades
                               </FormLabel>
-                              <FormDescription className="text-xs text-slate-600 dark:text-slate-400 flex items-center gap-1.5">
-                                <Heart className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
+                              <FormDescription className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                                <Heart className="h-3.5 w-3.5 text-emerald-500 dark:text-emerald-400 flex-shrink-0" />
                                 <span>Quanto mais acessibilidades, maior o match com candidatos PCD!</span>
                               </FormDescription>
                             </div>
@@ -664,12 +840,12 @@ export const JobPublicationModal = ({
         </div>
 
         {/* ===== FOOTER ===== */}
-        <div className="border-t border-slate-200 dark:border-slate-800 bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-950 px-6 py-5 flex gap-3 sm:gap-4 shadow-inner">
+        <div className="border-t border-slate-200/80 dark:border-slate-800 bg-gradient-to-r from-slate-50/80 via-white to-slate-50/80 dark:from-slate-900/80 dark:via-slate-950 dark:to-slate-900/80 px-6 py-5 flex gap-4 backdrop-blur-sm">
           <Button
             type="button"
             variant="outline"
             onClick={() => onOpenChange(false)}
-            className="flex-1 h-11 border-2 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-600 transition-all duration-200 font-semibold"
+            className="flex-1 h-12 border-2 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-600 transition-all duration-200 font-semibold rounded-xl"
           >
             Cancelar
           </Button>
@@ -677,17 +853,17 @@ export const JobPublicationModal = ({
             type="submit"
             form="job-posting-form"
             onClick={() => console.log('[JobPublicationModal] Botão Publicar clicado!')}
-            className="flex-1 h-11 gap-2 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 font-semibold transform hover:scale-[1.02]"
+            className="flex-1 h-12 gap-2.5 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-500 hover:via-indigo-500 hover:to-purple-500 text-white shadow-lg shadow-indigo-500/25 hover:shadow-xl hover:shadow-indigo-500/30 transition-all duration-300 font-semibold transform hover:scale-[1.02] rounded-xl"
           >
             {jobToEdit ? (
               <>
                 <Edit3 className="h-4 w-4" />
-                Salvar
+                Salvar Alterações
               </>
             ) : (
               <>
                 <PlusCircle className="h-4 w-4" />
-                Publicar
+                Publicar Vaga
               </>
             )}
           </Button>

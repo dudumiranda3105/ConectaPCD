@@ -10,6 +10,7 @@ export interface CandidateProfileData {
   genero?: string
   escolaridade: string
   curriculoUrl?: string
+  laudoMedicoUrl?: string
   avatarUrl?: string
   subtipos?: Array<{
     candidatoId: number
@@ -32,6 +33,15 @@ export interface CandidateProfileData {
         descricao: string
       }
     }>
+  }>
+  acessibilidades?: Array<{
+    candidatoId: number
+    acessibilidadeId: number
+    prioridade: string
+    acessibilidade: {
+      id: number
+      descricao: string
+    }
   }>
 }
 
@@ -76,12 +86,17 @@ export async function updateCandidateDisabilities(
     typeId: number
     subtypeId: number
     barriers: number[]
+  }>,
+  accessibilities?: Array<{
+    acessibilidadeId: number
+    prioridade: string
   }>
 ) {
   console.log('[updateCandidateDisabilities] Enviando requisição:', {
     url: `${API_URL}/candidatos/${candidatoId}/disabilities`,
     method: 'PUT',
     disabilities,
+    accessibilities,
   })
   
   const res = await fetch(`${API_URL}/candidatos/${candidatoId}/disabilities`, {
@@ -90,7 +105,7 @@ export async function updateCandidateDisabilities(
       'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify({ disabilities }),
+    body: JSON.stringify({ disabilities, accessibilities }),
   })
   
   console.log('[updateCandidateDisabilities] Status da resposta:', res.status)
@@ -163,6 +178,66 @@ export async function deleteAvatar(token: string): Promise<{ id: number; avatarU
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error: 'Erro ao remover avatar' }))
     throw new Error(err.error || 'Erro ao remover avatar')
+  }
+  return res.json()
+}
+
+// Laudo Médico PCD
+export interface LaudoValidationResult {
+  valid: boolean
+  pages?: number
+  message?: string
+  error?: string
+}
+
+export async function uploadLaudoMedico(
+  token: string,
+  file: File
+): Promise<{ id: number; laudoMedicoUrl: string; validation: LaudoValidationResult }> {
+  const formData = new FormData()
+  formData.append('file', file)
+
+  const res = await fetch(`${API_URL}/laudo/upload`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: formData,
+  })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: 'Erro ao enviar laudo médico' }))
+    throw new Error(err.error || err.details || 'Erro ao enviar laudo médico')
+  }
+  return res.json()
+}
+
+export async function validateLaudoMedico(
+  token: string,
+  file: File
+): Promise<LaudoValidationResult> {
+  const formData = new FormData()
+  formData.append('file', file)
+
+  const res = await fetch(`${API_URL}/laudo/validate`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: formData,
+  })
+  
+  const data = await res.json()
+  return data
+}
+
+export async function deleteLaudoMedico(token: string): Promise<{ id: number; laudoMedicoUrl: string | null }> {
+  const res = await fetch(`${API_URL}/laudo`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: 'Erro ao remover laudo médico' }))
+    throw new Error(err.error || 'Erro ao remover laudo médico')
   }
   return res.json()
 }

@@ -12,5 +12,6 @@ router.post("/", authMiddleware, adminOnly, AcessibilidadesController.create);
 router.get('/:acessibilidadeId/barreiras', AcessibilidadesController.listBarreiras);
 router.post('/:acessibilidadeId/barreiras', authMiddleware, adminOnly, AcessibilidadesController.connect);
 router.delete('/:acessibilidadeId/barreiras/:barreiraId', authMiddleware, adminOnly, AcessibilidadesController.disconnect);
+router.delete('/:id', authMiddleware, adminOnly, AcessibilidadesController.delete);
 
 export default router;

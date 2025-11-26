@@ -62,4 +62,9 @@ export const EmpresasService = {
     const { CandidaturasRepo } = await import("../repositories/candidaturas.repo");
     return CandidaturasRepo.listByEmpresaAndStatus(empresaId, "EM_PROCESSO");
   },
+
+  async listarCandidaturasAprovadas(empresaId: number) {
+    const { CandidaturasRepo } = await import("../repositories/candidaturas.repo");
+    return CandidaturasRepo.listByEmpresaAndStatus(empresaId, "APROVADA");
+  },
 };

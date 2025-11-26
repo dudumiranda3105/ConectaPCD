@@ -6,7 +6,7 @@ import {
   User, Hash, Phone, Calendar, Mail, Lock, MapPin, Home, 
   GraduationCap, Briefcase, Link as LinkIcon, FileText, Accessibility,
   Users, Eye, EyeOff, Check, X, Loader2, Heart, CheckCircle2, Shield, Upload, CheckCircle,
-  Plus, Building2, Pencil, Trash2
+  Plus, Building2, Pencil, Trash2, Stethoscope, AlertCircle
 } from 'lucide-react'
 import {
   candidateSignupSchema,
@@ -244,6 +244,11 @@ export const CandidateSignupForm = () => {
   // Estados para upload de currículo
   const [curriculoFile, setCurriculoFile] = useState<File | null>(null)
   const [isUploadingCurriculo, setIsUploadingCurriculo] = useState(false)
+  
+  // Estados para upload de laudo médico PCD
+  const [laudoFile, setLaudoFile] = useState<File | null>(null)
+  const [isUploadingLaudo, setIsUploadingLaudo] = useState(false)
+  const [laudoValidation, setLaudoValidation] = useState<{ valid: boolean; pages?: number; message?: string; error?: string } | null>(null)
   
   // Estados para experiências profissionais
   const [experiences, setExperiences] = useState<ExperienceValues[]>([])
@@ -491,6 +496,73 @@ export const CandidateSignupForm = () => {
     }
   }
 
+  // Handler para upload de laudo médico PCD
+  const handleLaudoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      // Apenas PDF permitido para laudo
+      if (file.type !== 'application/pdf') {
+        toast({
+          title: 'Formato inválido',
+          description: 'O laudo médico deve ser um arquivo PDF.',
+          variant: 'destructive',
+        })
+        return
+      }
+      
+      // Validar tamanho (10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        toast({
+          title: 'Arquivo muito grande',
+          description: 'O arquivo deve ter no máximo 10MB.',
+          variant: 'destructive',
+        })
+        return
+      }
+      
+      setLaudoFile(file)
+      setLaudoValidation(null) // Reset validation
+    }
+  }
+
+  const uploadLaudo = async (token: string) => {
+    if (!laudoFile) return null
+
+    setIsUploadingLaudo(true)
+    try {
+      const formData = new FormData()
+      formData.append('file', laudoFile)
+
+      const baseUrl = import.meta.env?.VITE_API_URL || 'http://localhost:3000'
+      const response = await fetch(`${baseUrl}/laudo/upload`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Erro ao fazer upload do laudo' }))
+        throw new Error(errorData.error || errorData.details || 'Erro ao fazer upload do laudo')
+      }
+
+      const data = await response.json()
+      setLaudoValidation(data.validation)
+      return data.laudoMedicoUrl
+    } catch (error: any) {
+      console.error('Erro ao fazer upload do laudo:', error)
+      toast({
+        title: 'Erro no upload do laudo',
+        description: error.message || 'Não foi possível fazer upload do laudo médico. Você poderá adicioná-lo depois.',
+        variant: 'destructive',
+      })
+      return null
+    } finally {
+      setIsUploadingLaudo(false)
+    }
+  }
+
   const uploadCurriculo = async (token: string) => {
     if (!curriculoFile) return null
 
@@ -569,6 +641,20 @@ export const CandidateSignupForm = () => {
                 Authorization: `Bearer ${token}`,
               },
               body: JSON.stringify({ ...data, curriculoUrl }),
+            })
+          }
+        }
+      }
+      
+      // Se houver arquivo de laudo médico, fazer upload
+      if (laudoFile && result.user) {
+        const token = localStorage.getItem('auth_token')
+        if (token) {
+          const laudoUrl = await uploadLaudo(token)
+          if (laudoUrl) {
+            toast({
+              title: 'Laudo médico enviado! ✅',
+              description: 'Seu laudo foi validado e anexado ao perfil.',
             })
           }
         }
@@ -1246,7 +1332,119 @@ export const CandidateSignupForm = () => {
                   </div>
                 </div>
 
-                {/* Seção 4: Informações de Deficiência */}
+                {/* Seção 4: Laudo Médico PCD */}
+                <div>
+                  <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
+                    <div className="h-8 w-8 sm:h-10 sm:w-10 bg-gradient-to-br from-rose-500 to-pink-600 rounded-lg flex items-center justify-center">
+                      <Stethoscope className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+                    </div>
+                    <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100">
+                      Laudo Médico PCD
+                      <span className="ml-2 text-xs font-normal px-2 py-0.5 rounded-full bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800">
+                        Obrigatório para contratação
+                      </span>
+                    </h3>
+                  </div>
+                  <Separator className="mb-4 sm:mb-6" />
+                  
+                  <div className="space-y-6">
+                    {/* Alerta informativo */}
+                    <div className="p-4 border-2 rounded-lg bg-gradient-to-r from-rose-50 to-pink-50 dark:from-rose-950/20 dark:to-pink-950/20 border-rose-200 dark:border-rose-800">
+                      <div className="flex items-start gap-3">
+                        <div className="h-8 w-8 rounded-full bg-gradient-to-br from-rose-500 to-pink-600 flex items-center justify-center flex-shrink-0">
+                          <AlertCircle className="h-4 w-4 text-white" />
+                        </div>
+                        <div>
+                          <h4 className="text-sm font-semibold text-rose-900 dark:text-rose-100 mb-1">
+                            Por que o laudo médico é importante?
+                          </h4>
+                          <p className="text-xs sm:text-sm text-rose-700 dark:text-rose-300">
+                            O laudo médico é <strong>obrigatório por lei</strong> para comprovação da deficiência nas empresas. 
+                            Ele será validado automaticamente e ficará armazenado com segurança.
+                            Você pode enviá-lo agora ou depois pelo seu perfil.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Upload de Laudo */}
+                    <div className="p-6 border-2 border-dashed border-rose-300 dark:border-rose-700 rounded-lg bg-rose-50/50 dark:bg-rose-950/20">
+                      <label className="flex flex-col items-center gap-3 cursor-pointer">
+                        <div className="h-16 w-16 bg-gradient-to-br from-rose-500 to-pink-600 rounded-xl flex items-center justify-center shadow-lg">
+                          {laudoFile ? (
+                            <CheckCircle className="h-8 w-8 text-white" />
+                          ) : (
+                            <Upload className="h-8 w-8 text-white" />
+                          )}
+                        </div>
+                        <div className="text-center">
+                          <p className="text-sm font-semibold text-rose-900 dark:text-rose-100 mb-1">
+                            {laudoFile ? laudoFile.name : 'Enviar Laudo Médico PCD'}
+                          </p>
+                          <p className="text-xs text-rose-700 dark:text-rose-300">
+                            {laudoFile ? 'Arquivo selecionado - clique para trocar' : 'Clique para selecionar ou arraste aqui'}
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            <strong>Apenas PDF</strong> - Máximo 10MB
+                          </p>
+                        </div>
+                        <input
+                          type="file"
+                          accept=".pdf"
+                          onChange={handleLaudoChange}
+                          className="hidden"
+                        />
+                        {laudoFile && (
+                          <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400">
+                              <CheckCircle2 className="h-3 w-3" />
+                              <span>PDF válido selecionado</span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.preventDefault()
+                                setLaudoFile(null)
+                                setLaudoValidation(null)
+                              }}
+                              className="text-xs text-red-600 hover:text-red-700 underline"
+                            >
+                              Remover
+                            </button>
+                          </div>
+                        )}
+                      </label>
+                    </div>
+                    
+                    {laudoValidation && (
+                      <div className={`p-3 rounded-lg border ${
+                        laudoValidation.valid 
+                          ? 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800' 
+                          : 'bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800'
+                      }`}>
+                        <div className="flex items-center gap-2">
+                          {laudoValidation.valid ? (
+                            <>
+                              <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                              <span className="text-sm text-emerald-700 dark:text-emerald-300">
+                                {laudoValidation.message}
+                              </span>
+                            </>
+                          ) : (
+                            <>
+                              <AlertCircle className="h-4 w-4 text-red-600" />
+                              <span className="text-sm text-red-700 dark:text-red-300">
+                                {laudoValidation.error}
+                              </span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Seção 5: Informações de Deficiência */}
                 <div>
                   <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
                     <div className="h-8 w-8 sm:h-10 sm:w-10 bg-gradient-to-br from-rose-500 to-pink-600 rounded-lg flex items-center justify-center">

@@ -1,7 +1,8 @@
 import { Link, useLocation } from 'react-router-dom'
-import { Briefcase, User, Settings, LogOut, Heart, MessageSquare, Sparkles, ChevronRight } from 'lucide-react'
+import { Briefcase, User, Settings, LogOut, MessageSquare, Sparkles, ChevronRight, Trophy, Zap, Sun, Moon, Monitor } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/use-auth'
+import { useTheme } from '@/providers/ThemeProvider'
 import { useEffect, useState } from 'react'
 import { getCandidateProfile, CandidateProfileData } from '@/services/profile'
 import { Progress } from '@/components/ui/progress'
@@ -9,7 +10,8 @@ import { cn } from '@/lib/utils'
 
 const navItems = [
   { href: '/dashboard/candidato', label: 'Vagas', icon: Briefcase, color: 'blue' },
-  { href: '/dashboard/candidato/vagas-recomendadas', label: 'Recomendadas', icon: Heart, color: 'rose' },
+  { href: '/dashboard/candidato/smart-match', label: 'Smart Match', icon: Zap, color: 'indigo', isNew: true },
+  { href: '/dashboard/candidato/contratacoes', label: 'Contratações', icon: Trophy, color: 'green' },
   { href: '/dashboard/candidato/conversas', label: 'Conversas', icon: MessageSquare, color: 'emerald' },
   { href: '/dashboard/candidato/perfil', label: 'Meu Perfil', icon: User, color: 'violet' },
   { href: '/dashboard/candidato/configuracoes', label: 'Configurações', icon: Settings, color: 'slate' },
@@ -17,16 +19,18 @@ const navItems = [
 
 const colorVariants: Record<string, { active: string; icon: string }> = {
   blue: { active: 'from-blue-500/20 to-cyan-500/20 border-blue-500/30', icon: 'from-blue-500 to-cyan-500' },
-  rose: { active: 'from-rose-500/20 to-pink-500/20 border-rose-500/30', icon: 'from-rose-500 to-pink-500' },
+  green: { active: 'from-green-500/20 to-emerald-500/20 border-green-500/30', icon: 'from-green-500 to-emerald-500' },
   emerald: { active: 'from-emerald-500/20 to-teal-500/20 border-emerald-500/30', icon: 'from-emerald-500 to-teal-500' },
   violet: { active: 'from-violet-500/20 to-purple-500/20 border-violet-500/30', icon: 'from-violet-500 to-purple-500' },
   slate: { active: 'from-slate-500/20 to-gray-500/20 border-slate-500/30', icon: 'from-slate-500 to-gray-500' },
+  indigo: { active: 'from-indigo-500/20 to-violet-500/20 border-indigo-500/30', icon: 'from-indigo-500 to-violet-500' },
 }
 
 export const CandidateSidebar = () => {
   const { logout } = useAuth()
   const { pathname } = useLocation()
   const { user } = useAuth() as any
+  const { theme, setTheme } = useTheme()
   const [profile, setProfile] = useState<CandidateProfileData | null>(null)
   const [loadingProfile, setLoadingProfile] = useState(false)
 
@@ -159,6 +163,11 @@ export const CandidateSidebar = () => {
                 )}>
                   {item.label}
                 </span>
+                {(item as any).isNew && (
+                  <span className="px-1.5 py-0.5 text-[10px] font-bold bg-gradient-to-r from-indigo-500 to-violet-500 text-white rounded-md shadow-sm">
+                    NOVO
+                  </span>
+                )}
                 {isActive && (
                   <ChevronRight className="h-4 w-4 text-muted-foreground" />
                 )}
@@ -169,7 +178,47 @@ export const CandidateSidebar = () => {
       </div>
 
       {/* Footer */}
-      <div className="p-3 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
+      <div className="p-3 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 space-y-2">
+        {/* Theme Toggle */}
+        <div className="flex items-center gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setTheme('light')}
+            className={cn(
+              "flex-1 h-9 rounded-lg gap-1.5 transition-all",
+              theme === 'light' ? "bg-white dark:bg-slate-700 shadow-sm" : "hover:bg-slate-200/50 dark:hover:bg-slate-700/50"
+            )}
+          >
+            <Sun className="h-4 w-4" />
+            <span className="text-xs">Claro</span>
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setTheme('dark')}
+            className={cn(
+              "flex-1 h-9 rounded-lg gap-1.5 transition-all",
+              theme === 'dark' ? "bg-white dark:bg-slate-700 shadow-sm" : "hover:bg-slate-200/50 dark:hover:bg-slate-700/50"
+            )}
+          >
+            <Moon className="h-4 w-4" />
+            <span className="text-xs">Escuro</span>
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setTheme('system')}
+            className={cn(
+              "flex-1 h-9 rounded-lg gap-1.5 transition-all",
+              theme === 'system' ? "bg-white dark:bg-slate-700 shadow-sm" : "hover:bg-slate-200/50 dark:hover:bg-slate-700/50"
+            )}
+          >
+            <Monitor className="h-4 w-4" />
+            <span className="text-xs">Auto</span>
+          </Button>
+        </div>
+
         <Button
           variant="ghost"
           className="w-full justify-start rounded-xl h-12 hover:bg-rose-500/10 hover:text-rose-600 dark:hover:text-rose-400 transition-all group"

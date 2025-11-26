@@ -9,6 +9,8 @@ import vagas from "./vagas.routes";
 import candidaturas from "./candidaturas.routes";
 import match from "./match.routes";
 import admin from "./admin.routes";
+import mensagens from "./mensagens.routes";
+import laudo from "./laudo.routes";
 
 const router = Router();
 
@@ -23,5 +25,7 @@ router.use("/vagas", vagas);
 router.use("/candidaturas", candidaturas);
 router.use("/match", match);
 router.use("/admin", admin);
+router.use("/mensagens", mensagens);
+router.use("/laudo", laudo);
 
 export default router;

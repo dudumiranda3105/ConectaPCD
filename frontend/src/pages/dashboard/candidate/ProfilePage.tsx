@@ -30,8 +30,8 @@ import { User } from '@/providers/AuthProvider'
 import { DisabilityInfoDisplay } from '@/components/dashboard/candidate/DisabilityInfoDisplay'
 import { DisabilityInfoEditor } from '@/components/dashboard/candidate/DisabilityInfoEditor'
 import { MatchedJobs } from '@/components/dashboard/candidate/MatchedJobs'
-import { getCandidateProfile, updateCandidateProfile, updateCandidateDisabilities, uploadCurriculo, deleteCurriculo, uploadAvatar, deleteAvatar, CandidateProfileData } from '@/services/profile'
-import { Loader2, FileText, Eye, UploadCloud, Trash, Image as ImageIcon, X, CheckCircle2, User as UserIcon, Sparkles, Star, Shield, Award, Briefcase, GraduationCap, Mail, Phone, Edit3, Camera, TrendingUp, Zap, Calendar, Users } from 'lucide-react'
+import { getCandidateProfile, updateCandidateProfile, updateCandidateDisabilities, uploadCurriculo, deleteCurriculo, uploadAvatar, deleteAvatar, uploadLaudoMedico, deleteLaudoMedico, CandidateProfileData } from '@/services/profile'
+import { Loader2, FileText, Eye, UploadCloud, Trash, Image as ImageIcon, X, CheckCircle2, User as UserIcon, Sparkles, Star, Shield, Award, Briefcase, GraduationCap, Mail, Phone, Edit3, Camera, TrendingUp, Zap, Calendar, Users, Stethoscope, AlertCircle } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Progress } from '@/components/ui/progress'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -59,6 +59,8 @@ export default function ProfilePage() {
   const [isSaving, setIsSaving] = useState(false)
   const [isUploadingCurriculo, setIsUploadingCurriculo] = useState(false)
   const [isRemovingCurriculo, setIsRemovingCurriculo] = useState(false)
+  const [isUploadingLaudo, setIsUploadingLaudo] = useState(false)
+  const [isRemovingLaudo, setIsRemovingLaudo] = useState(false)
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false)
   const [isRemovingAvatar, setIsRemovingAvatar] = useState(false)
   const [savedAt, setSavedAt] = useState<number | null>(null)
@@ -84,12 +86,21 @@ export default function ProfilePage() {
         setIsLoading(true)
         const data = await getCandidateProfile(token)
         setProfileData(data)
+        // Formatar data de nascimento para o formato yyyy-MM-dd
+        let formattedDate = ''
+        if (data.dataNascimento) {
+          const date = new Date(data.dataNascimento)
+          if (!isNaN(date.getTime())) {
+            formattedDate = date.toISOString().split('T')[0]
+          }
+        }
+        
         form.reset({
           name: data.nome || '',
           cpf: data.cpf || '',
           email: data.email || '',
           telefone: data.telefone || '',
-          dataNascimento: data.dataNascimento || '',
+          dataNascimento: formattedDate,
           genero: (data.genero as typeof GENEROS[number]) || undefined,
           escolaridade: (data.escolaridade as typeof EDUCATION_LEVELS[number]) || undefined,
         })
@@ -223,6 +234,7 @@ export default function ProfilePage() {
       ['genero', profileData.genero],
       ['escolaridade', profileData.escolaridade],
       ['curriculoUrl', profileData.curriculoUrl],
+      ['laudoMedicoUrl', profileData.laudoMedicoUrl],
       ['avatarUrl', profileData.avatarUrl],
     ]
     const filled = fields.filter(([_, v]) => v && String(v).trim() !== '').length
@@ -245,6 +257,7 @@ export default function ProfilePage() {
 
   const handleDisabilitySave = async (
     newDisabilities: DisabilityInfoValues['disabilities'],
+    newAccessibilities: Array<{ acessibilidadeId: number; prioridade: string }>
   ) => {
     const token = localStorage.getItem('auth_token')
     if (!token || !profileData?.id) {
@@ -267,13 +280,13 @@ export default function ProfilePage() {
         }))
       )
       
-      console.log('[ProfilePage] Salvando deficiências:', {
+      console.log('[ProfilePage] Salvando deficiências e acessibilidades:', {
         candidatoId: profileData.id,
         disabilities: disabilitiesPayload,
-        count: disabilitiesPayload.length,
+        accessibilities: newAccessibilities,
       })
       
-      const result = await updateCandidateDisabilities(token, profileData.id, disabilitiesPayload)
+      const result = await updateCandidateDisabilities(token, profileData.id, disabilitiesPayload, newAccessibilities)
       console.log('[ProfilePage] Resultado da atualização:', result)
       
       // Recarregar perfil para obter dados atualizados
@@ -284,7 +297,7 @@ export default function ProfilePage() {
       setIsDisabilityEditorOpen(false)
       toast({
         title: 'Informações Atualizadas! ✅',
-        description: `${disabilitiesPayload.length} informação${disabilitiesPayload.length !== 1 ? 'ões' : ''} de deficiência salva${disabilitiesPayload.length !== 1 ? 's' : ''} com sucesso.`,
+        description: `Deficiências e ${newAccessibilities.length} necessidade(s) de acessibilidade salvas com sucesso.`,
       })
     } catch (error) {
       console.error('[ProfilePage] Erro ao salvar deficiências:', error)
@@ -356,6 +369,75 @@ export default function ProfilePage() {
       toast({ title: 'Erro', description: error instanceof Error ? error.message : 'Falha ao remover currículo.', variant: 'destructive' })
     } finally {
       setIsRemovingCurriculo(false)
+    }
+  }
+
+  // Handlers de Laudo Médico
+  const handleLaudoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    
+    // Apenas PDF permitido
+    if (file.type !== 'application/pdf') {
+      toast({
+        title: 'Tipo inválido',
+        description: 'O laudo médico deve ser um arquivo PDF.',
+        variant: 'destructive',
+      })
+      e.target.value = ''
+      return
+    }
+    
+    const maxBytes = 10 * 1024 * 1024 // 10MB
+    if (file.size > maxBytes) {
+      toast({
+        title: 'Arquivo grande demais',
+        description: 'Tamanho máximo permitido: 10MB.',
+        variant: 'destructive',
+      })
+      e.target.value = ''
+      return
+    }
+    
+    const token = localStorage.getItem('auth_token')
+    if (!token) return
+    
+    try {
+      setIsUploadingLaudo(true)
+      const result = await uploadLaudoMedico(token, file)
+      setProfileData(prev => prev ? { ...prev, laudoMedicoUrl: result.laudoMedicoUrl } : prev)
+      toast({
+        title: 'Laudo Médico Enviado ✅',
+        description: result.validation?.message || 'Seu laudo foi validado e anexado com sucesso.',
+      })
+    } catch (error) {
+      console.error('Erro upload laudo:', error)
+      toast({
+        title: 'Erro ao enviar laudo',
+        description: error instanceof Error ? error.message : 'Falha ao enviar laudo médico.',
+        variant: 'destructive',
+      })
+    } finally {
+      setIsUploadingLaudo(false)
+      e.target.value = ''
+    }
+  }
+
+  const handleLaudoDelete = async () => {
+    const token = localStorage.getItem('auth_token')
+    if (!token || !profileData?.laudoMedicoUrl) return
+    if (!confirm('Remover laudo médico atual?')) return
+    
+    try {
+      setIsRemovingLaudo(true)
+      const result = await deleteLaudoMedico(token)
+      setProfileData(prev => prev ? { ...prev, laudoMedicoUrl: result.laudoMedicoUrl || undefined } : prev)
+      toast({ title: 'Laudo removido', description: 'Você pode enviar outro quando quiser.' })
+    } catch (error) {
+      console.error('Erro ao remover laudo', error)
+      toast({ title: 'Erro', description: error instanceof Error ? error.message : 'Falha ao remover laudo médico.', variant: 'destructive' })
+    } finally {
+      setIsRemovingLaudo(false)
     }
   }
 
@@ -514,6 +596,20 @@ export default function ProfilePage() {
                     <CheckCircle2 className="h-3 w-3 sm:h-4 sm:w-4" />
                   </div>
                 )}
+                {profileData?.laudoMedicoUrl ? (
+                  <div className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl bg-rose-500/20 backdrop-blur-sm text-rose-200 text-xs sm:text-sm font-medium border border-rose-400/30">
+                    <Stethoscope className="h-3 w-3 sm:h-4 sm:w-4" />
+                    <span className="hidden xs:inline">Laudo verificado</span>
+                    <span className="xs:hidden">Laudo</span>
+                    <CheckCircle2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                  </div>
+                ) : (
+                  <div className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl bg-amber-500/20 backdrop-blur-sm text-amber-200 text-xs sm:text-sm font-medium border border-amber-400/30 animate-pulse">
+                    <AlertCircle className="h-3 w-3 sm:h-4 sm:w-4" />
+                    <span className="hidden xs:inline">Laudo pendente</span>
+                    <span className="xs:hidden">Pendente</span>
+                  </div>
+                )}
                 {disabilities.length > 0 && (
                   <div className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl bg-violet-500/20 backdrop-blur-sm text-violet-200 text-xs sm:text-sm font-medium border border-violet-400/30">
                     <Shield className="h-3 w-3 sm:h-4 sm:w-4" />
@@ -624,40 +720,40 @@ export default function ProfilePage() {
           <div className="lg:col-span-2 space-y-6">
             {/* Card Dados Pessoais */}
             <Card className="border-0 shadow-xl overflow-hidden bg-gradient-to-br from-background to-background/80">
-              <CardHeader className="bg-gradient-to-r from-indigo-500/10 via-primary/5 to-transparent border-b border-border/50 pb-6">
-                <div className="flex items-center gap-4">
-                  <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
-                    <UserIcon className="h-7 w-7 text-white" />
+              <CardHeader className="bg-gradient-to-r from-indigo-500/10 via-primary/5 to-transparent border-b border-border/50 pb-4 sm:pb-6">
+                <div className="flex items-start sm:items-center gap-3 sm:gap-4">
+                  <div className="h-10 w-10 sm:h-14 sm:w-14 rounded-xl sm:rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/20 flex-shrink-0">
+                    <UserIcon className="h-5 w-5 sm:h-7 sm:w-7 text-white" />
                   </div>
-                  <div>
-                    <CardTitle className="text-2xl font-bold">Dados Pessoais</CardTitle>
-                    <CardDescription className="text-base mt-1">
+                  <div className="min-w-0">
+                    <CardTitle className="text-lg sm:text-2xl font-bold">Dados Pessoais</CardTitle>
+                    <CardDescription className="text-sm sm:text-base mt-1 line-clamp-2 sm:line-clamp-none">
                       Mantenha suas informações atualizadas para receber as melhores oportunidades
                     </CardDescription>
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="p-8">
+              <CardContent className="p-4 sm:p-6 md:p-8">
                 <Form {...form}>
                   <form
                     onSubmit={form.handleSubmit(onPersonalDataSubmit)}
                     className="space-y-8"
                     aria-label="Formulário de dados pessoais"
                   >
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                       <FormField
                         control={form.control}
                         name="name"
                         render={({ field }) => (
-                          <FormItem className="space-y-3">
-                            <FormLabel className="text-sm font-semibold flex items-center gap-2">
-                              <UserIcon className="h-4 w-4 text-muted-foreground" />
+                          <FormItem className="space-y-2 sm:space-y-3">
+                            <FormLabel className="text-xs sm:text-sm font-semibold flex items-center gap-2">
+                              <UserIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
                               Nome Completo
                             </FormLabel>
                             <FormControl>
                               <Input 
                                 {...field} 
-                                className="h-12 rounded-xl border-border/50 bg-background/50 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                                className="h-10 sm:h-12 rounded-lg sm:rounded-xl border-border/50 bg-background/50 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all text-sm sm:text-base"
                                 placeholder="Seu nome completo"
                               />
                             </FormControl>
@@ -669,18 +765,18 @@ export default function ProfilePage() {
                         control={form.control}
                         name="cpf"
                         render={({ field }) => (
-                          <FormItem className="space-y-3">
-                            <FormLabel className="text-sm font-semibold flex items-center gap-2">
-                              <Shield className="h-4 w-4 text-muted-foreground" />
+                          <FormItem className="space-y-2 sm:space-y-3">
+                            <FormLabel className="text-xs sm:text-sm font-semibold flex items-center gap-2 flex-wrap">
+                              <Shield className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
                               CPF
-                              <span className="text-xs text-muted-foreground font-normal">(não editável)</span>
+                              <span className="text-[10px] sm:text-xs text-muted-foreground font-normal">(não editável)</span>
                             </FormLabel>
                             <FormControl>
                               <Input 
                                 {...field} 
                                 disabled 
                                 aria-disabled 
-                                className="h-12 rounded-xl border-border/50 bg-muted/30 cursor-not-allowed"
+                                className="h-10 sm:h-12 rounded-lg sm:rounded-xl border-border/50 bg-muted/30 cursor-not-allowed text-sm sm:text-base"
                               />
                             </FormControl>
                             <FormMessage />
@@ -691,11 +787,11 @@ export default function ProfilePage() {
                         control={form.control}
                         name="email"
                         render={({ field }) => (
-                          <FormItem className="space-y-3">
-                            <FormLabel className="text-sm font-semibold flex items-center gap-2">
-                              <Mail className="h-4 w-4 text-muted-foreground" />
+                          <FormItem className="space-y-2 sm:space-y-3">
+                            <FormLabel className="text-xs sm:text-sm font-semibold flex items-center gap-2 flex-wrap">
+                              <Mail className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
                               Email
-                              <span className="text-xs text-muted-foreground font-normal">(não editável)</span>
+                              <span className="text-[10px] sm:text-xs text-muted-foreground font-normal">(não editável)</span>
                             </FormLabel>
                             <FormControl>
                               <Input 
@@ -703,7 +799,7 @@ export default function ProfilePage() {
                                 {...field} 
                                 disabled
                                 aria-disabled
-                                className="h-12 rounded-xl border-border/50 bg-muted/30 cursor-not-allowed"
+                                className="h-10 sm:h-12 rounded-lg sm:rounded-xl border-border/50 bg-muted/30 cursor-not-allowed text-sm sm:text-base"
                               />
                             </FormControl>
                             <FormMessage />
@@ -714,15 +810,15 @@ export default function ProfilePage() {
                         control={form.control}
                         name="telefone"
                         render={({ field }) => (
-                          <FormItem className="space-y-3">
-                            <FormLabel className="text-sm font-semibold flex items-center gap-2">
-                              <Phone className="h-4 w-4 text-muted-foreground" />
+                          <FormItem className="space-y-2 sm:space-y-3">
+                            <FormLabel className="text-xs sm:text-sm font-semibold flex items-center gap-2">
+                              <Phone className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
                               Telefone
                             </FormLabel>
                             <FormControl>
                               <Input 
                                 {...field} 
-                                className="h-12 rounded-xl border-border/50 bg-background/50 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                                className="h-10 sm:h-12 rounded-lg sm:rounded-xl border-border/50 bg-background/50 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all text-sm sm:text-base"
                                 placeholder="(XX) XXXXX-XXXX"
                               />
                             </FormControl>
@@ -734,16 +830,16 @@ export default function ProfilePage() {
                         control={form.control}
                         name="dataNascimento"
                         render={({ field }) => (
-                          <FormItem className="space-y-3">
-                            <FormLabel className="text-sm font-semibold flex items-center gap-2">
-                              <Calendar className="h-4 w-4 text-muted-foreground" />
+                          <FormItem className="space-y-2 sm:space-y-3">
+                            <FormLabel className="text-xs sm:text-sm font-semibold flex items-center gap-2">
+                              <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
                               Data de Nascimento
                             </FormLabel>
                             <FormControl>
                               <Input 
                                 type="date"
                                 {...field} 
-                                className="h-12 rounded-xl border-border/50 bg-background/50 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                                className="h-10 sm:h-12 rounded-lg sm:rounded-xl border-border/50 bg-background/50 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all text-sm sm:text-base"
                               />
                             </FormControl>
                             <FormMessage />
@@ -754,15 +850,15 @@ export default function ProfilePage() {
                         control={form.control}
                         name="genero"
                         render={({ field }) => (
-                          <FormItem className="space-y-3">
-                            <FormLabel className="text-sm font-semibold flex items-center gap-2">
-                              <Users className="h-4 w-4 text-muted-foreground" />
+                          <FormItem className="space-y-2 sm:space-y-3">
+                            <FormLabel className="text-xs sm:text-sm font-semibold flex items-center gap-2">
+                              <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
                               Gênero
                             </FormLabel>
                             <Select onValueChange={field.onChange} value={field.value || ''}>
                               <FormControl>
-                                <SelectTrigger className="h-12 rounded-xl border-border/50 bg-background/50 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all">
-                                  <SelectValue placeholder="Selecione seu gênero" />
+                                <SelectTrigger className="h-10 sm:h-12 rounded-lg sm:rounded-xl border-border/50 bg-background/50 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all text-sm sm:text-base">
+                                  <SelectValue placeholder="Selecione" />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
@@ -781,15 +877,15 @@ export default function ProfilePage() {
                         control={form.control}
                         name="escolaridade"
                         render={({ field }) => (
-                          <FormItem className="md:col-span-2 space-y-3">
-                            <FormLabel className="text-sm font-semibold flex items-center gap-2">
-                              <GraduationCap className="h-4 w-4 text-muted-foreground" />
+                          <FormItem className="md:col-span-2 space-y-2 sm:space-y-3">
+                            <FormLabel className="text-xs sm:text-sm font-semibold flex items-center gap-2">
+                              <GraduationCap className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
                               Escolaridade
                             </FormLabel>
                             <Select onValueChange={field.onChange} value={field.value || ''}>
                               <FormControl>
-                                <SelectTrigger className="h-12 rounded-xl border-border/50 bg-background/50 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all">
-                                  <SelectValue placeholder="Selecione seu nível de escolaridade" />
+                                <SelectTrigger className="h-10 sm:h-12 rounded-lg sm:rounded-xl border-border/50 bg-background/50 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all text-sm sm:text-base">
+                                  <SelectValue placeholder="Selecione escolaridade" />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
@@ -805,22 +901,22 @@ export default function ProfilePage() {
                         )}
                       />
                     </div>
-                    <div className="flex justify-end pt-6 border-t border-border/50">
+                    <div className="flex justify-end pt-4 sm:pt-6 border-t border-border/50">
                       <Button 
                         type="submit" 
                         disabled={isSaving} 
                         aria-busy={isSaving} 
                         size="lg" 
-                        className="min-w-[160px] h-12 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 shadow-lg shadow-indigo-500/25 transition-all hover:shadow-xl hover:shadow-indigo-500/30"
+                        className="w-full sm:w-auto sm:min-w-[160px] h-10 sm:h-12 rounded-lg sm:rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 shadow-lg shadow-indigo-500/25 transition-all hover:shadow-xl hover:shadow-indigo-500/30 text-sm sm:text-base"
                       >
                         {isSaving ? (
                           <>
-                            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                            <Loader2 className="mr-2 h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
                             Salvando...
                           </>
                         ) : (
                           <>
-                            <CheckCircle2 className="mr-2 h-5 w-5" />
+                            <CheckCircle2 className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
                             Salvar Dados
                           </>
                         )}
@@ -833,15 +929,15 @@ export default function ProfilePage() {
 
             {/* Card Informações de Deficiência */}
             <Card className="border-0 shadow-xl overflow-hidden bg-gradient-to-br from-background to-background/80">
-              <CardHeader className="bg-gradient-to-r from-violet-500/10 via-purple-500/5 to-transparent border-b border-border/50 pb-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg shadow-violet-500/20">
-                      <Shield className="h-7 w-7 text-white" />
+              <CardHeader className="bg-gradient-to-r from-violet-500/10 via-purple-500/5 to-transparent border-b border-border/50 pb-4 sm:pb-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+                  <div className="flex items-start sm:items-center gap-3 sm:gap-4">
+                    <div className="h-10 w-10 sm:h-14 sm:w-14 rounded-xl sm:rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg shadow-violet-500/20 flex-shrink-0">
+                      <Shield className="h-5 w-5 sm:h-7 sm:w-7 text-white" />
                     </div>
-                    <div>
-                      <CardTitle className="text-2xl font-bold">Informações de Deficiência</CardTitle>
-                      <CardDescription className="text-base mt-1">
+                    <div className="min-w-0">
+                      <CardTitle className="text-lg sm:text-2xl font-bold">Informações de Deficiência</CardTitle>
+                      <CardDescription className="text-sm sm:text-base mt-1 line-clamp-2 sm:line-clamp-none">
                         Suas necessidades de acessibilidade e barreiras identificadas
                       </CardDescription>
                     </div>
@@ -849,40 +945,40 @@ export default function ProfilePage() {
                   <Button
                     variant="outline"
                     onClick={() => setIsDisabilityEditorOpen(true)}
-                    className="rounded-xl border-violet-500/30 hover:bg-violet-500/10 hover:border-violet-500/50 transition-all"
+                    className="w-full sm:w-auto rounded-lg sm:rounded-xl border-violet-500/30 hover:bg-violet-500/10 hover:border-violet-500/50 transition-all"
                   >
                     <Edit3 className="h-4 w-4 mr-2" />
                     Editar
                   </Button>
                 </div>
               </CardHeader>
-              <CardContent className="p-8">
+              <CardContent className="p-4 sm:p-6 md:p-8">
                 <DisabilityInfoDisplay disabilities={disabilities} />
               </CardContent>
             </Card>
 
             {/* Card de Recomendações */}
             <Card className="border-0 shadow-xl overflow-hidden bg-gradient-to-br from-background to-background/80">
-              <CardHeader className="bg-gradient-to-r from-amber-500/10 via-orange-500/5 to-transparent border-b border-border/50 pb-6">
-                <div className="flex items-center gap-4">
-                  <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-lg shadow-amber-500/20 relative">
-                    <Zap className="h-7 w-7 text-white" />
-                    <div className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-emerald-500 border-2 border-background animate-pulse" />
+              <CardHeader className="bg-gradient-to-r from-amber-500/10 via-orange-500/5 to-transparent border-b border-border/50 pb-4 sm:pb-6">
+                <div className="flex items-start sm:items-center gap-3 sm:gap-4">
+                  <div className="h-10 w-10 sm:h-14 sm:w-14 rounded-xl sm:rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-lg shadow-amber-500/20 relative flex-shrink-0">
+                    <Zap className="h-5 w-5 sm:h-7 sm:w-7 text-white" />
+                    <div className="absolute -top-1 -right-1 h-3 w-3 sm:h-4 sm:w-4 rounded-full bg-emerald-500 border-2 border-background animate-pulse" />
                   </div>
-                  <div>
-                    <CardTitle className="text-2xl font-bold flex items-center gap-2">
-                      Recomendações Inteligentes
+                  <div className="min-w-0">
+                    <CardTitle className="text-lg sm:text-2xl font-bold flex flex-wrap items-center gap-2">
+                      <span>Recomendações</span>
                       <span className="text-xs font-normal px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 border border-amber-500/20">
                         IA
                       </span>
                     </CardTitle>
-                    <CardDescription className="text-base mt-1">
-                      Vagas compatíveis baseadas no seu perfil de acessibilidade
+                    <CardDescription className="text-sm sm:text-base mt-1 line-clamp-2 sm:line-clamp-none">
+                      Vagas compatíveis baseadas no seu perfil
                     </CardDescription>
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="p-8">
+              <CardContent className="p-4 sm:p-6 md:p-8">
                 <MatchedJobs />
               </CardContent>
             </Card>
@@ -892,18 +988,18 @@ export default function ProfilePage() {
           <div className="space-y-6">
             {/* Card Currículo */}
             <Card className="border-0 shadow-xl overflow-hidden bg-gradient-to-br from-background to-background/80">
-              <CardHeader className="bg-gradient-to-r from-emerald-500/10 to-transparent border-b border-border/50 pb-5">
+              <CardHeader className="bg-gradient-to-r from-emerald-500/10 to-transparent border-b border-border/50 pb-4 sm:pb-5">
                 <div className="flex items-center gap-3">
-                  <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/20">
-                    <FileText className="h-6 w-6 text-white" />
+                  <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-lg sm:rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/20 flex-shrink-0">
+                    <FileText className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                   </div>
-                  <div>
-                    <CardTitle className="text-lg font-bold">Currículo</CardTitle>
-                    <CardDescription>PDF, DOC ou DOCX (máx. 5MB)</CardDescription>
+                  <div className="min-w-0">
+                    <CardTitle className="text-base sm:text-lg font-bold">Currículo</CardTitle>
+                    <CardDescription className="text-xs sm:text-sm">PDF, DOC ou DOCX (máx. 5MB)</CardDescription>
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="p-6 space-y-5">
+              <CardContent className="p-4 sm:p-6 space-y-4 sm:space-y-5">
                 <div className="group relative">
                   <input
                     id="curriculoInput"
@@ -915,16 +1011,16 @@ export default function ProfilePage() {
                   />
                   <label
                     htmlFor="curriculoInput"
-                    className="flex cursor-pointer flex-col items-center justify-center gap-4 rounded-2xl border-2 border-dashed border-border/50 bg-gradient-to-br from-emerald-500/5 to-transparent px-6 py-10 text-center transition-all hover:border-emerald-500/50 hover:bg-emerald-500/10 group-hover:shadow-lg"
+                    className="flex cursor-pointer flex-col items-center justify-center gap-3 sm:gap-4 rounded-xl sm:rounded-2xl border-2 border-dashed border-border/50 bg-gradient-to-br from-emerald-500/5 to-transparent px-4 sm:px-6 py-6 sm:py-10 text-center transition-all hover:border-emerald-500/50 hover:bg-emerald-500/10 group-hover:shadow-lg"
                   >
-                    <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-teal-500/20 flex items-center justify-center group-hover:scale-110 transition-transform shadow-inner">
-                      <UploadCloud className="h-8 w-8 text-emerald-600" />
+                    <div className="h-12 w-12 sm:h-16 sm:w-16 rounded-xl sm:rounded-2xl bg-gradient-to-br from-emerald-500/20 to-teal-500/20 flex items-center justify-center group-hover:scale-110 transition-transform shadow-inner">
+                      <UploadCloud className="h-6 w-6 sm:h-8 sm:w-8 text-emerald-600" />
                     </div>
                     <div>
-                      <p className="font-semibold text-base">
-                        {isUploadingCurriculo ? 'Enviando arquivo...' : 'Clique para enviar'}
+                      <p className="font-semibold text-sm sm:text-base">
+                        {isUploadingCurriculo ? 'Enviando...' : 'Clique para enviar'}
                       </p>
-                      <p className="text-sm text-muted-foreground mt-1">
+                      <p className="text-xs sm:text-sm text-muted-foreground mt-1 hidden sm:block">
                         ou arraste e solte aqui
                       </p>
                     </div>
@@ -939,31 +1035,32 @@ export default function ProfilePage() {
                 )}
                 
                 {profileData?.curriculoUrl && (
-                  <div className="rounded-2xl border border-emerald-500/30 bg-gradient-to-br from-emerald-500/10 to-teal-500/5 p-5 shadow-sm">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex items-center gap-4 min-w-0 flex-1">
-                        <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center flex-shrink-0 shadow-md">
-                          <FileText className="h-6 w-6 text-white" />
+                  <div className="rounded-xl sm:rounded-2xl border border-emerald-500/30 bg-gradient-to-br from-emerald-500/10 to-teal-500/5 p-3 sm:p-5 shadow-sm">
+                    <div className="flex items-start justify-between gap-2 sm:gap-4">
+                      <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
+                        <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-lg sm:rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center flex-shrink-0 shadow-md">
+                          <FileText className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                         </div>
                         <div className="min-w-0">
-                          <p className="text-sm font-semibold truncate" title={profileData.curriculoUrl.split('/').pop()}>
+                          <p className="text-xs sm:text-sm font-semibold truncate" title={profileData.curriculoUrl.split('/').pop()}>
                             {profileData.curriculoUrl.split('/').pop()}
                           </p>
-                          <p className="text-xs text-emerald-600 flex items-center gap-1 mt-1">
+                          <p className="text-[10px] sm:text-xs text-emerald-600 flex items-center gap-1 mt-1">
                             <CheckCircle2 className="h-3 w-3" />
-                            Anexado com sucesso
+                            <span className="hidden xs:inline">Anexado com sucesso</span>
+                            <span className="xs:hidden">Anexado</span>
                           </p>
                         </div>
                       </div>
-                      <div className="flex gap-2 flex-shrink-0">
+                      <div className="flex gap-1.5 sm:gap-2 flex-shrink-0">
                         <Button
                           type="button"
                           variant="outline"
                           size="icon"
                           onClick={() => window.open(profileData.curriculoUrl, '_blank')}
-                          className="h-10 w-10 rounded-xl border-emerald-500/30 hover:bg-emerald-500/10"
+                          className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl border-emerald-500/30 hover:bg-emerald-500/10"
                         >
-                          <Eye className="h-4 w-4" />
+                          <Eye className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                         </Button>
                         <Button
                           type="button"
@@ -971,12 +1068,129 @@ export default function ProfilePage() {
                           size="icon"
                           disabled={isRemovingCurriculo}
                           onClick={handleCurriculoDelete}
-                          className="h-10 w-10 rounded-xl hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30"
+                          className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30"
                         >
                           {isRemovingCurriculo ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
+                            <Loader2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 animate-spin" />
                           ) : (
-                            <Trash className="h-4 w-4" />
+                            <Trash className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Card Laudo Médico PCD */}
+            <Card className="border-0 shadow-xl overflow-hidden bg-gradient-to-br from-background to-background/80">
+              <CardHeader className="bg-gradient-to-r from-rose-500/10 to-transparent border-b border-border/50 pb-4 sm:pb-5">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-lg sm:rounded-xl bg-gradient-to-br from-rose-500 to-pink-600 flex items-center justify-center shadow-lg shadow-rose-500/20 flex-shrink-0">
+                    <Stethoscope className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+                  </div>
+                  <div className="min-w-0">
+                    <CardTitle className="text-base sm:text-lg font-bold flex flex-wrap items-center gap-2">
+                      <span>Laudo Médico</span>
+                      <span className="text-[10px] sm:text-xs font-normal px-1.5 sm:px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-600 border border-rose-500/20">
+                        Obrigatório
+                      </span>
+                    </CardTitle>
+                    <CardDescription className="text-xs sm:text-sm">Apenas PDF (máx. 10MB)</CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="p-4 sm:p-6 space-y-4 sm:space-y-5">
+                {/* Alerta informativo */}
+                <div className="rounded-lg sm:rounded-xl bg-gradient-to-r from-rose-500/5 to-pink-500/5 p-3 sm:p-4 border border-rose-200 dark:border-rose-800">
+                  <div className="flex items-start gap-2 sm:gap-3">
+                    <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-lg bg-rose-500/10 flex items-center justify-center flex-shrink-0">
+                      <AlertCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-rose-600" />
+                    </div>
+                    <div>
+                      <p className="text-xs sm:text-sm font-medium text-rose-700 dark:text-rose-400">Por que o laudo é importante?</p>
+                      <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">
+                        O laudo é obrigatório por lei para comprovação da deficiência.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="group relative">
+                  <input
+                    id="laudoInput"
+                    type="file"
+                    accept=".pdf"
+                    disabled={isUploadingLaudo}
+                    onChange={handleLaudoChange}
+                    className="hidden"
+                  />
+                  <label
+                    htmlFor="laudoInput"
+                    className="flex cursor-pointer flex-col items-center justify-center gap-3 sm:gap-4 rounded-xl sm:rounded-2xl border-2 border-dashed border-border/50 bg-gradient-to-br from-rose-500/5 to-transparent px-4 sm:px-6 py-6 sm:py-10 text-center transition-all hover:border-rose-500/50 hover:bg-rose-500/10 group-hover:shadow-lg"
+                  >
+                    <div className="h-12 w-12 sm:h-16 sm:w-16 rounded-xl sm:rounded-2xl bg-gradient-to-br from-rose-500/20 to-pink-500/20 flex items-center justify-center group-hover:scale-110 transition-transform shadow-inner">
+                      <UploadCloud className="h-6 w-6 sm:h-8 sm:w-8 text-rose-600" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-sm sm:text-base">
+                        {isUploadingLaudo ? 'Validando...' : 'Enviar laudo'}
+                      </p>
+                      <p className="text-xs sm:text-sm text-muted-foreground mt-1 hidden sm:block">
+                        ou arraste e solte aqui
+                      </p>
+                    </div>
+                  </label>
+                </div>
+                
+                {isUploadingLaudo && (
+                  <div className="flex items-center justify-center gap-3 text-sm text-muted-foreground py-3 px-4 rounded-xl bg-rose-500/5 border border-rose-500/20">
+                    <Loader2 className="h-5 w-5 animate-spin text-rose-600" />
+                    <span>Validando PDF e verificando autenticidade...</span>
+                  </div>
+                )}
+                
+                {profileData?.laudoMedicoUrl && (
+                  <div className="rounded-xl sm:rounded-2xl border border-rose-500/30 bg-gradient-to-br from-rose-500/10 to-pink-500/5 p-3 sm:p-5 shadow-sm">
+                    <div className="flex items-start justify-between gap-2 sm:gap-4">
+                      <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
+                        <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-lg sm:rounded-xl bg-gradient-to-br from-rose-500 to-pink-600 flex items-center justify-center flex-shrink-0 shadow-md">
+                          <Stethoscope className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-xs sm:text-sm font-semibold truncate" title={profileData.laudoMedicoUrl.split('/').pop()}>
+                            {profileData.laudoMedicoUrl.split('/').pop()}
+                          </p>
+                          <p className="text-[10px] sm:text-xs text-rose-600 flex items-center gap-1 mt-1">
+                            <CheckCircle2 className="h-3 w-3" />
+                            <span className="hidden xs:inline">Laudo verificado</span>
+                            <span className="xs:hidden">Verificado</span>
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex gap-1.5 sm:gap-2 flex-shrink-0">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          onClick={() => window.open(profileData.laudoMedicoUrl, '_blank')}
+                          className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl border-rose-500/30 hover:bg-rose-500/10"
+                        >
+                          <Eye className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          disabled={isRemovingLaudo}
+                          onClick={handleLaudoDelete}
+                          className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30"
+                        >
+                          {isRemovingLaudo ? (
+                            <Loader2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 animate-spin" />
+                          ) : (
+                            <Trash className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                           )}
                         </Button>
                       </div>
@@ -988,51 +1202,51 @@ export default function ProfilePage() {
 
             {/* Card de Estatísticas */}
             <Card className="border-0 shadow-xl overflow-hidden bg-gradient-to-br from-background to-background/80">
-              <CardHeader className="bg-gradient-to-r from-blue-500/10 to-transparent border-b border-border/50 pb-5">
+              <CardHeader className="bg-gradient-to-r from-blue-500/10 to-transparent border-b border-border/50 pb-4 sm:pb-5">
                 <div className="flex items-center gap-3">
-                  <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
-                    <TrendingUp className="h-6 w-6 text-white" />
+                  <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-lg sm:rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/20 flex-shrink-0">
+                    <TrendingUp className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                   </div>
-                  <div>
-                    <CardTitle className="text-lg font-bold">Seu Perfil</CardTitle>
-                    <CardDescription>Estatísticas rápidas</CardDescription>
+                  <div className="min-w-0">
+                    <CardTitle className="text-base sm:text-lg font-bold">Seu Perfil</CardTitle>
+                    <CardDescription className="text-xs sm:text-sm">Estatísticas rápidas</CardDescription>
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="p-6 space-y-4">
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="rounded-xl bg-gradient-to-br from-indigo-500/10 to-violet-500/5 p-4 border border-indigo-500/20">
-                    <div className="text-3xl font-bold text-indigo-600">{disabilities.length}</div>
-                    <div className="text-xs text-muted-foreground mt-1">Tipos de Deficiência</div>
+              <CardContent className="p-4 sm:p-6 space-y-3 sm:space-y-4">
+                <div className="grid grid-cols-2 gap-2 sm:gap-3">
+                  <div className="rounded-lg sm:rounded-xl bg-gradient-to-br from-indigo-500/10 to-violet-500/5 p-3 sm:p-4 border border-indigo-500/20">
+                    <div className="text-xl sm:text-3xl font-bold text-indigo-600">{disabilities.length}</div>
+                    <div className="text-[10px] sm:text-xs text-muted-foreground mt-0.5 sm:mt-1">Tipos de Deficiência</div>
                   </div>
-                  <div className="rounded-xl bg-gradient-to-br from-violet-500/10 to-purple-500/5 p-4 border border-violet-500/20">
-                    <div className="text-3xl font-bold text-violet-600">
+                  <div className="rounded-lg sm:rounded-xl bg-gradient-to-br from-violet-500/10 to-purple-500/5 p-3 sm:p-4 border border-violet-500/20">
+                    <div className="text-xl sm:text-3xl font-bold text-violet-600">
                       {disabilities.reduce((acc, d) => acc + d.subtypes.length, 0)}
                     </div>
-                    <div className="text-xs text-muted-foreground mt-1">Subtipos</div>
+                    <div className="text-[10px] sm:text-xs text-muted-foreground mt-0.5 sm:mt-1">Subtipos</div>
                   </div>
-                  <div className="rounded-xl bg-gradient-to-br from-emerald-500/10 to-teal-500/5 p-4 border border-emerald-500/20">
-                    <div className="text-3xl font-bold text-emerald-600">{completeness}%</div>
-                    <div className="text-xs text-muted-foreground mt-1">Perfil Completo</div>
+                  <div className="rounded-lg sm:rounded-xl bg-gradient-to-br from-emerald-500/10 to-teal-500/5 p-3 sm:p-4 border border-emerald-500/20">
+                    <div className="text-xl sm:text-3xl font-bold text-emerald-600">{completeness}%</div>
+                    <div className="text-[10px] sm:text-xs text-muted-foreground mt-0.5 sm:mt-1">Perfil Completo</div>
                   </div>
-                  <div className="rounded-xl bg-gradient-to-br from-amber-500/10 to-orange-500/5 p-4 border border-amber-500/20">
-                    <div className="text-3xl font-bold text-amber-600">
+                  <div className="rounded-lg sm:rounded-xl bg-gradient-to-br from-amber-500/10 to-orange-500/5 p-3 sm:p-4 border border-amber-500/20">
+                    <div className="text-xl sm:text-3xl font-bold text-amber-600">
                       {disabilities.reduce((acc, d) => acc + d.subtypes.reduce((a, s) => a + s.barriers.length, 0), 0)}
                     </div>
-                    <div className="text-xs text-muted-foreground mt-1">Barreiras</div>
+                    <div className="text-[10px] sm:text-xs text-muted-foreground mt-0.5 sm:mt-1">Barreiras</div>
                   </div>
                 </div>
                 
                 {completeness < 100 && (
-                  <div className="rounded-xl bg-gradient-to-r from-amber-500/10 to-orange-500/5 p-4 border border-amber-500/20">
-                    <div className="flex items-start gap-3">
-                      <div className="h-8 w-8 rounded-lg bg-amber-500/20 flex items-center justify-center flex-shrink-0">
-                        <Sparkles className="h-4 w-4 text-amber-600" />
+                  <div className="rounded-lg sm:rounded-xl bg-gradient-to-r from-amber-500/10 to-orange-500/5 p-3 sm:p-4 border border-amber-500/20">
+                    <div className="flex items-start gap-2 sm:gap-3">
+                      <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-lg bg-amber-500/20 flex items-center justify-center flex-shrink-0">
+                        <Sparkles className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-amber-600" />
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-amber-700 dark:text-amber-400">Dica para você</p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Complete seu perfil para aumentar suas chances de ser encontrado por empresas inclusivas!
+                        <p className="text-xs sm:text-sm font-medium text-amber-700 dark:text-amber-400">Dica</p>
+                        <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">
+                          Complete seu perfil para aumentar suas chances!
                         </p>
                       </div>
                     </div>
@@ -1048,6 +1262,10 @@ export default function ProfilePage() {
         isOpen={isDisabilityEditorOpen}
         onOpenChange={setIsDisabilityEditorOpen}
         initialDisabilities={disabilities}
+        initialAccessibilities={profileData?.acessibilidades?.map(a => ({
+          acessibilidadeId: a.acessibilidadeId,
+          prioridade: a.prioridade as 'essencial' | 'importante' | 'desejavel'
+        })) || []}
         onSave={handleDisabilitySave}
       />
     </div>

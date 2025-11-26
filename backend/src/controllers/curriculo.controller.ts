@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { prisma } from '../repositories/prisma';
 import fs from 'fs';
 import path from 'path';
+import { ActivityLogService } from '../services/activityLog.service';
 
 export const CurriculoController = {
   async upload(req: Request, res: Response) {
@@ -22,6 +23,10 @@ export const CurriculoController = {
         data: { curriculoUrl: url },
         select: { id: true, curriculoUrl: true },
       });
+      
+      // Registrar atividade de envio de currículo
+      await ActivityLogService.logCurriculoEnviado(candidato.nome, candidato.id);
+      
       res.status(200).json(updated);
     } catch (e: any) {
       res.status(400).json({ error: e.message || 'Erro ao enviar currículo' });
