@@ -7,7 +7,7 @@ export const VagasService = {
     return VagasRepo.list();
   },
 
-  async criarVaga(empresaId: number, titulo: string, descricao: string, escolaridade: string, tipo?: string, regimeTrabalho?: string, beneficios?: string, acessibilidades?: string[]) {
+  async criarVaga(empresaId: number, titulo: string, descricao: string, escolaridade: string, tipo?: string, regimeTrabalho?: string, beneficios?: string, acessibilidades?: string[], subtiposAceitos?: number[]) {
     if (!empresaId) throw new Error("empresaId é obrigatório");
     if (!titulo?.trim()) throw new Error("titulo é obrigatório");
     if (!descricao?.trim()) throw new Error("descricao é obrigatória");
@@ -24,6 +24,12 @@ export const VagasService = {
       await this.vincularAcessibilidadesPorNome(vaga.id, acessibilidades);
     }
     
+    // Vincular subtipos se fornecidos
+    if (subtiposAceitos && subtiposAceitos.length > 0) {
+      console.log('[VagasService] Vinculando subtipos aceitos:', subtiposAceitos);
+      await this.vincularSubtipos(vaga.id, subtiposAceitos);
+    }
+    
     // Registrar atividade de criação de vaga
     const empresaNome = empresa.nomeFantasia || empresa.razaoSocial || empresa.nome;
     await ActivityLogService.logNovaVaga(empresaNome, empresaId, titulo.trim(), vaga.id);
@@ -32,12 +38,21 @@ export const VagasService = {
   },
 
   async vincularSubtipos(vagaId: number, subtipoIds: number[]) {
-    if (!vagaId || !Array.isArray(subtipoIds) || subtipoIds.length === 0) {
-      throw new Error("Informe vagaId e pelo menos um subtipoId");
+    if (!vagaId) {
+      throw new Error("Informe vagaId");
+    }
+    if (!Array.isArray(subtipoIds)) {
+      throw new Error("subtipoIds deve ser um array");
     }
     // valida vaga
     const vaga = await prisma.vaga.findUnique({ where: { id: vagaId } });
     if (!vaga) throw new Error("Vaga não encontrada");
+
+    // Se array vazio, apenas limpa os subtipos existentes
+    if (subtipoIds.length === 0) {
+      await prisma.vagaSubtipo.deleteMany({ where: { vagaId } });
+      return { ok: true, message: "Subtipos removidos" };
+    }
 
     return VagasRepo.linkSubtipos(vagaId, subtipoIds);
   },
@@ -122,18 +137,19 @@ export const VagasService = {
     regimeTrabalho?: string;
     beneficios?: string;
     acessibilidades?: string[];
+    subtiposAceitos?: number[];
     isActive?: boolean;
   }) {
     const vaga = await VagasRepo.findById(vagaId);
     if (!vaga) throw new Error("Vaga não encontrada");
 
-    // Separar acessibilidades dos outros dados
-    const { acessibilidades, ...dadosVaga } = dados;
+    // Separar acessibilidades e subtipos dos outros dados
+    const { acessibilidades, subtiposAceitos, ...dadosVaga } = dados;
 
     // Verificar se está fechando a vaga
     const estaFechandoVaga = vaga.isActive === true && dados.isActive === false;
 
-    // Atualizar dados da vaga (sem acessibilidades)
+    // Atualizar dados da vaga (sem acessibilidades e subtipos)
     const vagaAtualizada = await VagasRepo.update(vagaId, dadosVaga);
     
     // Atualizar acessibilidades se fornecidas
@@ -147,9 +163,21 @@ export const VagasService = {
       }
     }
     
+    // Atualizar subtipos aceitos se fornecidos
+    if (subtiposAceitos !== undefined) {
+      console.log('[VagasService] Atualizando subtipos aceitos:', subtiposAceitos);
+      // Remover subtipos existentes
+      await prisma.vagaSubtipo.deleteMany({ where: { vagaId } });
+      
+      // Adicionar novos subtipos
+      if (subtiposAceitos.length > 0) {
+        await VagasRepo.linkSubtipos(vagaId, subtiposAceitos);
+      }
+    }
+    
     // Registrar atividade se está fechando a vaga
     if (estaFechandoVaga) {
-      const empresaNome = vaga.empresa.nomeFantasia || vaga.empresa.razaoSocial || vaga.empresa.nome;
+      const empresaNome = (vaga.empresa as any).nomeFantasia || (vaga.empresa as any).razaoSocial || vaga.empresa.nome;
       await ActivityLogService.logVagaFechada(empresaNome, vaga.empresaId, vaga.titulo, vagaId);
     }
     

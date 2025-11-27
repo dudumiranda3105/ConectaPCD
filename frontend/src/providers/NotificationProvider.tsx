@@ -1,7 +1,4 @@
-import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from 'react';
-import { socketClient } from '@/services/socket';
-import { useAuth } from '@/hooks/use-auth';
-import { useToast } from '@/components/ui/use-toast';
+import { createContext, useContext, useState, ReactNode, useCallback } from 'react';
 
 export interface Notification {
   id: string;
@@ -16,7 +13,7 @@ export interface Notification {
 interface NotificationContextType {
   notifications: Notification[];
   unreadCount: number;
-  isConnected: boolean;
+  addNotification: (notification: Omit<Notification, 'id' | 'read'>) => void;
   markAsRead: (id: string) => void;
   markAllAsRead: () => void;
   clearNotifications: () => void;
@@ -25,66 +22,15 @@ interface NotificationContextType {
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
 
 export function NotificationProvider({ children }: { children: ReactNode }) {
-  const { user } = useAuth();
-  const { toast } = useToast();
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [isConnected, setIsConnected] = useState(false);
 
-  // Conectar socket quando usuário estiver logado
-  useEffect(() => {
-    if (user?.id) {
-      socketClient.connect();
-      
-      const userType = user.role === 'company' ? 'empresa' : 'candidato';
-      const userId = user.role === 'company' ? user.empresaId : user.candidatoId;
-      
-      if (userId) {
-        socketClient.authenticate(Number(userId), userType);
-      }
-
-      // Listener de conexão
-      const unsubAuth = socketClient.on('authenticated', () => {
-        setIsConnected(true);
-      });
-
-      // Listener de notificações
-      const unsubNotif = socketClient.on('notification', (data: any) => {
-        const notification: Notification = {
-          id: `${Date.now()}-${Math.random()}`,
-          ...data,
-          read: false,
-        };
-        
-        setNotifications(prev => [notification, ...prev].slice(0, 50)); // Manter últimas 50
-        
-        // Mostrar toast
-        toast({
-          title: data.title,
-          description: data.message,
-          duration: 5000,
-        });
-
-        // Tocar som de notificação (se permitido)
-        playNotificationSound();
-      });
-
-      return () => {
-        unsubAuth();
-        unsubNotif();
-        socketClient.disconnect();
-        setIsConnected(false);
-      };
-    }
-  }, [user?.id, user?.role, user?.empresaId, user?.candidatoId, toast]);
-
-  const playNotificationSound = useCallback(() => {
-    try {
-      const audio = new Audio('/notification.mp3');
-      audio.volume = 0.3;
-      audio.play().catch(() => {}); // Ignorar erros de autoplay
-    } catch {
-      // Audio não suportado
-    }
+  const addNotification = useCallback((notification: Omit<Notification, 'id' | 'read'>) => {
+    const newNotification: Notification = {
+      ...notification,
+      id: `${Date.now()}-${Math.random()}`,
+      read: false,
+    };
+    setNotifications(prev => [newNotification, ...prev].slice(0, 50));
   }, []);
 
   const markAsRead = useCallback((id: string) => {
@@ -108,7 +54,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       value={{
         notifications,
         unreadCount,
-        isConnected,
+        addNotification,
         markAsRead,
         markAllAsRead,
         clearNotifications,

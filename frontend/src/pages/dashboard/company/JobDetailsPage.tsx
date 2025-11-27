@@ -39,6 +39,11 @@ import {
   FileText,
   Building2,
   TrendingUp,
+  Clock,
+  DollarSign,
+  Sparkles,
+  Target,
+  Accessibility,
 } from 'lucide-react'
 import {
   DropdownMenu,
@@ -48,7 +53,18 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { listarVagasEmpresa, fecharVaga, listarCandidaturasVaga } from '@/services/vagas'
+
+// Helper para obter iniciais da empresa
+function getCompanyInitials(name: string): string {
+  if (!name) return 'E'
+  const words = name.trim().split(' ').filter(w => w.length > 0)
+  if (words.length === 1) {
+    return words[0].substring(0, 2).toUpperCase()
+  }
+  return (words[0][0] + words[1][0]).toUpperCase()
+}
 
 export default function JobDetailsPage() {
   const { jobId } = useParams<{ jobId: string }>()
@@ -137,73 +153,107 @@ export default function JobDetailsPage() {
   const isJobActive = job.isActive === true
 
   return (
-    <div className="h-screen flex flex-col bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
-      {/* Breadcrumb - Fixed */}
-      <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm">
-        <Breadcrumb>
-          <BreadcrumbList>
-            <BreadcrumbItem>
-              <BreadcrumbLink asChild>
-                <Link to="/dashboard/empresa" className="flex items-center gap-1 hover:text-primary transition-colors">
-                  <Building2 className="h-3.5 w-3.5" />
-                  Minhas Vagas
-                </Link>
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbPage className="font-medium">{job.titulo || 'Detalhes da Vaga'}</BreadcrumbPage>
-            </BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+      {/* Header Fixo com Glassmorphism */}
+      <div className="sticky top-0 z-50 px-6 py-4 border-b border-slate-200/50 dark:border-slate-800/50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl shadow-sm">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink asChild>
+                  <Link to="/dashboard/empresa" className="flex items-center gap-1.5 hover:text-primary transition-colors text-sm">
+                    <Building2 className="h-4 w-4" />
+                    Minhas Vagas
+                  </Link>
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage className="font-semibold text-sm">{job.titulo || 'Detalhes da Vaga'}</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+          
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate('/dashboard/empresa')}
+            className="gap-2 hover:bg-slate-100 dark:hover:bg-slate-800"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Voltar
+          </Button>
+        </div>
       </div>
 
-      {/* Scrollable Content */}
-      <ScrollArea className="flex-1 overflow-hidden">
-        <div className="space-y-6 px-6 py-6">
-          <Card className="overflow-hidden border-0 shadow-2xl bg-gradient-to-b from-white to-slate-50 dark:from-slate-900 dark:to-slate-950">
-        {/* Header com gradiente premium */}
-        <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-700 px-8 py-8 relative overflow-hidden">
-          <div className="absolute inset-0 opacity-10">
-            <div className="absolute -top-32 -right-32 w-64 h-64 bg-white rounded-full blur-3xl"></div>
-            <div className="absolute -bottom-32 -left-32 w-64 h-64 bg-white rounded-full blur-3xl"></div>
+      {/* Conteúdo Principal */}
+      <div className="max-w-7xl mx-auto px-6 py-8 space-y-8">
+        
+        {/* Hero Card da Vaga */}
+        <Card className="overflow-hidden border-0 shadow-2xl bg-white dark:bg-slate-900 relative">
+          {/* Background Pattern */}
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-600 via-indigo-600 to-violet-700 h-48" />
+          <div className="absolute inset-0 h-48 opacity-20">
+            <div className="absolute -top-20 -right-20 w-80 h-80 bg-white rounded-full blur-3xl" />
+            <div className="absolute top-10 left-1/3 w-40 h-40 bg-blue-300 rounded-full blur-2xl" />
+            <div className="absolute -bottom-10 -left-10 w-60 h-60 bg-violet-300 rounded-full blur-3xl" />
           </div>
-          <div className="absolute inset-0 bg-grid-white/5 [mask-image:linear-gradient(0deg,transparent,white)]"></div>
-          <div className="relative z-10">
+          
+          {/* Conteúdo do Hero */}
+          <div className="relative px-8 pt-8 pb-6 text-white">
             <div className="flex flex-col lg:flex-row items-start justify-between gap-6">
-              <div className="flex items-start gap-4">
-                <div className="h-16 w-16 bg-white/20 rounded-2xl backdrop-blur-md flex items-center justify-center shadow-2xl flex-shrink-0 hover:bg-white/30 transition-all duration-300">
-                  <Briefcase className="h-8 w-8 text-white" />
-                </div>
+              <div className="flex items-start gap-5">
+                {/* Avatar da Empresa com Foto ou Iniciais */}
+                <Avatar className="h-20 w-20 rounded-2xl shadow-2xl border-2 border-white/30 hover:scale-105 transition-transform duration-300">
+                  <AvatarImage 
+                    src={job.empresa?.companyData?.logoUrl || job.empresa?.logoUrl} 
+                    alt={job.empresa?.nomeFantasia || job.empresa?.nome || 'Empresa'}
+                    className="object-cover"
+                  />
+                  <AvatarFallback className="rounded-2xl bg-white/20 backdrop-blur-xl text-white text-2xl font-bold">
+                    {getCompanyInitials(job.empresa?.nomeFantasia || job.empresa?.razaoSocial || job.empresa?.nome || user?.name || 'Empresa')}
+                  </AvatarFallback>
+                </Avatar>
                 <div className="space-y-3">
-                  <h1 className="text-4xl font-bold text-white drop-shadow-lg">{job.titulo}</h1>
-                  <div className="flex flex-wrap items-center gap-3 text-blue-100">
-                    <div className="flex items-center gap-1.5 bg-white/10 backdrop-blur-md px-3 py-1.5 rounded-lg">
-                      <CalendarDays className="h-4 w-4" />
-                      <span className="text-sm">Publicada em {new Date(job.createdAt).toLocaleDateString('pt-BR')}</span>
-                    </div>
+                  <div className="flex items-center gap-3">
+                    <h1 className="text-3xl lg:text-4xl font-bold drop-shadow-lg">{job.titulo}</h1>
                     <Badge
                       variant={isJobActive ? 'default' : 'secondary'}
                       className={
                         isJobActive
-                          ? 'bg-green-500/90 text-white hover:bg-green-600 border-0 shadow-lg px-3 py-1.5'
-                          : 'bg-gray-500/90 text-white hover:bg-gray-600 border-0 px-3 py-1.5'
+                          ? 'bg-emerald-500/90 text-white hover:bg-emerald-600 border-0 shadow-lg px-4 py-1.5 text-sm font-semibold'
+                          : 'bg-slate-500/90 text-white hover:bg-slate-600 border-0 px-4 py-1.5 text-sm'
                       }
                     >
-                      {isJobActive ? '● Ativa' : '● Inativa'}
+                      <div className={`h-2 w-2 rounded-full mr-2 ${isJobActive ? 'bg-emerald-200 animate-pulse' : 'bg-slate-300'}`} />
+                      {isJobActive ? 'Ativa' : 'Inativa'}
                     </Badge>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-3 text-blue-100">
+                    <div className="flex items-center gap-2 bg-white/15 backdrop-blur-md px-4 py-2 rounded-xl border border-white/10">
+                      <CalendarDays className="h-4 w-4" />
+                      <span className="text-sm font-medium">Publicada em {new Date(job.createdAt).toLocaleDateString('pt-BR')}</span>
+                    </div>
+                    {job.regimeTrabalho && (
+                      <div className="flex items-center gap-2 bg-white/15 backdrop-blur-md px-4 py-2 rounded-xl border border-white/10">
+                        <MapPin className="h-4 w-4" />
+                        <span className="text-sm font-medium">{job.regimeTrabalho}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
-              <div className="flex flex-col items-stretch gap-2 w-full lg:w-auto">
+              
+              {/* Botões de Ação */}
+              <div className="flex items-center gap-3 w-full lg:w-auto">
                 <Button
                   size="lg"
-                  className="bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm shadow-xl h-12 hover:shadow-2xl transition-all duration-300 w-full lg:w-auto"
+                  className="bg-white text-indigo-700 hover:bg-white/90 shadow-xl h-12 font-semibold hover:shadow-2xl transition-all duration-300 flex-1 lg:flex-none"
                   onClick={() => navigate(`/dashboard/empresa/vagas/${job.id}/candidatos`)}
                 >
-                  <Users className="mr-2 h-4 w-4" />
+                  <Users className="mr-2 h-5 w-5" />
                   Ver Candidatos
-                  <Badge className="ml-2 bg-white/40 text-white hover:bg-white/50 border-0 font-semibold">
+                  <Badge className="ml-2 bg-indigo-100 text-indigo-700 hover:bg-indigo-200 border-0 font-bold text-base px-3">
                     {job.applications || 0}
                   </Badge>
                 </Button>
@@ -211,23 +261,24 @@ export default function JobDetailsPage() {
                   <DropdownMenuTrigger asChild>
                     <Button
                       size="lg"
-                      className="bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm shadow-xl h-12 hover:shadow-2xl transition-all duration-300 px-3"
+                      variant="secondary"
+                      className="bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm shadow-xl h-12 hover:shadow-2xl transition-all duration-300"
                     >
                       <MoreVertical className="h-5 w-5" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuContent align="end" className="w-56 shadow-xl border-0">
                     <DropdownMenuLabel className="font-semibold">Ações da Vaga</DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => navigate('/dashboard/empresa')}>
+                    <DropdownMenuItem onClick={() => navigate('/dashboard/empresa')} className="cursor-pointer">
                       <Edit className="mr-2 h-4 w-4" />
                       Editar Vaga
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigate(`/dashboard/empresa/vagas/${job.id}/candidatos`)}>
+                    <DropdownMenuItem onClick={() => navigate(`/dashboard/empresa/vagas/${job.id}/candidatos`)} className="cursor-pointer">
                       <Users className="mr-2 h-4 w-4" />
                       Ver Candidatos
                     </DropdownMenuItem>
-                    <DropdownMenuItem>
+                    <DropdownMenuItem className="cursor-pointer">
                       <FileText className="mr-2 h-4 w-4" />
                       Exportar Dados
                     </DropdownMenuItem>
@@ -235,7 +286,7 @@ export default function JobDetailsPage() {
                     {isJobActive && (
                       <DropdownMenuItem
                         onClick={handleCloseJob}
-                        className="text-destructive focus:text-destructive"
+                        className="text-destructive focus:text-destructive cursor-pointer"
                       >
                         <XCircle className="mr-2 h-4 w-4" />
                         Fechar Vaga
@@ -246,200 +297,263 @@ export default function JobDetailsPage() {
               </div>
             </div>
           </div>
-        </div>
-
-        <CardHeader className="pb-0">
-        </CardHeader>
-        <CardContent className="space-y-8 pt-6">
-          {/* Métricas em Cards com Hover Effects */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card className="border-0 shadow-md bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/30 dark:to-blue-900/20 hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-default">
-              <CardContent className="pt-6">
+          
+          {/* Cards de Métricas - Dentro do Hero */}
+          <div className="relative px-8 pb-8 -mt-2">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="group bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-lg border border-slate-100 dark:border-slate-700 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-semibold text-muted-foreground mb-2">Candidaturas</p>
-                    <p className="text-4xl font-bold text-blue-600 dark:text-blue-400">{job.applications || 0}</p>
+                    <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Candidaturas</p>
+                    <p className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">{job.applications || 0}</p>
+                    <p className="text-xs text-slate-400 mt-1">pessoas interessadas</p>
                   </div>
-                  <div className="h-16 w-16 bg-blue-600/15 rounded-2xl flex items-center justify-center group-hover:bg-blue-600/25 transition-all duration-300">
-                    <Users className="h-8 w-8 text-blue-600 dark:text-blue-400" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card className="border-0 shadow-md bg-gradient-to-br from-violet-50 to-violet-100/50 dark:from-violet-950/30 dark:to-violet-900/20 hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-default">
-              <CardContent className="pt-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-semibold text-muted-foreground mb-2">Visualizações</p>
-                    <p className="text-4xl font-bold text-violet-600 dark:text-violet-400">{job.views || 0}</p>
-                  </div>
-                  <div className="h-16 w-16 bg-violet-600/15 rounded-2xl flex items-center justify-center">
-                    <Eye className="h-8 w-8 text-violet-600 dark:text-violet-400" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card className="border-0 shadow-md bg-gradient-to-br from-emerald-50 to-emerald-100/50 dark:from-emerald-950/30 dark:to-emerald-900/20 hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-default">
-              <CardContent className="pt-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-semibold text-muted-foreground mb-2">Taxa de Conversão</p>
-                    <p className="text-4xl font-bold text-emerald-600 dark:text-emerald-400">
-                      {job.views > 0 ? Math.round((job.applications / job.views) * 100) : 0}%
-                    </p>
-                  </div>
-                  <div className="h-16 w-16 bg-emerald-600/15 rounded-2xl flex items-center justify-center">
-                    <TrendingUp className="h-8 w-8 text-emerald-600 dark:text-emerald-400" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          <Separator className="my-2" />
-
-          {/* Informações principais em cards */}
-          <Card className="border-0 shadow-md bg-white dark:bg-slate-800">
-            <CardHeader className="pb-6">
-              <CardTitle className="text-xl flex items-center gap-2">
-                <div className="h-8 w-8 rounded-lg bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
-                  <FileText className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                </div>
-                Informações da Vaga
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="flex items-start gap-3 p-4 rounded-lg bg-blue-50/50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/50 hover:bg-blue-50 dark:hover:bg-blue-950/30 transition-colors">
-                  <div className="h-10 w-10 bg-blue-600/15 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Briefcase className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                  </div>
-                  <div>
-                    <p className="text-xs font-semibold text-muted-foreground mb-1">Tipo de Contrato</p>
-                    <p className="font-semibold text-base">{job.tipo || 'Não informado'}</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3 p-4 rounded-lg bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900/50 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 transition-colors">
-                  <div className="h-10 w-10 bg-indigo-600/15 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <GraduationCap className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
-                  </div>
-                  <div>
-                    <p className="text-xs font-semibold text-muted-foreground mb-1">Escolaridade Mínima</p>
-                    <p className="font-semibold text-base">{job.escolaridade || 'Não informado'}</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3 p-4 rounded-lg bg-violet-50/50 dark:bg-violet-950/20 border border-violet-100 dark:border-violet-900/50 hover:bg-violet-50 dark:hover:bg-violet-950/30 transition-colors">
-                  <div className="h-10 w-10 bg-violet-600/15 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <MapPin className="h-5 w-5 text-violet-600 dark:text-violet-400" />
-                  </div>
-                  <div>
-                    <p className="text-xs font-semibold text-muted-foreground mb-1">Regime de Trabalho</p>
-                    <p className="font-semibold text-base">{job.regimeTrabalho || 'Não informado'}</p>
+                  <div className="h-14 w-14 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                    <Users className="h-7 w-7 text-white" />
                   </div>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-
-          {/* Descrição */}
-          <Card className="border-0 shadow-md bg-white dark:bg-slate-800">
-            <CardHeader className="pb-6">
-              <CardTitle className="text-xl flex items-center gap-2">
-                <div className="h-8 w-8 rounded-lg bg-amber-100 dark:bg-amber-900 flex items-center justify-center">
-                  <FileText className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+              
+              <div className="group bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-lg border border-slate-100 dark:border-slate-700 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Visualizações</p>
+                    <p className="text-3xl font-bold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">{job.views || 0}</p>
+                    <p className="text-xs text-slate-400 mt-1">vezes visualizada</p>
+                  </div>
+                  <div className="h-14 w-14 bg-gradient-to-br from-violet-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                    <Eye className="h-7 w-7 text-white" />
+                  </div>
                 </div>
-                Descrição da Vaga
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed text-base">
-                {job.descricao || 'Sem descrição disponível'}
-              </p>
-            </CardContent>
-          </Card>
+              </div>
+              
+              <div className="group bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-lg border border-slate-100 dark:border-slate-700 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Conversão</p>
+                    <p className="text-3xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
+                      {job.views > 0 ? Math.round((job.applications / job.views) * 100) : 0}%
+                    </p>
+                    <p className="text-xs text-slate-400 mt-1">taxa de interesse</p>
+                  </div>
+                  <div className="h-14 w-14 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                    <TrendingUp className="h-7 w-7 text-white" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </Card>
 
-          {/* Acessibilidades e Benefícios em grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card className="border-0 shadow-md bg-gradient-to-br from-blue-50/50 to-indigo-50/50 dark:from-blue-950/20 dark:to-indigo-950/20">
-              <CardHeader className="pb-6">
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <HeartHandshake className="h-5 w-5 text-blue-600" />
-                  Acessibilidades Oferecidas
+        {/* Grid de Informações */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          
+          {/* Coluna Principal - 2/3 */}
+          <div className="lg:col-span-2 space-y-6">
+            
+            {/* Descrição da Vaga */}
+            <Card className="border-0 shadow-lg bg-white dark:bg-slate-900 overflow-hidden">
+              <CardHeader className="border-b border-slate-100 dark:border-slate-800 bg-gradient-to-r from-slate-50 to-white dark:from-slate-800/50 dark:to-slate-900">
+                <CardTitle className="text-xl flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-md">
+                    <FileText className="h-5 w-5 text-white" />
+                  </div>
+                  Descrição da Vaga
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="pt-6">
+                <p className="text-slate-600 dark:text-slate-300 whitespace-pre-wrap leading-relaxed text-base">
+                  {job.descricao || 'Sem descrição disponível'}
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Acessibilidades Oferecidas */}
+            <Card className="border-0 shadow-lg bg-white dark:bg-slate-900 overflow-hidden">
+              <CardHeader className="border-b border-slate-100 dark:border-slate-800 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30">
+                <CardTitle className="text-xl flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-md">
+                    <Accessibility className="h-5 w-5 text-white" />
+                  </div>
+                  Acessibilidades Oferecidas
+                  {job.acessibilidades && job.acessibilidades.length > 0 && (
+                    <Badge className="ml-auto bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 border-0 font-semibold">
+                      {job.acessibilidades.length} recursos
+                    </Badge>
+                  )}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-6">
                 {job.acessibilidades && job.acessibilidades.length > 0 ? (
-                  <div className="flex flex-wrap gap-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {job.acessibilidades.map((acc: any, index: number) => {
-                      // Suporta diferentes formatos de resposta do backend
                       const descricao = acc.acessibilidade?.descricao || acc.descricao || acc;
-                      console.log('[JobDetailsPage] Renderizando acessibilidade:', { acc, descricao });
                       return (
-                        <Badge
+                        <div
                           key={index}
-                          variant="secondary"
-                          className="bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-200 dark:bg-blue-900 dark:text-blue-300 dark:border-blue-800 py-2 px-3 text-sm font-medium flex items-center gap-1.5"
+                          className="flex items-center gap-3 p-4 rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border border-blue-100 dark:border-blue-900/50 hover:shadow-md transition-all duration-200"
                         >
-                          <CheckCircle className="h-3.5 w-3.5" />
-                          {descricao}
-                        </Badge>
+                          <div className="h-8 w-8 rounded-lg bg-blue-500/15 flex items-center justify-center flex-shrink-0">
+                            <CheckCircle className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                          </div>
+                          <span className="font-medium text-slate-700 dark:text-slate-200">{descricao}</span>
+                        </div>
                       );
                     })}
                   </div>
                 ) : (
-                  <>
-                    {console.log('[JobDetailsPage] Nenhuma acessibilidade encontrada. job.acessibilidades:', job.acessibilidades)}
-                    <p className="text-muted-foreground italic text-sm">
+                  <div className="text-center py-8">
+                    <div className="h-16 w-16 mx-auto rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-4">
+                      <Accessibility className="h-8 w-8 text-slate-400" />
+                    </div>
+                    <p className="text-slate-500 dark:text-slate-400 font-medium">
                       Nenhuma acessibilidade específica informada
                     </p>
-                  </>
+                    <p className="text-sm text-slate-400 mt-1">
+                      Edite a vaga para adicionar recursos de acessibilidade
+                    </p>
+                  </div>
                 )}
               </CardContent>
             </Card>
 
-            <Card className="border-0 shadow-md bg-gradient-to-br from-emerald-50/50 to-green-50/50 dark:from-emerald-950/20 dark:to-green-950/20">
-              <CardHeader className="pb-6">
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Gift className="h-5 w-5 text-emerald-600" />
-                  Benefícios Oferecidos
+            {/* Tipos de Deficiência Aceitos */}
+            <Card className="border-0 shadow-lg bg-white dark:bg-slate-900 overflow-hidden">
+              <CardHeader className="border-b border-slate-100 dark:border-slate-800 bg-gradient-to-r from-rose-50 to-pink-50 dark:from-rose-950/30 dark:to-pink-950/30">
+                <CardTitle className="text-xl flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-rose-500 to-pink-600 flex items-center justify-center shadow-md">
+                    <Target className="h-5 w-5 text-white" />
+                  </div>
+                  Tipos de Deficiência Aceitos
+                  {job.subtiposAceitos && job.subtiposAceitos.length > 0 && (
+                    <Badge className="ml-auto bg-rose-100 text-rose-700 dark:bg-rose-900 dark:text-rose-300 border-0 font-semibold">
+                      {job.subtiposAceitos.length} {job.subtiposAceitos.length === 1 ? 'tipo' : 'tipos'}
+                    </Badge>
+                  )}
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                {job.beneficios && job.beneficios.trim() ? (
-                  <div className="flex flex-wrap gap-2">
-                    {job.beneficios.split(',').map((benefit: string, index: number) => (
-                      <Badge
-                        key={index}
-                        variant="secondary"
-                        className="bg-emerald-100 text-emerald-700 border-emerald-200 hover:bg-emerald-200 dark:bg-emerald-900 dark:text-emerald-300 dark:border-emerald-800 py-2 px-3 text-sm font-medium"
-                      >
-                        {benefit.trim()}
-                      </Badge>
-                    ))}
+              <CardContent className="pt-6">
+                {job.subtiposAceitos && job.subtiposAceitos.length > 0 ? (
+                  <div className="space-y-5">
+                    {(() => {
+                      const grouped = job.subtiposAceitos.reduce((acc: any, item: any) => {
+                        const tipoNome = item.subtipo?.tipo?.nome || 'Outros'
+                        if (!acc[tipoNome]) acc[tipoNome] = []
+                        acc[tipoNome].push(item.subtipo)
+                        return acc
+                      }, {})
+                      
+                      return Object.entries(grouped).map(([tipoNome, subtipos]: [string, any]) => (
+                        <div key={tipoNome} className="space-y-3">
+                          <div className="flex items-center gap-2">
+                            <div className="h-3 w-3 rounded-full bg-gradient-to-r from-rose-500 to-pink-500" />
+                            <h4 className="font-semibold text-rose-700 dark:text-rose-400">{tipoNome}</h4>
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pl-5">
+                            {subtipos.map((subtipo: any) => (
+                              <div
+                                key={subtipo.id}
+                                className="flex items-center gap-3 p-3 rounded-xl bg-gradient-to-r from-rose-50 to-pink-50 dark:from-rose-950/30 dark:to-pink-950/30 border border-rose-100 dark:border-rose-900/50"
+                              >
+                                <CheckCircle className="h-4 w-4 text-rose-600 dark:text-rose-400 flex-shrink-0" />
+                                <span className="font-medium text-slate-700 dark:text-slate-200 text-sm">{subtipo.nome}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))
+                    })()}
                   </div>
                 ) : (
-                  <p className="text-muted-foreground italic text-sm">
-                    Nenhum benefício específico informado
-                  </p>
+                  <div className="text-center py-8">
+                    <div className="h-16 w-16 mx-auto rounded-full bg-rose-50 dark:bg-rose-950/30 flex items-center justify-center mb-4">
+                      <Sparkles className="h-8 w-8 text-rose-400" />
+                    </div>
+                    <p className="text-slate-600 dark:text-slate-300 font-medium">
+                      Esta vaga aceita todos os tipos de deficiência
+                    </p>
+                    <p className="text-sm text-slate-400 mt-2">
+                      Edite a vaga para especificar os tipos e melhorar o match com candidatos
+                    </p>
+                  </div>
                 )}
               </CardContent>
             </Card>
           </div>
-        </CardContent>
-      </Card>
 
-      <Button
-        variant="outline"
-        onClick={() => navigate('/dashboard/empresa')}
-        className="gap-2 h-12 text-base border-2 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        Voltar para Minhas Vagas
-      </Button>
+          {/* Coluna Lateral - 1/3 */}
+          <div className="space-y-6">
+            
+            {/* Informações da Vaga */}
+            <Card className="border-0 shadow-lg bg-white dark:bg-slate-900 overflow-hidden sticky top-24">
+              <CardHeader className="border-b border-slate-100 dark:border-slate-800 bg-gradient-to-r from-slate-50 to-white dark:from-slate-800/50 dark:to-slate-900">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Sparkles className="h-5 w-5 text-indigo-500" />
+                  Detalhes da Vaga
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-6 space-y-4">
+                <div className="flex items-start gap-4 p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700">
+                  <div className="h-10 w-10 bg-blue-100 dark:bg-blue-900/50 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <Briefcase className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Tipo de Contrato</p>
+                    <p className="font-semibold text-slate-800 dark:text-slate-100 mt-1">{job.tipo || 'Não informado'}</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start gap-4 p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700">
+                  <div className="h-10 w-10 bg-indigo-100 dark:bg-indigo-900/50 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <GraduationCap className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Escolaridade</p>
+                    <p className="font-semibold text-slate-800 dark:text-slate-100 mt-1">{job.escolaridade || 'Não informado'}</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start gap-4 p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700">
+                  <div className="h-10 w-10 bg-violet-100 dark:bg-violet-900/50 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <MapPin className="h-5 w-5 text-violet-600 dark:text-violet-400" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Regime de Trabalho</p>
+                    <p className="font-semibold text-slate-800 dark:text-slate-100 mt-1">{job.regimeTrabalho || 'Não informado'}</p>
+                  </div>
+                </div>
+
+                <Separator className="my-4" />
+                
+                {/* Benefícios */}
+                <div>
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="h-8 w-8 bg-emerald-100 dark:bg-emerald-900/50 rounded-lg flex items-center justify-center">
+                      <Gift className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                    </div>
+                    <h4 className="font-semibold text-slate-800 dark:text-slate-100">Benefícios</h4>
+                  </div>
+                  {job.beneficios && job.beneficios.trim() ? (
+                    <div className="flex flex-wrap gap-2">
+                      {job.beneficios.split(',').map((benefit: string, index: number) => (
+                        <Badge
+                          key={index}
+                          variant="secondary"
+                          className="bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-800 py-1.5 px-3 text-sm font-medium"
+                        >
+                          {benefit.trim()}
+                        </Badge>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-slate-400 italic">Nenhum benefício informado</p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
-      </ScrollArea>
+      </div>
     </div>
   )
 }

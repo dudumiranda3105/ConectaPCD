@@ -7,9 +7,6 @@
     <meta name="description" content="Plataforma de emprego inclusiva para Pessoas com Deficiência. Encontre vagas acessíveis e empresas comprometidas com a diversidade." />
     <meta name="author" content="ConectaPCD" />
     <meta name="theme-color" content="#4f46e5" />
-    <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="ConectaPCD" />
     
     <!-- Open Graph -->
     <meta property="og:title" content="ConectaPCD - Emprego Inclusivo" />
@@ -17,8 +14,6 @@
     <meta property="og:image" content="/og-image.png" />
     <meta property="og:type" content="website" />
     
-    <!-- PWA -->
-    <link rel="manifest" href="/manifest.json" />
     <link rel="icon" href="/favicon.ico" type="image/x-icon" />
   </head>
 
@@ -56,18 +51,21 @@
     
     <script type="module" src="/src/main.tsx"></script>
     
-    <!-- Registrar Service Worker -->
+    <!-- Remove Service Worker antigo -->
     <script>
       if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js')
-            .then((registration) => {
-              console.log('SW registrado:', registration.scope);
-            })
-            .catch((error) => {
-              console.log('Falha ao registrar SW:', error);
-            });
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+          for(let registration of registrations) {
+            registration.unregister();
+            console.log('Service Worker desregistrado');
+          }
         });
+        // Limpa caches
+        if ('caches' in window) {
+          caches.keys().then(function(names) {
+            for (let name of names) caches.delete(name);
+          });
+        }
       }
     </script>
   </body>

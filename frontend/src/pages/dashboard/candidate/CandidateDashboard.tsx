@@ -136,17 +136,22 @@ export default function CandidateDashboard() {
           const location = [cidade, estado].filter(Boolean).join(' - ') || 'Brasil'
           const setor = cd.setorAtividade || 'Tecnologia'
           const status = v.isActive ? 'Ativa' : 'Fechada'
+          // Nome da empresa: prioriza nomeFantasia > razaoSocial > nome
+          const companyName = cd.nomeFantasia || cd.razaoSocial || v.empresa?.nome || 'Empresa'
+          // Logo da empresa: pode vir de companyData.logoUrl
+          const companyLogo = cd.logoUrl || cd.avatarUrl || ''
           return {
             id: String(v.id),
             title: v.titulo || 'Sem título',
             description: v.descricao || '',
-            company: v.empresa?.nome || 'Empresa',
-            logo: 'https://img.usecurling.com/i?q=company&color=blue',
+            company: companyName,
+            logo: companyLogo,
             location,
             sector: setor,
             regime: (v.regimeTrabalho || 'Presencial') as 'Presencial' | 'Híbrido' | 'Remoto',
             type: (v.tipo || 'Tempo integral') as 'Tempo integral' | 'Meio período' | 'Contrato' | 'Temporário' | 'Estágio',
             accessibilities: v.acessibilidades?.map((a: any) => a.acessibilidade?.descricao).filter(Boolean) || [],
+            subtiposAceitos: v.subtiposAceitos || [],
             status,
             applications: 0,
             createdAt: v.createdAt || new Date().toISOString(),
@@ -237,18 +242,28 @@ export default function CandidateDashboard() {
     return result
   }, [filters, jobs])
 
-  // Função para obter o match score do banco de dados
-  const calculateMatchScore = useCallback(
-    (job: Job): number => {
+  // Função para obter o match score e detalhes do banco de dados
+  const getMatchData = useCallback(
+    (job: Job): { score: number; details?: any } => {
       const vagaId = parseInt(job.id, 10)
-      const score = matchScoreMap.get(vagaId)
-      if (score) {
-        console.log('[calculateMatchScore] Score do banco para vaga', job.title, ':', score.scoreTotal)
-        return score.scoreTotal
+      const matchData = matchScoreMap.get(vagaId)
+      if (matchData) {
+        console.log('[getMatchData] Score do banco para vaga', job.title, ':', matchData.scoreTotal)
+        return {
+          score: matchData.scoreTotal,
+          details: {
+            scoreSubtipos: matchData.scoreSubtipos,
+            scoreAcessibilidades: matchData.scoreAcessibilidades,
+            subtiposAceitos: matchData.detalhes?.subtiposAceitos,
+            subtiposTotal: matchData.detalhes?.subtiposTotal,
+            barreirasAtendidas: matchData.detalhes?.barreirasAtendidas || matchData.acessibilidadesAtendidas,
+            barreirasTotal: matchData.detalhes?.barreirasTotal || matchData.acessibilidadesTotal,
+          }
+        }
       }
       // Se não encontrou no mapa, retorna um valor padrão enquanto carrega
-      console.log('[calculateMatchScore] Score não encontrado para vaga', job.title, '- usando default')
-      return loadingMatches ? 0 : 75
+      console.log('[getMatchData] Score não encontrado para vaga', job.title, '- usando default')
+      return { score: loadingMatches ? 0 : 75 }
     },
     [matchScoreMap, loadingMatches],
   )
@@ -367,11 +382,13 @@ export default function CandidateDashboard() {
         ) : filteredJobs.length > 0 ? (
           filteredJobs.map((job, index) => {
             try {
+              const matchData = getMatchData(job)
               return (
                 <JobCard
                   key={job.id || index}
                   job={job}
-                  matchScore={calculateMatchScore(job)}
+                  matchScore={matchData.score}
+                  matchDetails={matchData.details}
                   isApplied={appliedJobs.has(job.id)}
                 />
               )

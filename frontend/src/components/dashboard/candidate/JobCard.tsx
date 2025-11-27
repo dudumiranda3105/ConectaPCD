@@ -9,7 +9,8 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { MapPin, Briefcase, Building, CheckCircle, HeartHandshake, Sparkles, ArrowRight, Star, TrendingUp, Clock, Zap, Eye } from 'lucide-react'
+import { Progress } from '@/components/ui/progress'
+import { MapPin, Briefcase, Building, CheckCircle, HeartHandshake, Sparkles, ArrowRight, Star, TrendingUp, Clock, Zap, Eye, Users, GraduationCap } from 'lucide-react'
 import { Job } from '@/lib/jobs'
 import { Link } from 'react-router-dom'
 import { cn } from '@/lib/utils'
@@ -18,11 +19,29 @@ import { candidatarSeVaga } from '@/services/candidaturas'
 import { useAuth } from '@/hooks/use-auth'
 import { useToast } from '@/components/ui/use-toast'
 
+// Helper para obter iniciais da empresa (2 letras)
+function getCompanyInitials(name: string): string {
+  if (!name) return 'E'
+  const words = name.trim().split(' ').filter(w => w.length > 0)
+  if (words.length === 1) {
+    return words[0].substring(0, 2).toUpperCase()
+  }
+  return (words[0][0] + words[1][0]).toUpperCase()
+}
+
 interface JobCardProps {
   job: Job
   matchScore: number
   showIcons?: boolean
   isApplied?: boolean
+  matchDetails?: {
+    scoreSubtipos?: number
+    scoreAcessibilidades?: number
+    subtiposAceitos?: number
+    subtiposTotal?: number
+    barreirasAtendidas?: number
+    barreirasTotal?: number
+  }
 }
 
 export const JobCard = ({
@@ -30,6 +49,7 @@ export const JobCard = ({
   matchScore = 75,
   showIcons = true,
   isApplied = false,
+  matchDetails,
 }: JobCardProps) => {
   const { user } = useAuth()
   const { toast } = useToast()
@@ -140,13 +160,13 @@ export const JobCard = ({
       
       <CardHeader className="pb-4 pt-6 relative">
         <div className="flex items-start gap-4">
-          {/* Avatar da empresa com efeito */}
+          {/* Avatar da empresa com foto ou iniciais */}
           <div className="relative">
             <div className="absolute -inset-1 rounded-xl bg-gradient-to-br from-primary/20 to-violet-500/20 blur opacity-0 group-hover:opacity-100 transition-opacity" />
             <Avatar className="relative h-14 w-14 rounded-xl border-2 border-background shadow-lg">
-              <AvatarImage src={job.logo} alt={job.company} className="object-cover" />
+              {job.logo && <AvatarImage src={job.logo} alt={job.company} className="object-cover" />}
               <AvatarFallback className="rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white font-bold text-lg">
-                {job.company?.charAt(0) || 'E'}
+                {getCompanyInitials(job.company || 'Empresa')}
               </AvatarFallback>
             </Avatar>
             {/* Indicador de match alto */}
@@ -214,27 +234,79 @@ export const JobCard = ({
 
         {/* Match info */}
         <div className={cn(
-          "flex items-center gap-3 p-3 rounded-xl border-2 transition-all",
+          "p-3 rounded-xl border-2 transition-all space-y-3",
           getMatchBg()
         )}>
-          <div className={cn(
-            "h-10 w-10 rounded-xl bg-gradient-to-br flex items-center justify-center text-white shadow-lg",
-            getMatchColor()
-          )}>
-            {getMatchIcon()}
+          {/* Header do match */}
+          <div className="flex items-center gap-3">
+            <div className={cn(
+              "h-10 w-10 rounded-xl bg-gradient-to-br flex items-center justify-center text-white shadow-lg",
+              getMatchColor()
+            )}>
+              {getMatchIcon()}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-bold">{getMatchText()}</p>
+              <p className="text-xs text-muted-foreground">
+                Compatibilidade com seu perfil
+              </p>
+            </div>
+            <div className={cn(
+              "text-2xl font-bold bg-gradient-to-r bg-clip-text text-transparent",
+              getMatchColor()
+            )}>
+              {matchScore}%
+            </div>
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-bold">{getMatchText()}</p>
-            <p className="text-xs text-muted-foreground">
-              Compatibilidade com seu perfil
-            </p>
-          </div>
-          <div className={cn(
-            "text-2xl font-bold bg-gradient-to-r bg-clip-text text-transparent",
-            getMatchColor()
-          )}>
-            {matchScore}%
-          </div>
+
+          {/* Breakdown detalhado quando disponível */}
+          {matchDetails && (matchDetails.scoreSubtipos !== undefined || matchDetails.scoreAcessibilidades !== undefined) && (
+            <div className="space-y-2 pt-2 border-t border-current/10">
+              {/* Score de Tipo de Deficiência */}
+              {matchDetails.scoreSubtipos !== undefined && (
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-1.5">
+                      <Users className="h-3 w-3 text-indigo-500" />
+                      <span className="text-muted-foreground">Tipo de Deficiência</span>
+                    </div>
+                    <span className="font-semibold">{matchDetails.scoreSubtipos}%</span>
+                  </div>
+                  <Progress value={matchDetails.scoreSubtipos} className="h-1.5" />
+                </div>
+              )}
+              
+              {/* Score de Acessibilidade */}
+              {matchDetails.scoreAcessibilidades !== undefined && (
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-1.5">
+                      <HeartHandshake className="h-3 w-3 text-emerald-500" />
+                      <span className="text-muted-foreground">Acessibilidades</span>
+                    </div>
+                    <span className="font-semibold">{matchDetails.scoreAcessibilidades}%</span>
+                  </div>
+                  <Progress value={matchDetails.scoreAcessibilidades} className="h-1.5" />
+                </div>
+              )}
+              
+              {/* Info adicional */}
+              {(matchDetails.subtiposAceitos !== undefined || matchDetails.barreirasAtendidas !== undefined) && (
+                <div className="flex flex-wrap gap-2 pt-1">
+                  {matchDetails.subtiposAceitos !== undefined && matchDetails.subtiposTotal !== undefined && matchDetails.subtiposTotal > 0 && (
+                    <Badge variant="outline" className="text-xs bg-indigo-500/10 border-indigo-500/30">
+                      {matchDetails.subtiposAceitos}/{matchDetails.subtiposTotal} subtipos aceitos
+                    </Badge>
+                  )}
+                  {matchDetails.barreirasAtendidas !== undefined && matchDetails.barreirasTotal !== undefined && matchDetails.barreirasTotal > 0 && (
+                    <Badge variant="outline" className="text-xs bg-emerald-500/10 border-emerald-500/30">
+                      {matchDetails.barreirasAtendidas}/{matchDetails.barreirasTotal} barreiras atendidas
+                    </Badge>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Status de candidatura */}

@@ -34,6 +34,7 @@ export const jobPostingSchema = z.object({
   accessibilities: z
     .array(z.string())
     .min(1, { message: 'Selecione ao menos uma acessibilidade.' }),
+  subtiposAceitos: z.array(z.number()).optional().default([]),
   benefits: z.string().min(1, { message: 'Informe ao menos um benefício.' }),
 })
 

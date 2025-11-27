@@ -12,6 +12,7 @@ export async function publicarVaga(data: JobPostingFormValues, token: string, em
     regimeTrabalho: data.regime,
     beneficios: data.benefits,
     acessibilidades: data.accessibilities,
+    subtiposAceitos: data.subtiposAceitos || [],
   };
   console.log('[publicarVaga] Enviando payload para backend:', payload);
   const res = await fetch(`${API_URL}/vagas`, {
@@ -57,6 +58,7 @@ export async function atualizarVaga(
     regimeTrabalho?: string
     beneficios?: string
     acessibilidades?: string[]
+    subtiposAceitos?: number[]
     isActive?: boolean
   }
 ) {

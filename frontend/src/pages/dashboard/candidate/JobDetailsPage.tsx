@@ -418,6 +418,74 @@ export default function JobDetailsPage() {
               )}
             </CardContent>
           </Card>
+
+          {/* Tipos de Deficiência Aceitos */}
+          <Card className="shadow-lg border-2 border-rose-100 dark:border-rose-900/30 hover:shadow-xl transition-shadow overflow-hidden">
+            <CardHeader className="bg-gradient-to-r from-rose-50 to-pink-50 dark:from-rose-950/30 dark:to-pink-950/30 border-b border-rose-100 dark:border-rose-900/30">
+              <CardTitle className="text-xl flex items-center gap-3">
+                <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-rose-500 to-pink-600 flex items-center justify-center shadow-md">
+                  <Users className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <span>Tipos de Deficiência Aceitos</span>
+                  {job.subtiposAceitos && job.subtiposAceitos.length > 0 && (
+                    <Badge className="ml-3 bg-rose-100 text-rose-700 dark:bg-rose-900/50 dark:text-rose-300">
+                      {job.subtiposAceitos.length} {job.subtiposAceitos.length === 1 ? 'tipo' : 'tipos'}
+                    </Badge>
+                  )}
+                </div>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-6">
+              {job.subtiposAceitos && job.subtiposAceitos.length > 0 ? (
+                <div className="space-y-4">
+                  {/* Agrupar por tipo de deficiência */}
+                  {(() => {
+                    const grouped = job.subtiposAceitos.reduce((acc: any, item) => {
+                      const tipoNome = item.subtipo?.tipo?.nome || 'Outros'
+                      if (!acc[tipoNome]) acc[tipoNome] = []
+                      acc[tipoNome].push(item.subtipo)
+                      return acc
+                    }, {})
+                    
+                    return Object.entries(grouped).map(([tipoNome, subtipos]: [string, any]) => (
+                      <div key={tipoNome} className="space-y-2">
+                        <h4 className="text-sm font-semibold text-rose-700 dark:text-rose-400 flex items-center gap-2">
+                          <div className="h-2 w-2 rounded-full bg-rose-500"></div>
+                          {tipoNome}
+                        </h4>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pl-4">
+                          {subtipos.map((subtipo: any) => (
+                            <div 
+                              key={subtipo.id}
+                              className="flex items-center gap-3 p-3 rounded-xl bg-gradient-to-r from-rose-50 to-pink-50 dark:from-rose-950/20 dark:to-pink-950/20 border-2 border-rose-100 dark:border-rose-900/30 hover:border-rose-300 dark:hover:border-rose-700 transition-colors"
+                            >
+                              <div className="h-7 w-7 rounded-lg bg-rose-500/10 flex items-center justify-center">
+                                <CheckCircle className="h-4 w-4 text-rose-600 dark:text-rose-400" />
+                              </div>
+                              <span className="font-medium text-rose-800 dark:text-rose-300 text-sm">{subtipo.nome}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))
+                  })()}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <div className="h-16 w-16 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center mx-auto mb-4">
+                    <Users className="h-8 w-8 text-gray-400" />
+                  </div>
+                  <p className="text-muted-foreground">
+                    Esta vaga aceita todos os tipos de deficiência
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Não há restrições específicas de tipo de deficiência
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
 
         {/* Sidebar */}

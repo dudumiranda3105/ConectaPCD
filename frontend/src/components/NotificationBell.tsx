@@ -73,7 +73,7 @@ function NotificationItem({ notification, onRead }: { notification: Notification
 }
 
 export function NotificationBell() {
-  const { notifications, unreadCount, markAsRead, markAllAsRead, clearNotifications, isConnected } = useNotifications();
+  const { notifications, unreadCount, markAsRead, markAllAsRead, clearNotifications } = useNotifications();
   const [open, setOpen] = useState(false);
 
   return (
@@ -85,9 +85,6 @@ export function NotificationBell() {
             <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center animate-pulse">
               {unreadCount > 9 ? '9+' : unreadCount}
             </span>
-          )}
-          {isConnected && (
-            <span className="absolute bottom-0 right-0 w-2 h-2 bg-green-500 rounded-full border border-background" />
           )}
         </Button>
       </PopoverTrigger>

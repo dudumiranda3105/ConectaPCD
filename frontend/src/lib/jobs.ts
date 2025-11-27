@@ -15,4 +15,15 @@ export type Job = JobPostingFormValues & {
   applications: number
   createdAt: string
   matchScore?: number
+  subtiposAceitos?: Array<{
+    subtipo: {
+      id: number
+      nome: string
+      tipoId?: number
+      tipo?: {
+        id: number
+        nome: string
+      }
+    }
+  }>
 }

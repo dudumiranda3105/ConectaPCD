@@ -8,7 +8,16 @@ export const VagasRepo = {
     include: {
       empresa: { select: { id: true, nome: true, companyData: true } },
       subtiposAceitos: {
-        include: { subtipo: { select: { id: true, nome: true, tipoId: true } } },
+        include: { 
+          subtipo: { 
+            select: { 
+              id: true, 
+              nome: true, 
+              tipoId: true,
+              tipo: { select: { id: true, nome: true } }
+            } 
+          } 
+        },
         orderBy: { subtipoId: "asc" },
       },
       acessibilidades: {
@@ -29,9 +38,18 @@ export const VagasRepo = {
     return prisma.vaga.findUnique({
       where: { id },
       include: {
-        empresa: { select: { id: true, nome: true, cnpj: true } },
+        empresa: { select: { id: true, nome: true, cnpj: true, nomeFantasia: true, razaoSocial: true } },
         subtiposAceitos: {
-          include: { subtipo: { select: { id: true, nome: true, tipoId: true } } },
+          include: { 
+            subtipo: { 
+              select: { 
+                id: true, 
+                nome: true, 
+                tipoId: true,
+                tipo: { select: { id: true, nome: true } }
+              } 
+            } 
+          },
           orderBy: { subtipoId: "asc" },
         },
         acessibilidades: {

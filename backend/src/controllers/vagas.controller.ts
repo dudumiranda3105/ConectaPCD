@@ -63,7 +63,7 @@ export const VagasController = {
 
   async criar(req: Request, res: Response) {
     try {
-      const { empresaId, titulo, descricao, escolaridade, tipo, regimeTrabalho, beneficios, acessibilidades } = req.body;
+      const { empresaId, titulo, descricao, escolaridade, tipo, regimeTrabalho, beneficios, acessibilidades, subtiposAceitos } = req.body;
       
       console.log('[VagasController] ========== CRIANDO VAGA ==========');
       console.log('[VagasController] Body completo recebido:', JSON.stringify(req.body, null, 2));
@@ -74,9 +74,16 @@ export const VagasController = {
         length: Array.isArray(acessibilidades) ? acessibilidades.length : 'N/A',
         conteudo: Array.isArray(acessibilidades) ? acessibilidades : 'não é array'
       });
+      console.log('[VagasController] SubtiposAceitos:', {
+        valor: subtiposAceitos,
+        tipo: typeof subtiposAceitos,
+        isArray: Array.isArray(subtiposAceitos),
+        length: Array.isArray(subtiposAceitos) ? subtiposAceitos.length : 'N/A',
+        conteudo: Array.isArray(subtiposAceitos) ? subtiposAceitos : 'não é array'
+      });
       console.log('[VagasController] =======================================');
       
-      const vaga = await VagasService.criarVaga(Number(empresaId), titulo, descricao, escolaridade, tipo, regimeTrabalho, beneficios, acessibilidades);
+      const vaga = await VagasService.criarVaga(Number(empresaId), titulo, descricao, escolaridade, tipo, regimeTrabalho, beneficios, acessibilidades, subtiposAceitos);
       res.status(201).json(vaga);
     } catch (e: any) {
       console.error('[VagasController] Erro ao criar vaga:', e);
@@ -141,7 +148,7 @@ export const VagasController = {
   async atualizar(req: Request, res: Response) {
     try {
       const vagaId = Number(req.params.id);
-      const { titulo, descricao, escolaridade, tipo, regimeTrabalho, beneficios, acessibilidades, isActive } = req.body;
+      const { titulo, descricao, escolaridade, tipo, regimeTrabalho, beneficios, acessibilidades, subtiposAceitos, isActive } = req.body;
       
       console.log('[VagasController] ========== ATUALIZANDO VAGA ==========');
       console.log('[VagasController] VagaId:', vagaId);
@@ -153,13 +160,20 @@ export const VagasController = {
         length: Array.isArray(acessibilidades) ? acessibilidades.length : 'N/A',
         conteudo: Array.isArray(acessibilidades) ? acessibilidades : 'não é array'
       });
+      console.log('[VagasController] SubtiposAceitos:', {
+        valor: subtiposAceitos,
+        tipo: typeof subtiposAceitos,
+        isArray: Array.isArray(subtiposAceitos),
+        length: Array.isArray(subtiposAceitos) ? subtiposAceitos.length : 'N/A',
+        conteudo: Array.isArray(subtiposAceitos) ? subtiposAceitos : 'não é array'
+      });
       console.log('[VagasController] =======================================');
       
       if (isNaN(vagaId)) {
         return res.status(400).json({ error: "ID da vaga inválido" });
       }
 
-      const vaga = await VagasService.atualizarVaga(vagaId, { titulo, descricao, escolaridade, tipo, regimeTrabalho, beneficios, acessibilidades, isActive });
+      const vaga = await VagasService.atualizarVaga(vagaId, { titulo, descricao, escolaridade, tipo, regimeTrabalho, beneficios, acessibilidades, subtiposAceitos, isActive });
       res.json(vaga);
     } catch (err: any) {
       console.error('[VagasController] Erro ao atualizar vaga:', err);

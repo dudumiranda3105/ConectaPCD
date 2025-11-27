@@ -15,6 +15,9 @@ export default defineConfig(({ mode }) => ({
       protocol: 'ws',
     },
   },
+  optimizeDeps: {
+    include: ['react', 'react-dom', 'react-router-dom'],
+  },
   build: {
     minify: mode !== 'development',
     sourcemap: mode === 'development',
@@ -35,5 +38,6 @@ export default defineConfig(({ mode }) => ({
     alias: {
       '@': path.resolve(__dirname, './src'),
     },
+    dedupe: ['react', 'react-dom', 'react-router-dom'],
   },
 }))

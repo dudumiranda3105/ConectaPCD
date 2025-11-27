@@ -7,7 +7,6 @@ import helmet from "helmet";
 import swaggerUi from "swagger-ui-express";
 import { swaggerSpec, swaggerDocs } from "./config/swagger.config";
 import { generalLimiter, statsLimiter } from "./middleware/rateLimiter";
-import { socketService } from "./services/socket.service";
 
 // importa suas rotas
 import tiposRoutes from "./routes/tipos.routes";
@@ -34,9 +33,6 @@ import path from 'path';
 const app = express();
 const httpServer = createServer(app);
 const prisma = new PrismaClient();
-
-// Inicializa Socket.io
-socketService.initialize(httpServer);
 
 // Segurança com Helmet
 app.use(helmet({
@@ -118,6 +114,5 @@ app.use((err: any, _req: any, res: any, _next: any) => {
 const PORT = process.env.PORT || 3000;
 httpServer.listen(PORT, () => {
   console.log(`API rodando em http://localhost:${PORT}`);
-  console.log(`WebSocket disponível em ws://localhost:${PORT}`);
   console.log(`Documentação em http://localhost:${PORT}/api-docs`);
 }); 

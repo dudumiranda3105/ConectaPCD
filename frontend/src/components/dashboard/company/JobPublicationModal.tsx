@@ -88,6 +88,7 @@ export const JobPublicationModal = ({
       title: jobToEdit?.title || '',
       description: jobToEdit?.description || '',
       accessibilities: Array.isArray(jobToEdit?.accessibilities) ? jobToEdit.accessibilities : [],
+      subtiposAceitos: Array.isArray(jobToEdit?.subtiposAceitos) ? jobToEdit.subtiposAceitos : [],
       benefits: jobToEdit?.benefits || '',
       type: jobToEdit?.type,
       regime: jobToEdit?.regime,
@@ -138,7 +139,8 @@ export const JobPublicationModal = ({
       
       form.reset({
         ...jobToEdit,
-        accessibilities: accessibilities
+        accessibilities: accessibilities,
+        subtiposAceitos: Array.isArray(jobToEdit.subtiposAceitos) ? jobToEdit.subtiposAceitos : []
       })
     } else {
       setBenefitTags([])
@@ -147,6 +149,7 @@ export const JobPublicationModal = ({
         title: '',
         description: '',
         accessibilities: [],
+        subtiposAceitos: [],
         benefits: '',
         type: undefined,
         regime: undefined,
@@ -404,12 +407,12 @@ export const JobPublicationModal = ({
             
             {/* Progress indicator */}
             <div className="mt-6 flex items-center gap-2">
-              {[1, 2, 3, 4].map((step) => (
+              {[1, 2, 3, 4, 5].map((step) => (
                 <div key={step} className="flex items-center gap-2">
                   <div className={`h-2 rounded-full transition-all duration-300 ${step === 1 ? 'w-8 bg-white' : 'w-2 bg-white/40'}`}></div>
                 </div>
               ))}
-              <span className="ml-2 text-xs text-white/60 font-medium">4 seções para preencher</span>
+              <span className="ml-2 text-xs text-white/60 font-medium">5 seções para preencher</span>
             </div>
           </div>
         </div>
@@ -616,10 +619,159 @@ export const JobPublicationModal = ({
 
               <Separator className="bg-gradient-to-r from-transparent via-slate-200 dark:via-slate-700 to-transparent" />
 
-              {/* ===== SECTION 3: BENEFÍCIOS ===== */}
+              {/* ===== SECTION 3: TIPOS DE DEFICIÊNCIA ACEITOS ===== */}
+              <div className="space-y-4 animate-fade-in" style={{animationDelay: '0.15s'}}>
+                <div className="flex items-center gap-3">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-rose-500 to-pink-600 text-white font-bold text-sm shadow-lg shadow-rose-500/25">3</div>
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white">Tipos de Deficiência Aceitos</h3>
+                  <div className="flex-1 h-px bg-gradient-to-r from-rose-300/50 via-pink-200/30 to-transparent dark:from-rose-700/50 dark:via-pink-800/30"></div>
+                </div>
+
+                <FormField
+                  control={form.control}
+                  name="subtiposAceitos"
+                  render={() => (
+                    <FormItem className="space-y-3">
+                      <div className="section-card bg-gradient-to-br from-slate-50 to-rose-50/50 dark:from-slate-900/50 dark:to-rose-950/30 rounded-2xl p-6 border border-slate-200/80 dark:border-slate-700/50 backdrop-blur-sm hover:border-rose-300/80 dark:hover:border-rose-700/60 transition-all duration-300 shadow-sm hover:shadow-lg" style={{'--accent-start': '#f43f5e', '--accent-end': '#ec4899'} as React.CSSProperties}>
+                        
+                        {/* Header com ícone e descrição */}
+                        <div className="mb-5">
+                          <div className="flex items-center gap-3 mb-2">
+                            <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-rose-500 to-pink-600 flex items-center justify-center shadow-lg shadow-rose-500/25">
+                              <Target className="h-5 w-5 text-white" />
+                            </div>
+                            <div className="flex-1">
+                              <FormLabel className="text-base font-bold text-slate-800 dark:text-white mb-1 block">
+                                Selecione os Subtipos de Deficiência
+                              </FormLabel>
+                              <FormDescription className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                                <Sparkles className="h-3.5 w-3.5 text-rose-500 dark:text-rose-400 flex-shrink-0" />
+                                <span>Isso melhora o match com candidatos - selecione os subtipos compatíveis com a vaga</span>
+                              </FormDescription>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Lista de checkboxes agrupados por tipo */}
+                        <div className="relative rounded-xl border-2 border-rose-300/70 dark:border-rose-700/70 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm overflow-hidden shadow-inner">
+                          <div className="max-h-64 overflow-y-auto accessibility-scroll p-4" style={{ scrollBehavior: 'smooth' }}>
+                            {loadingData ? (
+                              <div className="space-y-3">
+                                {[1, 2, 3].map((i) => (
+                                  <Skeleton key={i} className="h-12 w-full" />
+                                ))}
+                              </div>
+                            ) : disabilityTypes.length === 0 ? (
+                              <div className="text-center py-8 text-muted-foreground">
+                                <p className="text-sm">Nenhum tipo de deficiência disponível.</p>
+                              </div>
+                            ) : (
+                              <div className="space-y-5">
+                                {disabilityTypes.map((tipo) => {
+                                  const tipoSubtipos = subtypes.filter(s => s.tipoId === tipo.id || s.tipo_id === tipo.id)
+                                  if (tipoSubtipos.length === 0) return null
+                                  
+                                  return (
+                                    <div key={tipo.id} className="space-y-2">
+                                      <div className="flex items-center gap-2 mb-2">
+                                        <div className="h-6 w-6 rounded-lg bg-rose-100 dark:bg-rose-900/50 flex items-center justify-center">
+                                          <Target className="h-3.5 w-3.5 text-rose-600 dark:text-rose-400" />
+                                        </div>
+                                        <span className="font-semibold text-sm text-slate-700 dark:text-slate-300">{tipo.nome}</span>
+                                      </div>
+                                      <div className="space-y-2 pl-8">
+                                        {tipoSubtipos.map((subtipo) => (
+                                          <FormField
+                                            key={subtipo.id}
+                                            control={form.control}
+                                            name="subtiposAceitos"
+                                            render={({ field }) => {
+                                              const value = Array.isArray(field.value) ? field.value : []
+                                              const isChecked = value.includes(subtipo.id)
+                                              return (
+                                                <FormItem className={`flex flex-row items-center space-x-3 space-y-0 p-2.5 rounded-lg border-2 transition-all duration-200 ${isChecked ? 'bg-rose-50 dark:bg-rose-950/50 border-rose-400 dark:border-rose-600 shadow-sm' : 'bg-white/50 dark:bg-slate-800/50 border-transparent hover:border-rose-200 dark:hover:border-rose-800 hover:bg-rose-50/50 dark:hover:bg-rose-950/30'}`}>
+                                                  <FormControl>
+                                                    <Checkbox
+                                                      checked={isChecked}
+                                                      onCheckedChange={(checked) => {
+                                                        if (checked) {
+                                                          field.onChange([...value, subtipo.id])
+                                                        } else {
+                                                          field.onChange(value.filter((v) => v !== subtipo.id))
+                                                        }
+                                                      }}
+                                                      className="h-4 w-4 border-2 border-rose-400 dark:border-rose-600 data-[state=checked]:bg-rose-600 data-[state=checked]:border-rose-600"
+                                                    />
+                                                  </FormControl>
+                                                  <FormLabel className="flex-1 font-medium cursor-pointer text-sm text-slate-700 dark:text-slate-300 leading-snug">
+                                                    {subtipo.nome}
+                                                  </FormLabel>
+                                                  {isChecked && (
+                                                    <CheckCircle2 className="h-4 w-4 text-rose-600 dark:text-rose-400 animate-in zoom-in duration-200" />
+                                                  )}
+                                                </FormItem>
+                                              )
+                                            }}
+                                          />
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )
+                                })}
+                              </div>
+                            )}
+                          </div>
+                          <div className="absolute bottom-0 left-0 right-0 h-6 bg-gradient-to-t from-white/90 dark:from-slate-900/90 to-transparent pointer-events-none"></div>
+                        </div>
+
+                        {/* Badge de selecionados */}
+                        {(form.watch('subtiposAceitos')?.length ?? 0) > 0 && (
+                          <div className="mt-5 space-y-3">
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm font-semibold text-rose-700 dark:text-rose-400 flex items-center gap-2">
+                                <CheckCircle2 className="h-4 w-4" />
+                                {form.watch('subtiposAceitos')?.length} {(form.watch('subtiposAceitos')?.length ?? 0) === 1 ? 'Subtipo selecionado' : 'Subtipos selecionados'}
+                              </span>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => form.setValue('subtiposAceitos', [])}
+                                className="h-7 text-xs text-slate-600 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400"
+                              >
+                                Limpar tudo
+                              </Button>
+                            </div>
+                            <div className="flex flex-wrap gap-2 animate-fade-in">
+                              {form.watch('subtiposAceitos')?.map((subtipoId) => {
+                                const subtipo = subtypes.find(s => s.id === subtipoId)
+                                if (!subtipo) return null
+                                return (
+                                  <Badge
+                                    key={subtipoId}
+                                    className="bg-gradient-to-r from-rose-100 to-pink-100 dark:from-rose-900/70 dark:to-pink-900/70 text-rose-800 dark:text-rose-200 border border-rose-300 dark:border-rose-600 py-1 px-3 flex items-center gap-1.5 shadow-sm hover:shadow-md transition-all hover:scale-105 cursor-default text-sm"
+                                  >
+                                    <Target className="h-3.5 w-3.5" />
+                                    <span>{subtipo.nome}</span>
+                                  </Badge>
+                                )
+                              })}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <Separator className="bg-gradient-to-r from-transparent via-slate-200 dark:via-slate-700 to-transparent" />
+
+              {/* ===== SECTION 4: BENEFÍCIOS ===== */}
               <div className="space-y-4 animate-fade-in" style={{animationDelay: '0.2s'}}>
                 <div className="flex items-center gap-3">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-white font-bold text-sm shadow-lg shadow-amber-500/25">3</div>
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-white font-bold text-sm shadow-lg shadow-amber-500/25">4</div>
                   <h3 className="text-lg font-bold text-slate-900 dark:text-white">Benefícios Oferecidos</h3>
                   <div className="flex-1 h-px bg-gradient-to-r from-amber-300/50 via-orange-200/30 to-transparent dark:from-amber-700/50 dark:via-orange-800/30"></div>
                 </div>
@@ -709,10 +861,10 @@ export const JobPublicationModal = ({
 
               <Separator className="bg-gradient-to-r from-transparent via-slate-200 dark:via-slate-700 to-transparent" />
 
-              {/* ===== SECTION 4: ACESSIBILIDADES ===== */}
+              {/* ===== SECTION 5: ACESSIBILIDADES ===== */}
               <div className="space-y-4 pb-2 animate-fade-in" style={{animationDelay: '0.3s'}}>
                 <div className="flex items-center gap-3">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white font-bold text-sm shadow-lg shadow-emerald-500/25">4</div>
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white font-bold text-sm shadow-lg shadow-emerald-500/25">5</div>
                   <h3 className="text-lg font-bold text-slate-900 dark:text-white">Acessibilidades Oferecidas</h3>
                   <div className="flex-1 h-px bg-gradient-to-r from-emerald-300/50 via-teal-200/30 to-transparent dark:from-emerald-700/50 dark:via-teal-800/30"></div>
                 </div>
