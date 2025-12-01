@@ -117,24 +117,26 @@ export default function BarriersManagementPage() {
                 Nova Barreira
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px]">
-              <DialogHeader className="space-y-3 pb-4 border-b">
-                <div className="flex items-center gap-3">
-                  <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-rose-500 to-red-600 flex items-center justify-center shadow-lg shadow-rose-500/30">
-                    <Shield className="h-6 w-6 text-white" />
+            <DialogContent className="sm:max-w-[520px]">
+              <DialogHeader className="space-y-4 pb-6">
+                <div className="flex items-center gap-4">
+                  <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-rose-500 to-red-600 flex items-center justify-center shadow-xl shadow-rose-500/30">
+                    <Shield className="h-7 w-7 text-white" />
                   </div>
                   <div>
-                    <DialogTitle className="text-2xl">Nova Barreira</DialogTitle>
-                    <DialogDescription className="text-base">
+                    <DialogTitle className="text-2xl font-bold">Nova Barreira</DialogTitle>
+                    <DialogDescription className="text-sm text-muted-foreground mt-1">
                       Adicione uma barreira que candidatos podem enfrentar
                     </DialogDescription>
                   </div>
                 </div>
               </DialogHeader>
-              <form onSubmit={handleCreate} className="space-y-6 mt-4">
+              <form onSubmit={handleCreate} className="space-y-6">
                 <div className="space-y-3">
                   <label className="text-sm font-semibold flex items-center gap-2">
-                    <AlertCircle className="h-4 w-4 text-rose-500" />
+                    <div className="h-6 w-6 rounded-md bg-rose-500/10 flex items-center justify-center">
+                      <AlertCircle className="h-3.5 w-3.5 text-rose-500" />
+                    </div>
                     Descrição da Barreira
                   </label>
                   <Input
@@ -142,26 +144,27 @@ export default function BarriersManagementPage() {
                     onChange={(e) => setDescricao(e.target.value)}
                     placeholder="Ex: Dificuldade de locomoção em escadas"
                     disabled={creating}
-                    className="h-12 border-2 focus:border-rose-500 transition-all"
+                    className="h-12 border-2 border-border/60 rounded-xl bg-muted/30 focus:bg-background focus:border-rose-500 transition-all duration-200"
                   />
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                    <span className="inline-block h-1 w-1 rounded-full bg-muted-foreground/50" />
                     Seja específico para ajudar no matching de candidatos com vagas
                   </p>
                 </div>
-                <div className="flex justify-end gap-3 pt-4 border-t">
+                <div className="flex justify-end gap-3 pt-5 border-t border-border/50">
                   <Button
                     type="button"
                     variant="outline"
                     onClick={() => setIsDialogOpen(false)}
                     disabled={creating}
-                    className="h-10 px-6"
+                    className="h-11 px-6 rounded-xl"
                   >
                     Cancelar
                   </Button>
                   <Button 
                     type="submit" 
                     disabled={creating}
-                    className="h-10 px-6 bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-600 hover:to-red-700 shadow-lg"
+                    className="h-11 px-6 rounded-xl bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-600 hover:to-red-700 shadow-lg shadow-rose-500/25 transition-all duration-200"
                   >
                     {creating ? (
                       <>

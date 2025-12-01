@@ -32,4 +32,13 @@ export const SubtiposController = {
     const updated = await SubtiposService.disconnectBarreira(subtipoId, barreiraId);
     res.json(updated);
   },
+  async delete(req: Request, res: Response) {
+    const id = Number(req.params.id);
+    try {
+      await SubtiposService.delete(id);
+      res.status(204).send();
+    } catch (e: any) {
+      res.status(e.status || 500).json({ error: e.message });
+    }
+  },
 };

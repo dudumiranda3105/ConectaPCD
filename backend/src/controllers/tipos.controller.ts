@@ -21,4 +21,13 @@ export const TiposController = {
     const updated = await TiposService.update(id, nome, descricao, cor);
     res.json(updated);
   },
+  async delete(req: Request, res: Response) {
+    const id = parseInt(req.params.id || '0');
+    try {
+      await TiposService.delete(id);
+      res.status(204).send();
+    } catch (e: any) {
+      res.status(e.status || 500).json({ error: e.message });
+    }
+  },
 };

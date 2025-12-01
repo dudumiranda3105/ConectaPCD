@@ -8,5 +8,6 @@ router.get("/", SubtiposController.list) // /subtipo - público
 router.post("/", authMiddleware, adminOnly, SubtiposController.create);   // /subtipos - apenas admin
 router.post("/:subtipoId/barreiras", authMiddleware, adminOnly, SubtiposController.connectBarreira); // apenas admin
 router.delete("/:subtipoId/barreiras/:barreiraId", authMiddleware, adminOnly, SubtiposController.disconnectBarreira); // apenas admin
+router.delete("/:id", authMiddleware, adminOnly, SubtiposController.delete); // /subtipos/:id - apenas admin
 
 export default router;

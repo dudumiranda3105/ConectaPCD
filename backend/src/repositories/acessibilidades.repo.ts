@@ -12,8 +12,8 @@ export const AcessRepo = {
       },
     });
   },
-  create(descricao: string) {
-    return prisma.acessibilidade.create({ data: { descricao } });
+  create(nome: string | undefined, descricao: string) {
+    return prisma.acessibilidade.create({ data: { nome, descricao } });
   },
   findById(id: number) {
     return prisma.acessibilidade.findUnique({ where: { id } });

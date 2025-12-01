@@ -7,34 +7,34 @@ export const AcessibilidadesController = {
     res.json(data);
   },
   async create(req: Request, res: Response) {
-    const { descricao } = req.body ?? {};
-    const created = await AcessService.create(descricao);
+    const { nome, descricao } = req.body ?? {};
+    const created = await AcessService.create(nome, descricao);
     res.status(201).json(created);
   },
   async seedMissing(_req: Request, res: Response) {
     try {
       const acessibilidades = [
-        'Rampas de acesso',
-        'Sanitários adaptados',
-        'Piso tátil',
-        'Mobiliário adaptado',
-        'Vagas de estacionamento reservadas',
-        'Portas largas',
-        'Corrimãos',
-        'Iluminação adequada',
-        'Sinalização visual e tátil',
-        'Audiodescrição',
-        'Legendas em vídeos'
+        { nome: 'Rampas de acesso', descricao: 'Rampas de acesso para cadeirantes e pessoas com mobilidade reduzida' },
+        { nome: 'Sanitários adaptados', descricao: 'Banheiros com barras de apoio e espaço para cadeiras de rodas' },
+        { nome: 'Piso tátil', descricao: 'Piso com textura diferenciada para orientação de pessoas com deficiência visual' },
+        { nome: 'Mobiliário adaptado', descricao: 'Mesas, cadeiras e bancadas com altura adequada' },
+        { nome: 'Vagas reservadas', descricao: 'Vagas de estacionamento reservadas para PcD' },
+        { nome: 'Portas largas', descricao: 'Portas com largura mínima de 80cm para passagem de cadeiras de rodas' },
+        { nome: 'Corrimãos', descricao: 'Corrimãos em escadas e rampas' },
+        { nome: 'Iluminação adequada', descricao: 'Iluminação adequada em todos os ambientes' },
+        { nome: 'Sinalização acessível', descricao: 'Sinalização visual e tátil' },
+        { nome: 'Audiodescrição', descricao: 'Recursos de audiodescrição para conteúdos visuais' },
+        { nome: 'Legendas', descricao: 'Legendas em vídeos e conteúdos audiovisuais' }
       ];
 
       const results = [];
-      for (const descricao of acessibilidades) {
+      for (const { nome, descricao } of acessibilidades) {
         const existing = await AcessService.findByDescricao(descricao);
         if (!existing) {
-          const created = await AcessService.create(descricao);
-          results.push({ status: 'created', descricao, id: created.id });
+          const created = await AcessService.create(nome, descricao);
+          results.push({ status: 'created', nome, id: created.id });
         } else {
-          results.push({ status: 'exists', descricao, id: existing.id });
+          results.push({ status: 'exists', nome, id: existing.id });
         }
       }
 

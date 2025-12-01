@@ -51,4 +51,14 @@ export const SubtiposRepo = {
     await prisma.subtipoBarreira.delete({ where: { subtipoId_barreiraId: { subtipoId, barreiraId } } }).catch(() => {});
     return this.findDeepById(subtipoId);
   },
+  async delete(id: number) {
+    // Primeiro, remover todas as barreiras vinculadas
+    await prisma.subtipoBarreira.deleteMany({ where: { subtipoId: id } });
+    // Remover vínculos com candidatos
+    await prisma.candidatoSubtipo.deleteMany({ where: { subtipoId: id } });
+    // Remover vínculos com vagas
+    await prisma.vagaSubtipo.deleteMany({ where: { subtipoId: id } });
+    // Depois, deletar o subtipo
+    return prisma.subtipoDeficiencia.delete({ where: { id } });
+  },
 };

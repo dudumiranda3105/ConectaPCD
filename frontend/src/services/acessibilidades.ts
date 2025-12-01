@@ -2,6 +2,7 @@ import { api } from './api';
 
 export interface Acessibilidade {
   id: number;
+  nome?: string;
   descricao: string;
   barreiras?: BarreiraAcessibilidade[];
   createdAt?: string;
@@ -27,8 +28,8 @@ export const acessibilidadesService = {
   },
 
   // Criar nova acessibilidade
-  async create(descricao: string): Promise<Acessibilidade> {
-    const response = await api.post('acessibilidades', { descricao });
+  async create(nome: string | undefined, descricao: string): Promise<Acessibilidade> {
+    const response = await api.post('acessibilidades', { nome, descricao });
     return response as Acessibilidade;
   },
 

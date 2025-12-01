@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, Trash2, Link2, Unlink2, Accessibility, Sparkles, Shield, CheckCircle2, Loader2, AlertCircle, X, Search, Zap } from 'lucide-react';
+import { Plus, Trash2, Link2, Unlink2, Accessibility, Sparkles, Shield, CheckCircle2, Loader2, AlertCircle, X, Search, Zap, Type, FileText } from 'lucide-react';
 import { acessibilidadesService, Acessibilidade, Barreira } from '@/services/acessibilidades';
 import { getBarreiras } from '@/services/barreiras';
 import { toast } from '@/hooks/use-toast';
@@ -14,6 +14,7 @@ export function AcessibilidadesTable() {
   const [barreiras, setBarreiras] = useState<Barreira[]>([]);
   const [loading, setLoading] = useState(false);
   const [createLoading, setCreateLoading] = useState(false);
+  const [novoNome, setNovoNome] = useState('');
   const [novaDescricao, setNovaDescricao] = useState('');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [searchBarreira, setSearchBarreira] = useState('');
@@ -60,7 +61,8 @@ export function AcessibilidadesTable() {
 
     try {
       setCreateLoading(true);
-      await acessibilidadesService.create(novaDescricao.trim());
+      await acessibilidadesService.create(novoNome.trim() || undefined, novaDescricao.trim());
+      setNovoNome('');
       setNovaDescricao('');
       setIsCreateModalOpen(false);
       await fetchAcessibilidades();
@@ -158,19 +160,39 @@ export function AcessibilidadesTable() {
 
             {/* Conteúdo do formulário */}
             <div className="p-6 space-y-6">
+              {/* Campo de título/nome */}
+              <div className="space-y-3">
+                <label className="text-sm font-semibold flex items-center gap-2 text-foreground">
+                  <div className="h-6 w-6 rounded-md bg-emerald-500/10 flex items-center justify-center">
+                    <Type className="h-3.5 w-3.5 text-emerald-500" />
+                  </div>
+                  Título da Acessibilidade
+                  <span className="text-muted-foreground font-normal text-xs">(opcional)</span>
+                </label>
+                <Input
+                  placeholder="Ex: Rampas de acesso, Piso tátil, Intérprete de Libras..."
+                  value={novoNome}
+                  onChange={(e) => setNovoNome(e.target.value)}
+                  disabled={createLoading}
+                  className="h-12 border-2 border-border/60 rounded-xl bg-muted/30 focus:bg-background focus:border-emerald-500 transition-all duration-200"
+                />
+              </div>
+
               {/* Campo de descrição */}
               <div className="space-y-3">
                 <label className="text-sm font-semibold flex items-center gap-2 text-foreground">
-                  <Sparkles className="h-4 w-4 text-emerald-500" />
+                  <div className="h-6 w-6 rounded-md bg-emerald-500/10 flex items-center justify-center">
+                    <FileText className="h-3.5 w-3.5 text-emerald-500" />
+                  </div>
                   Descrição da Acessibilidade
                 </label>
                 <div className="relative">
                   <Textarea
-                    placeholder="Descreva o recurso de acessibilidade oferecido...&#10;&#10;Exemplos:&#10;• Rampas de acesso para cadeirantes&#10;• Sinalização em braile&#10;• Intérprete de Libras disponível"
+                    placeholder="Descreva detalhadamente o recurso de acessibilidade oferecido..."
                     value={novaDescricao}
                     onChange={(e) => setNovaDescricao(e.target.value)}
                     disabled={createLoading}
-                    className="min-h-[140px] border-2 focus:border-emerald-500 transition-all resize-none text-base"
+                    className="min-h-[120px] border-2 border-border/60 rounded-xl bg-muted/30 focus:bg-background focus:border-emerald-500 transition-all duration-200 resize-none text-base pr-20"
                   />
                   <div className="absolute bottom-3 right-3">
                     <span className={`text-xs font-medium px-2 py-1 rounded-full ${
@@ -211,15 +233,16 @@ export function AcessibilidadesTable() {
               </div>
 
               {/* Botões de ação */}
-              <div className="flex gap-3 justify-end pt-4 border-t">
+              <div className="flex gap-3 justify-end pt-5 border-t border-border/50">
                 <Button 
                   variant="outline" 
                   onClick={() => {
+                    setNovoNome('');
                     setNovaDescricao('');
                     setIsCreateModalOpen(false);
                   }} 
                   disabled={createLoading}
-                  className="h-11 px-6"
+                  className="h-11 px-6 rounded-xl"
                 >
                   <X className="w-4 h-4 mr-2" />
                   Cancelar
@@ -227,7 +250,7 @@ export function AcessibilidadesTable() {
                 <Button 
                   onClick={handleCreateAcessibilidade} 
                   disabled={createLoading || novaDescricao.trim().length < 5}
-                  className="h-11 px-6 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="h-11 px-6 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 shadow-lg shadow-emerald-500/25 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {createLoading ? (
                     <>
@@ -248,52 +271,64 @@ export function AcessibilidadesTable() {
       </div>
 
       {/* Tabela */}
-      <div className="rounded-xl border border-border/50 shadow-lg overflow-hidden bg-card">
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-gradient-to-r from-emerald-500/5 to-transparent border-b">
-              <TableHead className="font-semibold">Descrição</TableHead>
-              <TableHead className="font-semibold w-32">Barreiras</TableHead>
-              <TableHead className="font-semibold w-40 text-right">Ações</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {loading && acessibilidades.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={3} className="text-center py-8 text-muted-foreground">
-                  Carregando acessibilidades...
-                </TableCell>
+      {loading && acessibilidades.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-16 gap-4">
+          <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center animate-pulse">
+            <Accessibility className="h-7 w-7 text-white" />
+          </div>
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Loader2 className="h-5 w-5 animate-spin" />
+            <span>Carregando acessibilidades...</span>
+          </div>
+        </div>
+      ) : acessibilidades.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-16 text-muted-foreground rounded-xl border-2 border-dashed border-emerald-200 dark:border-emerald-800 bg-emerald-50/30 dark:bg-emerald-950/10">
+          <Accessibility className="h-16 w-16 mb-4 text-emerald-300 dark:text-emerald-700" />
+          <p className="text-lg font-medium">Nenhuma acessibilidade cadastrada</p>
+          <p className="text-sm mt-1">Clique em "Nova Acessibilidade" para começar</p>
+        </div>
+      ) : (
+        <div className="rounded-xl border border-border/50 shadow-lg overflow-hidden bg-card">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-gradient-to-r from-emerald-500/5 to-transparent border-b hover:bg-transparent">
+                <TableHead className="font-semibold">Acessibilidade</TableHead>
+                <TableHead className="font-semibold">Descrição</TableHead>
+                <TableHead className="font-semibold w-32">Barreiras</TableHead>
+                <TableHead className="font-semibold w-44 text-right">Ações</TableHead>
               </TableRow>
-            ) : acessibilidades.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={3} className="text-center py-8 text-muted-foreground">
-                  Nenhuma acessibilidade cadastrada
-                </TableCell>
-              </TableRow>
-            ) : (
-              acessibilidades.map((acess) => (
-                <TableRow key={acess.id} className="hover:bg-muted/50 transition-colors">
+            </TableHeader>
+            <TableBody>
+              {acessibilidades.map((acess, index) => (
+                <TableRow 
+                  key={acess.id} 
+                  className="group hover:bg-emerald-50/50 dark:hover:bg-emerald-950/20 transition-all duration-200"
+                  style={{ borderLeft: '3px solid #10b981' }}
+                >
                   <TableCell className="font-medium">
-                    <div className="flex items-center gap-2">
-                      <div className="h-8 w-8 rounded-lg bg-emerald-500/10 flex items-center justify-center">
-                        <Accessibility className="h-4 w-4 text-emerald-600" />
+                    <div className="flex items-center gap-3">
+                      <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-md transition-transform group-hover:scale-105">
+                        <Accessibility className="h-5 w-5 text-white" />
                       </div>
-                      {acess.descricao}
+                      <span className="font-semibold text-base">{acess.nome || 'Sem título'}</span>
                     </div>
                   </TableCell>
+                  <TableCell className="max-w-[300px]">
+                    <span className="text-sm text-muted-foreground line-clamp-2">
+                      {acess.descricao}
+                    </span>
+                  </TableCell>
                   <TableCell>
-                    {acess.barreiras && acess.barreiras.length > 0 ? (
-                      <div className="flex items-center gap-2">
-                        <div className="h-6 w-6 rounded-full bg-emerald-500/10 flex items-center justify-center">
-                          <span className="text-emerald-600 font-bold text-xs">{acess.barreiras.length}</span>
-                        </div>
-                        <span className="text-sm text-muted-foreground">
-                          {acess.barreiras.length === 1 ? 'barreira' : 'barreiras'}
-                        </span>
-                      </div>
-                    ) : (
-                      <span className="text-sm text-muted-foreground">Nenhuma</span>
-                    )}
+                    <div 
+                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold ${
+                        acess.barreiras && acess.barreiras.length > 0 
+                          ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300' 
+                          : 'bg-muted text-muted-foreground'
+                      }`}
+                    >
+                      <span className="text-sm font-bold">{acess.barreiras?.length || 0}</span>
+                      <span>barreira{(acess.barreiras?.length || 0) !== 1 ? 's' : ''}</span>
+                    </div>
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex gap-2 justify-end">
@@ -302,7 +337,7 @@ export function AcessibilidadesTable() {
                           <Button
                             variant="outline"
                             size="sm"
-                            className="gap-1 hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-300 transition-all"
+                            className="gap-1.5 h-9 px-3 hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-300 transition-all rounded-lg opacity-0 group-hover:opacity-100"
                             onClick={() => {
                               setSelectedAcessibilidadeId(acess.id);
                               setSelectedBarreirasIds(acess.barreiras?.map(b => b.barreira.id) || []);
@@ -310,8 +345,7 @@ export function AcessibilidadesTable() {
                             }}
                           >
                             <Link2 className="w-4 h-4" />
-                            <span className="hidden sm:inline">Conectar Barreiras</span>
-                            <span className="sm:hidden">Barreiras</span>
+                            <span className="hidden sm:inline">Barreiras</span>
                           </Button>
                         </DialogTrigger>
                         <DialogContent className="sm:max-w-[700px] max-h-[90vh] p-0 overflow-hidden">
@@ -483,21 +517,21 @@ export function AcessibilidadesTable() {
 
                       <Button
                         variant="ghost"
-                        size="sm"
-                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                        size="icon"
+                        className="h-9 w-9 hover:bg-rose-100 dark:hover:bg-rose-900 hover:text-rose-600 rounded-lg opacity-0 group-hover:opacity-100 transition-all"
                         disabled={loading}
                         onClick={() => handleDeleteAcessibilidade(acess.id)}
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 className="w-4 h-4 text-rose-500" />
                       </Button>
                     </div>
                   </TableCell>
                 </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      )}
     </div>
   );
 }

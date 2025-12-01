@@ -22,4 +22,10 @@ export const TiposRepo = {
   findById(id: number) {
     return prisma.tipoDeficiencia.findUnique({ where: { id } });
   },
+  async delete(id: number) {
+    // Primeiro, deletar todos os subtipos relacionados
+    await prisma.subtipoDeficiencia.deleteMany({ where: { tipoId: id } });
+    // Depois, deletar o tipo
+    return prisma.tipoDeficiencia.delete({ where: { id } });
+  },
 };

@@ -42,6 +42,11 @@ export const SubtiposService = {
     return SubtiposRepo.addBarreira(subtipoId, barreiraId);
   },
   disconnectBarreira(subtipoId: number, barreiraId: number) {
-    return SubtiposRepo.removeBarreira(subtipoId, barreiraId);
+    return SubtiposRepo.disconnectBarreira(subtipoId, barreiraId);
+  },
+  async delete(id: number) {
+    const subtipo = await SubtiposRepo.findById(id);
+    if (!subtipo) throw Object.assign(new Error("Subtipo não encontrado"), { status: 404 });
+    return SubtiposRepo.delete(id);
   },
 };

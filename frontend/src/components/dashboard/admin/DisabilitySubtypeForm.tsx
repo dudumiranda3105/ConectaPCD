@@ -57,20 +57,23 @@ export const DisabilitySubtypeForm = ({
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        {/* Nome do Subtipo */}
         <FormField
           control={form.control}
           name="nome"
           render={({ field }) => (
-            <FormItem>
+            <FormItem className="space-y-3">
               <FormLabel className="text-sm font-semibold flex items-center gap-2">
-                <Type className="h-4 w-4 text-emerald-500" />
+                <div className="h-6 w-6 rounded-md bg-emerald-500/10 flex items-center justify-center">
+                  <Type className="h-3.5 w-3.5 text-emerald-500" />
+                </div>
                 Nome do Subtipo
               </FormLabel>
               <FormControl>
                 <Input 
                   placeholder="Ex: Cegueira" 
-                  className="h-11 border-2 focus:border-emerald-500 transition-all"
+                  className="h-12 pl-4 pr-4 border-2 border-border/60 rounded-xl bg-muted/30 focus:bg-background focus:border-emerald-500 transition-all duration-200"
                   disabled={isLoading}
                   {...field} 
                 />
@@ -80,13 +83,16 @@ export const DisabilitySubtypeForm = ({
           )}
         />
 
+        {/* Tipo de Deficiência Associado */}
         <FormField
           control={form.control}
           name="tipo_id"
           render={({ field }) => (
-            <FormItem>
+            <FormItem className="space-y-3">
               <FormLabel className="text-sm font-semibold flex items-center gap-2">
-                <Layers className="h-4 w-4 text-emerald-500" />
+                <div className="h-6 w-6 rounded-md bg-emerald-500/10 flex items-center justify-center">
+                  <Layers className="h-3.5 w-3.5 text-emerald-500" />
+                </div>
                 Tipo de Deficiência Associado
               </FormLabel>
               <Select 
@@ -95,20 +101,32 @@ export const DisabilitySubtypeForm = ({
                 disabled={isLoading}
               >
                 <FormControl>
-                  <SelectTrigger className="h-11 border-2 focus:border-emerald-500">
+                  <SelectTrigger className="h-12 border-2 border-border/60 rounded-xl bg-muted/30 focus:bg-background focus:border-emerald-500 transition-all duration-200">
                     <SelectValue placeholder="Selecione um tipo" />
                   </SelectTrigger>
                 </FormControl>
-                <SelectContent>
+                <SelectContent className="rounded-xl">
                   {types.map((type) => (
-                    <SelectItem key={type.id} value={type.id.toString()}>
-                      <div className="flex items-center gap-2">
-                        <div className="h-5 w-5 rounded bg-teal-500/10 flex items-center justify-center">
-                          <span className="text-teal-600 font-bold text-[10px]">
+                    <SelectItem 
+                      key={type.id} 
+                      value={type.id.toString()}
+                      className="rounded-lg my-0.5"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div 
+                          className="h-6 w-6 rounded-lg flex items-center justify-center"
+                          style={{ 
+                            backgroundColor: `${type.cor || '#14b8a6'}20`,
+                          }}
+                        >
+                          <span 
+                            className="font-bold text-[10px]"
+                            style={{ color: type.cor || '#14b8a6' }}
+                          >
                             {type.nome.charAt(0).toUpperCase()}
                           </span>
                         </div>
-                        {type.nome}
+                        <span className="font-medium">{type.nome}</span>
                       </div>
                     </SelectItem>
                   ))}
@@ -119,20 +137,21 @@ export const DisabilitySubtypeForm = ({
           )}
         />
 
-        <div className="flex justify-end gap-3 pt-4 border-t">
+        {/* Botões */}
+        <div className="flex justify-end gap-3 pt-5 border-t border-border/50">
           <Button 
             type="button" 
             variant="outline" 
             onClick={onCancel}
             disabled={isLoading}
-            className="h-10 px-6"
+            className="h-11 px-6 rounded-xl"
           >
             Cancelar
           </Button>
           <Button 
             type="submit"
             disabled={isLoading}
-            className="h-10 px-6 bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 shadow-lg"
+            className="h-11 px-6 rounded-xl bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 shadow-lg shadow-emerald-500/25 transition-all duration-200"
           >
             {isLoading ? (
               <>

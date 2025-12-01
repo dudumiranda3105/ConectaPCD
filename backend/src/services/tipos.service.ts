@@ -17,4 +17,9 @@ export const TiposService = {
     if (!final) throw Object.assign(new Error("O campo 'nome' é obrigatório"), { status: 400 });
     return TiposRepo.update(id, final, descricao, cor);
   },
+  async delete(id: number) {
+    const tipo = await TiposRepo.findById(id);
+    if (!tipo) throw Object.assign(new Error("Tipo não encontrado"), { status: 404 });
+    return TiposRepo.delete(id);
+  },
 };
