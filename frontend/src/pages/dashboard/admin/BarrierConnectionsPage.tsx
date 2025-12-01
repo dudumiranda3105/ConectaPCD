@@ -18,7 +18,7 @@ import {
 } from '@/services/disabilities'
 import { getBarreiras, Barreira } from '@/services/barreiras'
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
+const API_URL = import.meta.env.REACT_API_URL || 'http://localhost:3000'
 
 interface SubtypeDetail {
   id: number

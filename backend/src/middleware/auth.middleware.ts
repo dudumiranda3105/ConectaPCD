@@ -1,7 +1,10 @@
 import { Request, Response, NextFunction } from 'express'
 import jwt from 'jsonwebtoken'
 
-const JWT_SECRET: string = process.env.JWT_SECRET || 'dev_secret_change_this'
+if (!process.env.JWT_SECRET) {
+  console.warn('JWT_SECRET não definido, usando valor padrão (apenas dev)')
+}
+const JWT_SECRET = (process.env.JWT_SECRET || 'dev_secret_change_this') as string
 
 export interface TokenPayload {
   userId: number
@@ -18,6 +21,9 @@ export const authMiddleware = (req: Request, res: Response, next: NextFunction) 
   }
 
   const token = auth[1]
+  if (!token) {
+    return res.status(401).json({ error: 'Token não fornecido' })
+  }
   try {
     const payload = jwt.verify(token, JWT_SECRET) as unknown as TokenPayload
     // anexa informações ao req

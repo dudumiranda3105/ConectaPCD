@@ -1,0 +1,1 @@
+{"version":3,"file":"empresas.controller.d.ts","sourceRoot":"","sources":["empresas.controller.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,OAAO,EAAE,QAAQ,EAAE,MAAM,SAAS,CAAC;AAI5C,eAAO,MAAM,kBAAkB;gBACX,OAAO,OAAO,QAAQ;kBAKpB,OAAO,OAAO,QAAQ;eAOzB,OAAO,OAAO,QAAQ;eAUtB,OAAO,OAAO,QAAQ;sCAWC,OAAO,OAAO,QAAQ;qCAWvB,OAAO,OAAO,QAAQ;CAU9D,CAAC"}

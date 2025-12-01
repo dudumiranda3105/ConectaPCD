@@ -1,0 +1,1 @@
+{"version":3,"file":"subtipos.controller.d.ts","sourceRoot":"","sources":["subtipos.controller.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,OAAO,EAAE,QAAQ,EAAE,MAAM,SAAS,CAAC;AAG5C,eAAO,MAAM,kBAAkB;eACZ,OAAO,OAAO,QAAQ;gBAIrB,OAAO,OAAO,QAAQ;gBAKtB,OAAO,OAAO,QAAQ;yBAKb,OAAO,OAAO,QAAQ;4BAUnB,OAAO,OAAO,QAAQ;gBAMlC,OAAO,OAAO,QAAQ;CASzC,CAAC"}

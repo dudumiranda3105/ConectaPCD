@@ -59,12 +59,12 @@ export const EmpresasService = {
     // We need to import CandidaturasRepo here or move this logic
     // To avoid circular dependencies if CandidaturasService uses EmpresasService, we use Repo directly
     // But since we are in EmpresasService, we should probably use CandidaturasRepo
-    const { CandidaturasRepo } = await import("../repositories/candidaturas.repo");
+    const { CandidaturasRepo } = await import("../repositories/candidaturas.repo.js");
     return CandidaturasRepo.listByEmpresaAndStatus(empresaId, "EM_PROCESSO");
   },
 
   async listarCandidaturasAprovadas(empresaId: number) {
-    const { CandidaturasRepo } = await import("../repositories/candidaturas.repo");
+    const { CandidaturasRepo } = await import("../repositories/candidaturas.repo.js");
     return CandidaturasRepo.listByEmpresaAndStatus(empresaId, "APROVADA");
   },
 };

@@ -42,7 +42,7 @@ export const SubtiposService = {
     return SubtiposRepo.addBarreira(subtipoId, barreiraId);
   },
   disconnectBarreira(subtipoId: number, barreiraId: number) {
-    return SubtiposRepo.disconnectBarreira(subtipoId, barreiraId);
+    return SubtiposRepo.removeBarreira(subtipoId, barreiraId);
   },
   async delete(id: number) {
     const subtipo = await SubtiposRepo.findById(id);

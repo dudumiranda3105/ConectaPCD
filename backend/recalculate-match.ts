@@ -155,7 +155,7 @@ async function recalcularMatch() {
         scoreSubtipos,
         acessibilidadesAtendidas: barreirasAtendidas,
         acessibilidadesTotal: barreirasTotal,
-        detalhes,
+        detalhes: detalhes as any,
       },
       update: {
         scoreTotal,
@@ -163,7 +163,7 @@ async function recalcularMatch() {
         scoreSubtipos,
         acessibilidadesAtendidas: barreirasAtendidas,
         acessibilidadesTotal: barreirasTotal,
-        detalhes,
+        detalhes: detalhes as any,
         updatedAt: new Date(),
       },
     });
