@@ -8,35 +8,38 @@ import {
 } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { DisabilityTypesWithSubtypesTable } from '@/components/dashboard/admin/DisabilityTypesWithSubtypesTable'
-import { DisabilitySubtypesTable } from '@/components/dashboard/admin/DisabilitySubtypesTable'
 import { AcessibilidadesTable } from '@/components/dashboard/admin/AcessibilidadesTable'
-import { Accessibility, Layers, FolderTree, Search, Loader2, Shield, Link2, AlertCircle, Sparkles } from 'lucide-react'
+import { AssistiveResourcesTable } from '@/components/dashboard/admin/AssistiveResourcesTable'
+import { Accessibility, Layers, FolderTree, Search, Loader2, Shield, Link2, AlertCircle, Sparkles, Cog } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { getDisabilityTypes, getSubtypes } from '@/services/disabilities'
 import { getBarreiras } from '@/services/barreiras'
 import { acessibilidadesService } from '@/services/acessibilidades'
+import { assistiveResourcesService } from '@/services/assistiveResources'
 import BarriersManagementPage from './BarriersManagementPage'
 import BarrierConnectionsPage from './BarrierConnectionsPage'
 
 export default function DisabilityManagementPage() {
   const [searchTerm, setSearchTerm] = useState('')
-  const [stats, setStats] = useState({ types: 0, subtypes: 0, barriers: 0, acessibilidades: 0 })
+  const [stats, setStats] = useState({ types: 0, subtypes: 0, barriers: 0, acessibilidades: 0, assistiveResources: 0 })
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const [types, subtypes, barriers, acessibilidades] = await Promise.all([
+        const [types, subtypes, barriers, acessibilidades, assistiveResources] = await Promise.all([
           getDisabilityTypes(),
           getSubtypes(),
           getBarreiras(),
           acessibilidadesService.list(),
+          assistiveResourcesService.list(),
         ])
         setStats({
           types: types.length,
           subtypes: subtypes.length,
           barriers: barriers.length,
           acessibilidades: acessibilidades.length,
+          assistiveResources: assistiveResources.length,
         })
       } catch (error) {
         console.error('Erro ao carregar estatísticas:', error)
@@ -77,7 +80,7 @@ export default function DisabilityManagementPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <Card className="border-2 border-teal-200 dark:border-teal-800 bg-teal-50 dark:bg-teal-950/30">
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
@@ -85,29 +88,11 @@ export default function DisabilityManagementPage() {
                 <Layers className="h-6 w-6 text-white" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Tipos de Deficiência</p>
+                <p className="text-sm text-muted-foreground">Tipos</p>
                 {loading ? (
                   <Loader2 className="h-6 w-6 animate-spin text-teal-600" />
                 ) : (
                   <p className="text-3xl font-bold text-teal-600">{stats.types}</p>
-                )}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-2 border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/30">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-4">
-              <div className="h-12 w-12 rounded-xl bg-emerald-500 flex items-center justify-center">
-                <FolderTree className="h-6 w-6 text-white" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Subtipos Cadastrados</p>
-                {loading ? (
-                  <Loader2 className="h-6 w-6 animate-spin text-emerald-600" />
-                ) : (
-                  <p className="text-3xl font-bold text-emerald-600">{stats.subtypes}</p>
                 )}
               </div>
             </div>
@@ -121,7 +106,7 @@ export default function DisabilityManagementPage() {
                 <Shield className="h-6 w-6 text-white" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Barreiras Cadastradas</p>
+                <p className="text-sm text-muted-foreground">Barreiras</p>
                 {loading ? (
                   <Loader2 className="h-6 w-6 animate-spin text-rose-600" />
                 ) : (
@@ -132,18 +117,54 @@ export default function DisabilityManagementPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-2 border-violet-200 dark:border-violet-800 bg-violet-50 dark:bg-violet-950/30">
+        <Card className="border-2 border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/30">
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
-              <div className="h-12 w-12 rounded-xl bg-violet-500 flex items-center justify-center">
+              <div className="h-12 w-12 rounded-xl bg-emerald-500 flex items-center justify-center">
                 <Sparkles className="h-6 w-6 text-white" />
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Acessibilidades</p>
                 {loading ? (
+                  <Loader2 className="h-6 w-6 animate-spin text-emerald-600" />
+                ) : (
+                  <p className="text-3xl font-bold text-emerald-600">{stats.acessibilidades}</p>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-2 border-violet-200 dark:border-violet-800 bg-violet-50 dark:bg-violet-950/30">
+          <CardContent className="p-6">
+            <div className="flex items-center gap-4">
+              <div className="h-12 w-12 rounded-xl bg-violet-500 flex items-center justify-center">
+                <Cog className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Recursos Assistivos</p>
+                {loading ? (
                   <Loader2 className="h-6 w-6 animate-spin text-violet-600" />
                 ) : (
-                  <p className="text-3xl font-bold text-violet-600">{stats.acessibilidades}</p>
+                  <p className="text-3xl font-bold text-violet-600">{stats.assistiveResources}</p>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-2 border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30">
+          <CardContent className="p-6">
+            <div className="flex items-center gap-4">
+              <div className="h-12 w-12 rounded-xl bg-amber-500 flex items-center justify-center">
+                <Link2 className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Subtipos</p>
+                {loading ? (
+                  <Loader2 className="h-6 w-6 animate-spin text-amber-600" />
+                ) : (
+                  <p className="text-3xl font-bold text-amber-600">{stats.subtypes}</p>
                 )}
               </div>
             </div>
@@ -165,13 +186,6 @@ export default function DisabilityManagementPage() {
                 <span className="hidden sm:inline">Tipos</span>
               </TabsTrigger>
               <TabsTrigger 
-                value="create-subtypes"
-                className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-teal-500 data-[state=active]:to-emerald-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all"
-              >
-                <FolderTree className="h-4 w-4 mr-2" />
-                <span className="hidden sm:inline">Subtipos</span>
-              </TabsTrigger>
-              <TabsTrigger 
                 value="barriers"
                 className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-rose-500 data-[state=active]:to-red-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all"
               >
@@ -180,10 +194,17 @@ export default function DisabilityManagementPage() {
               </TabsTrigger>
               <TabsTrigger 
                 value="acessibilidades"
-                className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-500 data-[state=active]:to-purple-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all"
+                className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-green-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all"
               >
                 <Sparkles className="h-4 w-4 mr-2" />
                 <span className="hidden sm:inline">Acessibilidades</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="assistive"
+                className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-500 data-[state=active]:to-purple-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all"
+              >
+                <Cog className="h-4 w-4 mr-2" />
+                <span className="hidden sm:inline">Recursos Assistivos</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="connections"
@@ -216,18 +237,6 @@ export default function DisabilityManagementPage() {
                 <DisabilityTypesWithSubtypesTable searchTerm={searchTerm} />
               </div>
             </TabsContent>
-            
-            <TabsContent value="create-subtypes" className="mt-0">
-              <div className="space-y-4">
-                <div>
-                  <h3 className="text-lg font-semibold">Criar Subtipos de Deficiência</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Crie novos subtipos e associe-os a uma categoria principal.
-                  </p>
-                </div>
-                <DisabilitySubtypesTable />
-              </div>
-            </TabsContent>
 
             <TabsContent value="barriers" className="mt-0">
               <BarriersManagementPage />
@@ -235,6 +244,10 @@ export default function DisabilityManagementPage() {
 
             <TabsContent value="acessibilidades" className="mt-0">
               <AcessibilidadesTable />
+            </TabsContent>
+
+            <TabsContent value="assistive" className="mt-0">
+              <AssistiveResourcesTable />
             </TabsContent>
 
             <TabsContent value="connections" className="mt-0">

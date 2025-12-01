@@ -37,7 +37,8 @@
 
 ### 👥 Para Candidatos PCD
 
-- ✅ **Cadastro Detalhado**: Perfil completo com tipo de deficiência, subtipos, barreiras e recursos assistivos necessários
+- ✅ **Cadastro Detalhado**: Perfil completo com tipo de deficiência, subtipos, barreiras e recursos assistivos
+- 🦾 **Recursos Assistivos**: Cadastro de recursos próprios (próteses, cadeiras, aparelhos) que mitigam barreiras
 - 📄 **Upload de Currículo e Laudo**: Envio de documentos em PDF com armazenamento seguro
 - 🖼️ **Foto de Perfil**: Upload e gestão de avatar personalizado
 - 🔍 **Busca Inteligente de Vagas**: Filtros por tipo, regime, escolaridade e acessibilidades oferecidas
@@ -48,23 +49,35 @@
 
 ### 🤖 Smart Match - Match Inteligente
 
-Sistema exclusivo de análise de compatibilidade que avalia **2 critérios principais** com pesos específicos:
+Sistema exclusivo de análise de compatibilidade que avalia **3 critérios principais** com pesos específicos:
 
 | Critério | Peso | Descrição |
 |----------|------|-----------|
-| ♿ **Tipo de Deficiência** | 40% | Compatibilidade entre subtipos de deficiência do candidato e tipos aceitos pela vaga |
-| 🏢 **Acessibilidade** | 60% | Verifica se a vaga oferece as acessibilidades que atendem às barreiras do candidato |
+| ♿ **Tipo de Deficiência** | 30% | Compatibilidade entre subtipos de deficiência do candidato e tipos aceitos pela vaga |
+| 🏢 **Acessibilidade** | 55% | Verifica se a vaga oferece as acessibilidades que atendem às barreiras do candidato |
+| 🦾 **Recursos Assistivos** | 15% | Bônus por recursos próprios do candidato que mitigam barreiras |
 
 **Fórmula do Match:**
 ```
-scoreTotal = (scoreSubtipos × 0.4) + (scoreAcessibilidades × 0.6)
+scoreTotal = (scoreSubtipos × 0.30) + (scoreAcessibilidades × 0.55) + (scoreRecursosAssistivos × 0.15)
 ```
+
+**Recursos Assistivos e Mitigação de Barreiras:**
+
+O sistema considera que candidatos com recursos assistivos próprios (ex: cadeira de rodas motorizada, próteses, aparelhos auditivos) podem ter algumas barreiras já mitigadas:
+
+| Eficiência do Recurso | Efeito no Match |
+|----------------------|-----------------|
+| **Alta** | Barreira totalmente mitigada - removida do cálculo |
+| **Moderada** | Barreira parcialmente mitigada - conta como 50% atendida |
+| **Baixa** | Mantém a barreira - precisa acessibilidade da vaga |
 
 **Recursos do Smart Match:**
 - 📊 Score de 0-100% para cada vaga com indicador visual
 - 📈 Breakdown visual por categoria com barras de progresso
 - 🏆 Classificações visuais: Match Perfeito (100%), Ótimo Match (60%+), Match Razoável (26%+), Match Baixo (<26%)
 - 🎯 Cards de vagas com foto/iniciais da empresa
+- 🦾 Consideração de recursos assistivos do candidato
 - 📱 Interface totalmente responsiva
 
 ### 🏢 Para Empresas
@@ -89,11 +102,13 @@ scoreTotal = (scoreSubtipos × 0.4) + (scoreAcessibilidades × 0.6)
   - Engajamento (candidatos, empresas, vagas)
   - Acessibilidade (tipos de deficiência, barreiras)
   - Atividades (candidaturas, matches, visualizações)
-- 🗂️ **Gestão de Tipos de Deficiência**: CRUD completo com interface moderna
+- 🗂️ **Gestão de Tipos de Deficiência**: CRUD completo com seletor de cores personalizado
 - 🚧 **Gestão de Barreiras**: Cadastro e vinculação de barreiras aos subtipos
-- ♿ **Gestão de Recursos de Acessibilidade**: Controle dos recursos oferecidos
-- 🔗 **Vinculações**: Conectar barreiras a subtipos de deficiência
+- ♿ **Gestão de Recursos de Acessibilidade**: Controle dos recursos oferecidos pelas empresas
+- 🦾 **Gestão de Recursos Assistivos**: CRUD completo com vinculação de barreiras mitigadas e níveis de eficiência
+- 🔗 **Conexões Barreira-Acessibilidade**: Vincular quais acessibilidades atendem cada barreira
 - 👥 **Gestão de Administradores**: Controle de acesso administrativo
+- 🎨 **Personalização Visual**: Cores customizáveis para cada tipo de deficiência
 
 ### ♿ Recursos de Acessibilidade
 
@@ -260,7 +275,9 @@ ConectaPCD/
 │   │   ├── 📂 controllers/        # Lógica das rotas
 │   │   ├── 📂 services/           # Regras de negócio
 │   │   │   ├── email.service.ts   # Notificações por email
-│   │   │   ├── smartMatch.service.ts # Algoritmo de match
+│   │   │   ├── match.service.ts   # Algoritmo de match básico
+│   │   │   ├── matching.service.ts # Algoritmo de match inteligente
+│   │   │   ├── assistiveResources.service.ts # Gestão de recursos assistivos
 │   │   │   └── ...
 │   │   ├── 📂 repositories/       # Acesso ao banco
 │   │   ├── 📂 middleware/         # Auth, uploads, rate limit
@@ -346,8 +363,14 @@ http://localhost:3000/api-docs
 | `GET` | `/matching/candidato/:id/scores` | Scores calculados do cache |
 | `POST` | `/matching/candidato/:id/calculate` | Recalcular todos os scores |
 | `GET` | `/tipos` | Listar tipos de deficiência |
+| `POST` | `/tipos` | Criar tipo de deficiência (com cor) |
+| `PUT` | `/tipos/:id` | Atualizar tipo de deficiência |
 | `GET` | `/subtipos` | Listar subtipos |
 | `GET` | `/acessibilidades` | Listar acessibilidades |
+| `GET` | `/assistive-resources` | Listar recursos assistivos |
+| `POST` | `/assistive-resources` | Criar recurso assistivo |
+| `PUT` | `/assistive-resources/:id` | Atualizar recurso assistivo |
+| `DELETE` | `/assistive-resources/:id` | Excluir recurso assistivo |
 | `GET` | `/stats` | Estatísticas públicas |
 
 ---

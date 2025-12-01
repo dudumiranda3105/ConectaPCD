@@ -4,6 +4,7 @@ export interface DisabilityType {
   id: number
   nome: string
   descricao?: string
+  cor?: string
 }
 
 export interface DisabilitySubtype {
@@ -46,6 +47,7 @@ export const getBarriers = async (): Promise<Barrier[]> => {
 export const createDisabilityType = async (
   name: string,
   description?: string,
+  cor?: string,
 ): Promise<DisabilityType> => {
   const token = localStorage.getItem('auth_token')
   const res = await fetch(`${API_URL}/tipos`, {
@@ -54,7 +56,7 @@ export const createDisabilityType = async (
       'Content-Type': 'application/json',
       ...(token && { Authorization: `Bearer ${token}` }),
     },
-    body: JSON.stringify({ nome: name, descricao: description }),
+    body: JSON.stringify({ nome: name, descricao: description, cor }),
   })
   if (!res.ok) throw new Error('Erro ao criar tipo de deficiência')
   return res.json()
@@ -64,6 +66,7 @@ export const updateDisabilityType = async (
   id: number,
   name: string,
   description?: string,
+  cor?: string,
 ): Promise<DisabilityType | null> => {
   const token = localStorage.getItem('auth_token')
   const res = await fetch(`${API_URL}/tipos/${id}`, {
@@ -72,7 +75,7 @@ export const updateDisabilityType = async (
       'Content-Type': 'application/json',
       ...(token && { Authorization: `Bearer ${token}` }),
     },
-    body: JSON.stringify({ nome: name, descricao: description }),
+    body: JSON.stringify({ nome: name, descricao: description, cor }),
   })
   if (!res.ok) throw new Error('Erro ao atualizar tipo de deficiência')
   return res.json()

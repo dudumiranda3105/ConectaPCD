@@ -5,7 +5,6 @@ import { Job } from '@/lib/jobs'
 import { JobCard } from '@/components/dashboard/candidate/JobCard'
 import { JobFilters } from '@/components/dashboard/candidate/JobFilters'
 import { JobCardSkeleton } from '@/components/dashboard/candidate/JobCardSkeleton'
-import { useJobStore } from '@/stores/job-store'
 import { listarVagasPublicas } from '@/services/vagas'
 import { listarCandidaturasCandidato } from '@/services/candidaturas'
 import { acessibilidadesService, Acessibilidade } from '@/services/acessibilidades'
@@ -48,7 +47,7 @@ interface VagaBackend {
 
 export default function CandidateDashboard() {
   const { user } = useAuth() as { user: User | null }
-  const { jobs, setJobs } = useJobStore()
+  const [jobs, setJobs] = useState<Job[]>([])
   const [loading, setLoading] = useState(true)
   const [appliedJobs, setAppliedJobs] = useState<Set<string>>(new Set())
   const [matchScoreMap, setMatchScoreMap] = useState<Map<number, MatchScore>>(new Map())
@@ -190,6 +189,27 @@ export default function CandidateDashboard() {
     
     fetchApplications()
   }, [user?.candidatoId])
+
+  // Detectar vagas sem score calculado e recalcular automaticamente
+  const [hasRecalculated, setHasRecalculated] = useState(false)
+  
+  useEffect(() => {
+    if (loading || loadingMatches || jobs.length === 0 || hasRecalculated) return
+    
+    // Verificar se há vagas sem score (após os scores terem sido carregados)
+    if (matchScoreMap.size > 0) {
+      const vagasSemScore = jobs.filter(job => {
+        const vagaId = parseInt(job.id, 10)
+        return !matchScoreMap.has(vagaId)
+      })
+      
+      if (vagasSemScore.length > 0) {
+        console.log('[CandidateDashboard] Detectadas', vagasSemScore.length, 'vagas sem score. Recalculando...')
+        setHasRecalculated(true) // Evita recálculos múltiplos
+        loadMatchScores(true) // Força recálculo
+      }
+    }
+  }, [jobs, matchScoreMap, loading, loadingMatches, hasRecalculated, loadMatchScores])
 
   const handleFilterChange = (key: string, value: string) => {
     setFilters((prev) => ({ ...prev, [key]: value }))

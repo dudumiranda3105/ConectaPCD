@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { useJobStore } from '@/stores/job-store'
-import { useApplicationStore } from '@/stores/application-store'
 import { Job } from '@/lib/jobs'
+import { buscarVagaPorId } from '@/services/vagas'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -51,10 +50,8 @@ import { listarCandidaturasCandidato, candidatarSeVaga } from '@/services/candid
 export default function JobDetailsPage() {
   const { jobId } = useParams<{ jobId: string }>()
   const navigate = useNavigate()
-  const { jobs } = useJobStore()
   const { toast } = useToast()
   const { user } = useAuth()
-  const { applyForJob } = useApplicationStore()
   const [job, setJob] = useState<Job | null>(null)
   const [loading, setLoading] = useState(true)
   const [alreadyApplied, setAlreadyApplied] = useState(false)
@@ -81,21 +78,63 @@ export default function JobDetailsPage() {
   }
 
   useEffect(() => {
-    setLoading(true)
-    const foundJob = jobs.find((j) => j.id === jobId)
-    if (foundJob) {
-      setJob(foundJob)
-      checkIfAlreadyApplied()
-      // registra visualização no backend
-      import('@/services/vagas').then(({ registrarVisualizacaoVaga }) => {
-        if (jobId) registrarVisualizacaoVaga(parseInt(jobId)).catch(() => {})
-      })
-    } else {
-      navigate('/dashboard/candidato')
+    const fetchJob = async () => {
+      if (!jobId) {
+        navigate('/dashboard/candidato')
+        return
+      }
+      
+      setLoading(true)
+      try {
+        const vaga = await buscarVagaPorId(parseInt(jobId))
+        if (vaga) {
+          // Mapear dados do backend para o formato Job
+          const cd = vaga.empresa?.companyData || {}
+          const cidade = cd.cidade || cd.localidade || ''
+          const estado = cd.estado || cd.uf || ''
+          const location = [cidade, estado].filter(Boolean).join(' - ') || 'Brasil'
+          const setor = cd.setorAtividade || 'Tecnologia'
+          const companyName = cd.nomeFantasia || cd.razaoSocial || vaga.empresa?.nome || 'Empresa'
+          const companyLogo = cd.logoUrl || cd.avatarUrl || ''
+          
+          const mappedJob: Job = {
+            id: String(vaga.id),
+            title: vaga.titulo || 'Sem título',
+            description: vaga.descricao || '',
+            company: companyName,
+            logo: companyLogo,
+            location,
+            sector: setor,
+            regime: (vaga.regimeTrabalho || 'Presencial') as 'Presencial' | 'Híbrido' | 'Remoto',
+            type: (vaga.tipo || 'Tempo integral') as 'Tempo integral' | 'Meio período' | 'Contrato' | 'Temporário' | 'Estágio',
+            accessibilities: vaga.acessibilidades?.map((a: any) => a.acessibilidade?.descricao).filter(Boolean) || [],
+            subtiposAceitos: vaga.subtiposAceitos || [],
+            status: vaga.isActive ? 'Ativa' : 'Fechada',
+            applications: 0,
+            createdAt: vaga.createdAt || new Date().toISOString(),
+            benefits: vaga.beneficios || '',
+          }
+          
+          setJob(mappedJob)
+          checkIfAlreadyApplied()
+          
+          // Registra visualização no backend
+          import('@/services/vagas').then(({ registrarVisualizacaoVaga }) => {
+            registrarVisualizacaoVaga(parseInt(jobId)).catch(() => {})
+          })
+        } else {
+          navigate('/dashboard/candidato')
+        }
+      } catch (error) {
+        console.error('Erro ao buscar vaga:', error)
+        navigate('/dashboard/candidato')
+      } finally {
+        setLoading(false)
+      }
     }
-    const timer = setTimeout(() => setLoading(false), 500)
-    return () => clearTimeout(timer)
-  }, [jobId, jobs, navigate, user])
+    
+    fetchJob()
+  }, [jobId, navigate, user])
 
   const handleApply = async () => {
     if (!job || !jobId || !user?.candidatoId || alreadyApplied) return
@@ -112,7 +151,6 @@ export default function JobDetailsPage() {
       }
 
       await candidatarSeVaga(parseInt(jobId), user.candidatoId, token)
-      applyForJob(jobId) // Atualiza o store local também
       setAlreadyApplied(true)
       
       toast({

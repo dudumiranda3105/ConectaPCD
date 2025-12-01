@@ -257,7 +257,8 @@ export default function ProfilePage() {
 
   const handleDisabilitySave = async (
     newDisabilities: DisabilityInfoValues['disabilities'],
-    newAccessibilities: Array<{ acessibilidadeId: number; prioridade: string }>
+    newAccessibilities: Array<{ acessibilidadeId: number; prioridade: string }>,
+    newAssistiveResources: Array<{ recursoId: number; usoFrequencia: string; impactoMobilidade: string }>
   ) => {
     const token = localStorage.getItem('auth_token')
     if (!token || !profileData?.id) {
@@ -280,13 +281,14 @@ export default function ProfilePage() {
         }))
       )
       
-      console.log('[ProfilePage] Salvando deficiências e acessibilidades:', {
+      console.log('[ProfilePage] Salvando deficiências, acessibilidades e recursos assistivos:', {
         candidatoId: profileData.id,
         disabilities: disabilitiesPayload,
         accessibilities: newAccessibilities,
+        assistiveResources: newAssistiveResources,
       })
       
-      const result = await updateCandidateDisabilities(token, profileData.id, disabilitiesPayload, newAccessibilities)
+      const result = await updateCandidateDisabilities(token, profileData.id, disabilitiesPayload, newAccessibilities, newAssistiveResources)
       console.log('[ProfilePage] Resultado da atualização:', result)
       
       // Recarregar perfil para obter dados atualizados
@@ -297,7 +299,7 @@ export default function ProfilePage() {
       setIsDisabilityEditorOpen(false)
       toast({
         title: 'Informações Atualizadas! ✅',
-        description: `Deficiências e ${newAccessibilities.length} necessidade(s) de acessibilidade salvas com sucesso.`,
+        description: `Deficiências, ${newAccessibilities.length} acessibilidade(s) e ${newAssistiveResources.length} recurso(s) assistivo(s) salvos.`,
       })
     } catch (error) {
       console.error('[ProfilePage] Erro ao salvar deficiências:', error)
@@ -953,7 +955,10 @@ export default function ProfilePage() {
                 </div>
               </CardHeader>
               <CardContent className="p-4 sm:p-6 md:p-8">
-                <DisabilityInfoDisplay disabilities={disabilities} />
+                <DisabilityInfoDisplay 
+                  disabilities={disabilities}
+                  assistiveResources={profileData?.recursosAssistivos}
+                />
               </CardContent>
             </Card>
 
@@ -1265,6 +1270,11 @@ export default function ProfilePage() {
         initialAccessibilities={profileData?.acessibilidades?.map(a => ({
           acessibilidadeId: a.acessibilidadeId,
           prioridade: a.prioridade as 'essencial' | 'importante' | 'desejavel'
+        })) || []}
+        initialAssistiveResources={profileData?.recursosAssistivos?.map(r => ({
+          recursoId: r.recursoId,
+          usoFrequencia: (r.usoFrequencia || 'frequente') as 'sempre' | 'frequente' | 'ocasional',
+          impactoMobilidade: (r.impactoMobilidade || 'moderado') as 'leve' | 'moderado' | 'severo'
         })) || []}
         onSave={handleDisabilitySave}
       />

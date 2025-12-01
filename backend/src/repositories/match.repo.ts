@@ -31,6 +31,15 @@ export const MatchRepo = {
         acessibilidades: {
           include: { acessibilidade: true },
         },
+        recursosAssistivos: {
+          include: {
+            recurso: {
+              include: {
+                mitigacoes: true,
+              },
+            },
+          },
+        },
       },
     });
   },

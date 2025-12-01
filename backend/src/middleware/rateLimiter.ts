@@ -1,10 +1,10 @@
 import rateLimit from 'express-rate-limit';
 import { Request, Response } from 'express';
 
-// Rate limiter geral - 100 requisições por minuto
+// Rate limiter geral - 500 requisições por minuto (aumentado para suportar recálculo de matches)
 export const generalLimiter = rateLimit({
   windowMs: 60 * 1000, // 1 minuto
-  max: 100,
+  max: 500,
   message: {
     error: 'Muitas requisições. Por favor, aguarde um momento.',
   },

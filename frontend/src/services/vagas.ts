@@ -47,6 +47,15 @@ export async function listarVagasPublicas() {
   return res.json()
 }
 
+export async function buscarVagaPorId(vagaId: number) {
+  const res = await fetch(`${API_URL}/vagas/${vagaId}`)
+  if (!res.ok) {
+    if (res.status === 404) return null
+    throw new Error('Erro ao buscar vaga')
+  }
+  return res.json()
+}
+
 export async function atualizarVaga(
   token: string,
   vagaId: number,

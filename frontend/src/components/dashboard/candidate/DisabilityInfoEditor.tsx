@@ -22,7 +22,8 @@ import {
   AlertTriangle,
   Sparkles,
   Heart,
-  Star
+  Star,
+  Cog
 } from 'lucide-react'
 import {
   getDisabilityTypes,
@@ -33,6 +34,7 @@ import {
   Barrier,
 } from '@/services/disabilities'
 import { acessibilidadesService, Acessibilidade } from '@/services/acessibilidades'
+import { assistiveResourcesService, AssistiveResourceDTO } from '@/services/assistiveResources'
 import { DisabilityInfoValues } from '@/lib/schemas/candidate-signup-schema'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Badge } from '@/components/ui/badge'
@@ -43,6 +45,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 
 type Selections = {
   [typeId: number]: {
@@ -60,12 +63,24 @@ type AccessibilitySelection = {
   prioridade: 'essencial' | 'importante' | 'desejavel'
 }
 
+// Estrutura para recursos assistivos do candidato
+type AssistiveResourceSelection = {
+  recursoId: number
+  usoFrequencia: 'sempre' | 'frequente' | 'ocasional'
+  impactoMobilidade: 'leve' | 'moderado' | 'severo'
+}
+
 interface DisabilityInfoEditorProps {
   isOpen: boolean
   onOpenChange: (open: boolean) => void
   initialDisabilities: DisabilityInfoValues['disabilities']
   initialAccessibilities?: AccessibilitySelection[]
-  onSave: (data: DisabilityInfoValues['disabilities'], accessibilities: AccessibilitySelection[]) => Promise<void>
+  initialAssistiveResources?: AssistiveResourceSelection[]
+  onSave: (
+    data: DisabilityInfoValues['disabilities'], 
+    accessibilities: AccessibilitySelection[], 
+    assistiveResources: AssistiveResourceSelection[]
+  ) => Promise<void>
 }
 
 export const DisabilityInfoEditor = ({
@@ -73,6 +88,7 @@ export const DisabilityInfoEditor = ({
   onOpenChange,
   initialDisabilities,
   initialAccessibilities = [],
+  initialAssistiveResources = [],
   onSave,
 }: DisabilityInfoEditorProps) => {
   const [types, setTypes] = useState<DisabilityType[]>([])
@@ -81,10 +97,12 @@ export const DisabilityInfoEditor = ({
   )
   const [barriers, setBarriers] = useState<Barrier[]>([])
   const [acessibilidades, setAcessibilidades] = useState<Acessibilidade[]>([])
+  const [assistiveResources, setAssistiveResources] = useState<AssistiveResourceDTO[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [selections, setSelections] = useState<Selections>({})
   const [accessibilitySelections, setAccessibilitySelections] = useState<Map<number, AccessibilitySelection>>(new Map())
+  const [assistiveResourceSelections, setAssistiveResourceSelections] = useState<Map<number, AssistiveResourceSelection>>(new Map())
 
   useEffect(() => {
     if (isOpen) {
@@ -108,17 +126,26 @@ export const DisabilityInfoEditor = ({
       }
       setAccessibilitySelections(initialAccessMap)
 
+      // Inicializar seleções de recursos assistivos
+      const initialResourcesMap = new Map<number, AssistiveResourceSelection>()
+      for (const res of initialAssistiveResources) {
+        initialResourcesMap.set(res.recursoId, res)
+      }
+      setAssistiveResourceSelections(initialResourcesMap)
+
       const fetchData = async () => {
         setLoading(true)
         try {
-          const [fetchedTypes, fetchedBarriers, fetchedAcessibilidades] = await Promise.all([
+          const [fetchedTypes, fetchedBarriers, fetchedAcessibilidades, fetchedAssistiveResources] = await Promise.all([
             getDisabilityTypes(),
             getBarriers(),
             acessibilidadesService.list(),
+            assistiveResourcesService.list(),
           ])
           setTypes(fetchedTypes)
           setBarriers(fetchedBarriers)
           setAcessibilidades(fetchedAcessibilidades)
+          setAssistiveResources(fetchedAssistiveResources)
 
           if (initialDisabilities && initialDisabilities.length > 0) {
             const selectedTypeIds = initialDisabilities.map((d) => d.typeId)
@@ -138,7 +165,7 @@ export const DisabilityInfoEditor = ({
       }
       fetchData()
     }
-  }, [isOpen, initialDisabilities, initialAccessibilities])
+  }, [isOpen, initialDisabilities, initialAccessibilities, initialAssistiveResources])
 
   const handleTypeSelect = useCallback(
     async (typeId: number, isSelected: boolean) => {
@@ -206,6 +233,35 @@ export const DisabilityInfoEditor = ({
     }
   }
 
+  // Handlers para recursos assistivos
+  const handleAssistiveResourceToggle = (recursoId: number, isSelected: boolean) => {
+    const newMap = new Map(assistiveResourceSelections)
+    if (isSelected) {
+      newMap.set(recursoId, { recursoId, usoFrequencia: 'frequente', impactoMobilidade: 'moderado' })
+    } else {
+      newMap.delete(recursoId)
+    }
+    setAssistiveResourceSelections(newMap)
+  }
+
+  const handleAssistiveResourceFrequencyChange = (recursoId: number, usoFrequencia: 'sempre' | 'frequente' | 'ocasional') => {
+    const newMap = new Map(assistiveResourceSelections)
+    const existing = newMap.get(recursoId)
+    if (existing) {
+      newMap.set(recursoId, { ...existing, usoFrequencia })
+      setAssistiveResourceSelections(newMap)
+    }
+  }
+
+  const handleAssistiveResourceImpactChange = (recursoId: number, impactoMobilidade: 'leve' | 'moderado' | 'severo') => {
+    const newMap = new Map(assistiveResourceSelections)
+    const existing = newMap.get(recursoId)
+    if (existing) {
+      newMap.set(recursoId, { ...existing, impactoMobilidade })
+      setAssistiveResourceSelections(newMap)
+    }
+  }
+
   const handleSaveChanges = async () => {
     const formattedData = Object.entries(selections).map(
       ([typeId, typeData]) => ({
@@ -220,10 +276,11 @@ export const DisabilityInfoEditor = ({
     )
 
     const formattedAccessibilities = Array.from(accessibilitySelections.values())
+    const formattedAssistiveResources = Array.from(assistiveResourceSelections.values())
     
     try {
       setSaving(true)
-      await onSave(formattedData, formattedAccessibilities)
+      await onSave(formattedData, formattedAccessibilities, formattedAssistiveResources)
     } catch (error) {
       console.error('Erro ao salvar:', error)
     } finally {
@@ -604,8 +661,174 @@ export const DisabilityInfoEditor = ({
                   )}
                 </div>
 
+                {/* Seção de Recursos Assistivos */}
+                <div className="space-y-4 p-5 rounded-2xl bg-gradient-to-br from-purple-500/5 to-violet-500/5 border border-purple-500/20">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-lg bg-gradient-to-br from-purple-500 to-violet-600 text-white">
+                        <Cog className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <h3 className="text-base font-semibold">
+                          Recursos Assistivos
+                        </h3>
+                        <p className="text-xs text-muted-foreground">
+                          Informe os recursos assistivos que você utiliza no dia a dia
+                        </p>
+                      </div>
+                    </div>
+                    {assistiveResourceSelections.size > 0 && (
+                      <Badge className="bg-purple-500/10 text-purple-600 border-purple-500/20">
+                        {assistiveResourceSelections.size} selecionado(s)
+                      </Badge>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {assistiveResources.map((recurso) => {
+                      const selection = assistiveResourceSelections.get(recurso.id)
+                      const isSelected = !!selection
+
+                      return (
+                        <TooltipProvider key={recurso.id}>
+                          <div
+                            className={cn(
+                              'p-3 rounded-xl border transition-all',
+                              isSelected
+                                ? 'bg-purple-500/5 border-purple-500/30 shadow-sm'
+                                : 'bg-background border-border hover:border-purple-500/30'
+                            )}
+                          >
+                            <div className="flex items-start gap-3">
+                              <Checkbox
+                                id={`resource-${recurso.id}`}
+                                checked={isSelected}
+                                onCheckedChange={(checked) =>
+                                  handleAssistiveResourceToggle(recurso.id, !!checked)
+                                }
+                                className="mt-0.5 data-[state=checked]:bg-purple-500 data-[state=checked]:border-purple-500"
+                              />
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2">
+                                  <label
+                                    htmlFor={`resource-${recurso.id}`}
+                                    className={cn(
+                                      'text-sm font-medium cursor-pointer block',
+                                      isSelected && 'text-purple-700 dark:text-purple-400'
+                                    )}
+                                  >
+                                    {recurso.nome}
+                                  </label>
+                                  {recurso.descricao && (
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                                      </TooltipTrigger>
+                                      <TooltipContent side="top" className="max-w-xs">
+                                        <p className="text-xs">{recurso.descricao}</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  )}
+                                </div>
+
+                                {isSelected && (
+                                  <div className="mt-2 space-y-2">
+                                    <div>
+                                      <label className="text-xs text-muted-foreground block mb-1">
+                                        Frequência de uso:
+                                      </label>
+                                      <Select
+                                        value={selection?.usoFrequencia || 'frequente'}
+                                        onValueChange={(value) =>
+                                          handleAssistiveResourceFrequencyChange(
+                                            recurso.id,
+                                            value as 'sempre' | 'frequente' | 'ocasional'
+                                          )
+                                        }
+                                      >
+                                        <SelectTrigger className="h-8 text-xs bg-background">
+                                          <SelectValue placeholder="Frequência" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                          <SelectItem value="sempre">
+                                            <span className="flex items-center gap-1.5">
+                                              <div className="h-2 w-2 rounded-full bg-red-500" />
+                                              Sempre (permanente)
+                                            </span>
+                                          </SelectItem>
+                                          <SelectItem value="frequente">
+                                            <span className="flex items-center gap-1.5">
+                                              <div className="h-2 w-2 rounded-full bg-amber-500" />
+                                              Frequente (diário)
+                                            </span>
+                                          </SelectItem>
+                                          <SelectItem value="ocasional">
+                                            <span className="flex items-center gap-1.5">
+                                              <div className="h-2 w-2 rounded-full bg-blue-500" />
+                                              Ocasional
+                                            </span>
+                                          </SelectItem>
+                                        </SelectContent>
+                                      </Select>
+                                    </div>
+                                    
+                                    <div>
+                                      <label className="text-xs text-muted-foreground block mb-1">
+                                        Impacto na mobilidade:
+                                      </label>
+                                      <Select
+                                        value={selection?.impactoMobilidade || 'moderado'}
+                                        onValueChange={(value) =>
+                                          handleAssistiveResourceImpactChange(
+                                            recurso.id,
+                                            value as 'leve' | 'moderado' | 'severo'
+                                          )
+                                        }
+                                      >
+                                        <SelectTrigger className="h-8 text-xs bg-background">
+                                          <SelectValue placeholder="Impacto" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                          <SelectItem value="leve">
+                                            <span className="flex items-center gap-1.5">
+                                              <div className="h-2 w-2 rounded-full bg-green-500" />
+                                              Leve - não afeta muito
+                                            </span>
+                                          </SelectItem>
+                                          <SelectItem value="moderado">
+                                            <span className="flex items-center gap-1.5">
+                                              <div className="h-2 w-2 rounded-full bg-amber-500" />
+                                              Moderado - afeta parcialmente
+                                            </span>
+                                          </SelectItem>
+                                          <SelectItem value="severo">
+                                            <span className="flex items-center gap-1.5">
+                                              <div className="h-2 w-2 rounded-full bg-red-500" />
+                                              Severo - essencial para locomoção
+                                            </span>
+                                          </SelectItem>
+                                        </SelectContent>
+                                      </Select>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </TooltipProvider>
+                      )
+                    })}
+                  </div>
+
+                  {assistiveResources.length === 0 && (
+                    <div className="text-center py-4 text-muted-foreground text-sm">
+                      Nenhum recurso assistivo cadastrado pelo administrador ainda.
+                    </div>
+                  )}
+                </div>
+
                 {/* Empty State */}
-                {Object.keys(selections).length === 0 && accessibilitySelections.size === 0 && (
+                {Object.keys(selections).length === 0 && accessibilitySelections.size === 0 && assistiveResourceSelections.size === 0 && (
                   <div className="flex flex-col items-center justify-center py-8 text-center">
                     <div className="p-4 rounded-full bg-muted mb-4">
                       <Info className="h-8 w-8 text-muted-foreground" />

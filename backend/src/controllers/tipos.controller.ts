@@ -11,14 +11,14 @@ export const TiposController = {
     res.json(data);
   },
   async create(req: Request, res: Response) {
-    const { nome, descricao } = req.body ?? {};
-    const created = await TiposService.create(nome, descricao);
+    const { nome, descricao, cor } = req.body ?? {};
+    const created = await TiposService.create(nome, descricao, cor);
     res.status(201).json(created);
   },
   async update(req: Request, res: Response) {
     const id = parseInt(req.params.id || '0');
-    const { nome, descricao } = req.body ?? {};
-    const updated = await TiposService.update(id, nome, descricao);
+    const { nome, descricao, cor } = req.body ?? {};
+    const updated = await TiposService.update(id, nome, descricao, cor);
     res.json(updated);
   },
 };

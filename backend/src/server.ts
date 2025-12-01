@@ -6,7 +6,7 @@ import cors from "cors";
 import helmet from "helmet";
 import swaggerUi from "swagger-ui-express";
 import { swaggerSpec, swaggerDocs } from "./config/swagger.config";
-import { generalLimiter, statsLimiter } from "./middleware/rateLimiter";
+import { statsLimiter } from "./middleware/rateLimiter";
 
 // importa suas rotas
 import tiposRoutes from "./routes/tipos.routes";
@@ -40,8 +40,7 @@ app.use(helmet({
   contentSecurityPolicy: false, // Desabilitar CSP para dev
 }));
 
-// Rate limiting geral
-app.use(generalLimiter);
+// Rate limiting removido para desenvolvimento
 
 app.use(cors({ origin: true })); // antes das rotas
 app.use(express.json());

@@ -43,6 +43,17 @@ export interface CandidateProfileData {
       descricao: string
     }
   }>
+  recursosAssistivos?: Array<{
+    candidatoId: number
+    recursoId: number
+    usoFrequencia?: string | null
+    impactoMobilidade?: string | null
+    recurso: {
+      id: number
+      nome: string
+      descricao?: string | null
+    }
+  }>
 }
 
 export async function getCandidateProfile(token: string): Promise<CandidateProfileData> {
@@ -90,6 +101,11 @@ export async function updateCandidateDisabilities(
   accessibilities?: Array<{
     acessibilidadeId: number
     prioridade: string
+  }>,
+  assistiveResources?: Array<{
+    recursoId: number
+    usoFrequencia: string
+    impactoMobilidade: string
   }>
 ) {
   console.log('[updateCandidateDisabilities] Enviando requisição:', {
@@ -97,6 +113,7 @@ export async function updateCandidateDisabilities(
     method: 'PUT',
     disabilities,
     accessibilities,
+    assistiveResources,
   })
   
   const res = await fetch(`${API_URL}/candidatos/${candidatoId}/disabilities`, {
@@ -105,7 +122,7 @@ export async function updateCandidateDisabilities(
       'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify({ disabilities, accessibilities }),
+    body: JSON.stringify({ disabilities, accessibilities, assistiveResources }),
   })
   
   console.log('[updateCandidateDisabilities] Status da resposta:', res.status)

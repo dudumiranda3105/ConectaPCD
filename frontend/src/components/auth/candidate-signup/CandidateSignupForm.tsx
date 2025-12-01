@@ -6,7 +6,7 @@ import {
   User, Hash, Phone, Calendar, Mail, Lock, MapPin, Home, 
   GraduationCap, Briefcase, Link as LinkIcon, FileText, Accessibility,
   Users, Eye, EyeOff, Check, X, Loader2, Heart, CheckCircle2, Shield, Upload, CheckCircle,
-  Plus, Building2, Pencil, Trash2, Stethoscope, AlertCircle
+  Plus, Building2, Pencil, Trash2, Stethoscope, AlertCircle, Cog, Info
 } from 'lucide-react'
 import {
   candidateSignupSchema,
@@ -26,6 +26,7 @@ import {
   type DisabilitySubtype,
   type Barrier
 } from '@/services/disabilities'
+import { assistiveResourcesService, AssistiveResourceDTO } from '@/services/assistiveResources'
 import {
   Form,
   FormControl,
@@ -263,6 +264,14 @@ export const CandidateSignupForm = () => {
   const [barriers, setBarriers] = useState<Barrier[]>([])
   const [selectedBarriers, setSelectedBarriers] = useState<Record<number, number[]>>({})
   const [isLoadingDisabilities, setIsLoadingDisabilities] = useState(true)
+  
+  // Estados para recursos assistivos
+  const [assistiveResources, setAssistiveResources] = useState<AssistiveResourceDTO[]>([])
+  const [selectedAssistiveResources, setSelectedAssistiveResources] = useState<Map<number, {
+    recursoId: number
+    usoFrequencia: 'sempre' | 'frequente' | 'ocasional'
+    impactoMobilidade: 'leve' | 'moderado' | 'severo'
+  }>>(new Map())
 
   const form = useForm<CandidateSignupFormValues>({
     resolver: zodResolver(candidateSignupSchema),
@@ -299,17 +308,19 @@ export const CandidateSignupForm = () => {
     loadEstados()
   }, [])
 
-  // Carregar tipos de deficiência e barreiras
+  // Carregar tipos de deficiência, barreiras e recursos assistivos
   useEffect(() => {
     const loadDisabilities = async () => {
       setIsLoadingDisabilities(true)
       try {
-        const [types, allBarriers] = await Promise.all([
+        const [types, allBarriers, resources] = await Promise.all([
           getDisabilityTypes(),
-          getBarriers()
+          getBarriers(),
+          assistiveResourcesService.list()
         ])
         setDisabilityTypes(types)
         setBarriers(allBarriers)
+        setAssistiveResources(resources)
       } catch (error) {
         console.error('Erro ao carregar deficiências:', error)
         toast({
@@ -616,10 +627,14 @@ export const CandidateSignupForm = () => {
       // Converter array de experiências para JSON string
       const experienciasJson = experiences.length > 0 ? JSON.stringify(experiences) : undefined
 
+      // Converter recursos assistivos selecionados para array
+      const assistiveResourcesArray = Array.from(selectedAssistiveResources.values())
+
       const formDataWithDisabilities = {
         ...data,
         disabilities,
-        experiencias: experienciasJson
+        experiencias: experienciasJson,
+        assistiveResources: assistiveResourcesArray
       }
 
       console.log('📤 Dados enviados:', formDataWithDisabilities)
@@ -1439,6 +1454,163 @@ export const CandidateSignupForm = () => {
                             </>
                           )}
                         </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Seção de Recursos Assistivos */}
+                <div>
+                  <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
+                    <div className="h-8 w-8 sm:h-10 sm:w-10 bg-gradient-to-br from-violet-500 to-purple-600 rounded-lg flex items-center justify-center">
+                      <Cog className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+                    </div>
+                    <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100">
+                      Recursos Assistivos
+                      <span className="ml-2 text-xs font-normal px-2 py-0.5 rounded-full bg-violet-100 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400 border border-violet-200 dark:border-violet-800">
+                        Opcional
+                      </span>
+                    </h3>
+                  </div>
+                  <Separator className="mb-4 sm:mb-6" />
+                  
+                  <div className="space-y-4">
+                    <div className="p-3 sm:p-4 border-2 rounded-lg bg-gradient-to-r from-violet-500/10 via-purple-500/10 to-violet-500/10 dark:from-violet-500/20 dark:via-purple-500/20 dark:to-violet-500/20 border-violet-200 dark:border-violet-800">
+                      <div className="flex items-start gap-2 sm:gap-3">
+                        <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center flex-shrink-0">
+                          <Info className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-white" />
+                        </div>
+                        <div>
+                          <h4 className="text-xs sm:text-sm font-semibold text-violet-900 dark:text-violet-100 mb-1">
+                            Sobre Recursos Assistivos
+                          </h4>
+                          <p className="text-xs sm:text-sm text-violet-700 dark:text-violet-300">
+                            Informe os recursos ou tecnologias assistivas que você utiliza no dia a dia. Isso ajuda empresas a entender melhor suas necessidades.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {assistiveResources.length === 0 ? (
+                      <div className="text-center py-4 text-muted-foreground text-sm">
+                        Nenhum recurso assistivo cadastrado ainda.
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {assistiveResources.map((recurso) => {
+                          const selection = selectedAssistiveResources.get(recurso.id)
+                          const isSelected = !!selection
+
+                          return (
+                            <div
+                              key={recurso.id}
+                              className={`p-3 rounded-xl border-2 transition-all ${
+                                isSelected
+                                  ? 'bg-violet-500/5 border-violet-400 shadow-md'
+                                  : 'bg-background border-gray-200 dark:border-gray-700 hover:border-violet-300'
+                              }`}
+                            >
+                              <div className="flex items-start gap-3">
+                                <Checkbox
+                                  id={`signup-resource-${recurso.id}`}
+                                  checked={isSelected}
+                                  onCheckedChange={(checked) => {
+                                    const newMap = new Map(selectedAssistiveResources)
+                                    if (checked) {
+                                      newMap.set(recurso.id, {
+                                        recursoId: recurso.id,
+                                        usoFrequencia: 'frequente',
+                                        impactoMobilidade: 'moderado'
+                                      })
+                                    } else {
+                                      newMap.delete(recurso.id)
+                                    }
+                                    setSelectedAssistiveResources(newMap)
+                                  }}
+                                  className="mt-0.5 data-[state=checked]:bg-violet-500 data-[state=checked]:border-violet-500"
+                                />
+                                <div className="flex-1 min-w-0">
+                                  <label
+                                    htmlFor={`signup-resource-${recurso.id}`}
+                                    className={`text-sm font-medium cursor-pointer block ${
+                                      isSelected && 'text-violet-700 dark:text-violet-400'
+                                    }`}
+                                  >
+                                    {recurso.nome}
+                                  </label>
+                                  {recurso.descricao && (
+                                    <p className="text-xs text-muted-foreground mt-0.5">{recurso.descricao}</p>
+                                  )}
+
+                                  {isSelected && (
+                                    <div className="mt-3 grid grid-cols-2 gap-2">
+                                      <div>
+                                        <label className="text-xs text-muted-foreground block mb-1">
+                                          Uso:
+                                        </label>
+                                        <Select
+                                          value={selection?.usoFrequencia || 'frequente'}
+                                          onValueChange={(value) => {
+                                            const newMap = new Map(selectedAssistiveResources)
+                                            const current = newMap.get(recurso.id)
+                                            if (current) {
+                                              newMap.set(recurso.id, { ...current, usoFrequencia: value as any })
+                                              setSelectedAssistiveResources(newMap)
+                                            }
+                                          }}
+                                        >
+                                          <SelectTrigger className="h-8 text-xs">
+                                            <SelectValue placeholder="Frequência" />
+                                          </SelectTrigger>
+                                          <SelectContent>
+                                            <SelectItem value="sempre">Sempre</SelectItem>
+                                            <SelectItem value="frequente">Frequente</SelectItem>
+                                            <SelectItem value="ocasional">Ocasional</SelectItem>
+                                          </SelectContent>
+                                        </Select>
+                                      </div>
+                                      
+                                      <div>
+                                        <label className="text-xs text-muted-foreground block mb-1">
+                                          Impacto:
+                                        </label>
+                                        <Select
+                                          value={selection?.impactoMobilidade || 'moderado'}
+                                          onValueChange={(value) => {
+                                            const newMap = new Map(selectedAssistiveResources)
+                                            const current = newMap.get(recurso.id)
+                                            if (current) {
+                                              newMap.set(recurso.id, { ...current, impactoMobilidade: value as any })
+                                              setSelectedAssistiveResources(newMap)
+                                            }
+                                          }}
+                                        >
+                                          <SelectTrigger className="h-8 text-xs">
+                                            <SelectValue placeholder="Impacto" />
+                                          </SelectTrigger>
+                                          <SelectContent>
+                                            <SelectItem value="leve">Leve</SelectItem>
+                                            <SelectItem value="moderado">Moderado</SelectItem>
+                                            <SelectItem value="severo">Severo</SelectItem>
+                                          </SelectContent>
+                                        </Select>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )}
+
+                    {selectedAssistiveResources.size > 0 && (
+                      <div className="p-3 rounded-lg bg-violet-50 dark:bg-violet-950/20 border border-violet-200 dark:border-violet-800">
+                        <p className="text-sm text-violet-700 dark:text-violet-300">
+                          <CheckCircle2 className="h-4 w-4 inline mr-1" />
+                          {selectedAssistiveResources.size} recurso(s) assistivo(s) selecionado(s)
+                        </p>
                       </div>
                     )}
                   </div>

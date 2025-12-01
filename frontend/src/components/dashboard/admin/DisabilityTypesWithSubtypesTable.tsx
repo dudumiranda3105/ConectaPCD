@@ -99,16 +99,18 @@ export const DisabilityTypesWithSubtypesTable = ({ searchTerm = '' }: Disability
 
   const handleTypeFormSubmit = async (data: {
     nome: string
+    descricao?: string
+    cor?: string
   }) => {
     try {
       if (editingType) {
-        await updateDisabilityType(editingType.id, data.nome, '')
+        await updateDisabilityType(editingType.id, data.nome, data.descricao, data.cor)
         toast({
           title: '✅ Sucesso',
           description: 'Tipo de deficiência atualizado.',
         })
       } else {
-        await createDisabilityType(data.nome, '')
+        await createDisabilityType(data.nome, data.descricao, data.cor)
         toast({
           title: '✅ Sucesso',
           description: 'Novo tipo de deficiência criado.',

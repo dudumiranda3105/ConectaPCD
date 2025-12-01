@@ -6,7 +6,7 @@ export const CandidatoSubtipoRepo = {
     subtypeId: number
     barriers: number[]
   }>) {
-    return this.replaceSubtiposAndAccessibilities(candidatoId, disabilities, [])
+    return this.replaceSubtiposAndAccessibilities(candidatoId, disabilities, [], [])
   },
 
   async replaceSubtiposAndAccessibilities(
@@ -19,7 +19,12 @@ export const CandidatoSubtipoRepo = {
     accessibilities: Array<{
       acessibilidadeId: number
       prioridade: string
-    }>
+    }>,
+    assistiveResources: Array<{
+      recursoId: number
+      usoFrequencia: string
+      impactoMobilidade: string
+    }> = []
   ) {
     // Validar se o candidato existe
     const candidato = await prisma.candidato.findUnique({
@@ -68,7 +73,20 @@ export const CandidatoSubtipoRepo = {
       }
     }
 
-    // Remover todos os subtipos, barreiras e acessibilidades existentes
+    // Validar se todos os recursos assistivos existem
+    const resourceIds = assistiveResources.map(r => r.recursoId)
+    if (resourceIds.length > 0) {
+      const existingResources = await prisma.recursoAssistivo.findMany({
+        where: { id: { in: resourceIds } }
+      })
+      const existingResourceIds = new Set(existingResources.map(r => r.id))
+      const invalidResources = resourceIds.filter(id => !existingResourceIds.has(id))
+      if (invalidResources.length > 0) {
+        throw new Error(`Recursos assistivos inválidos: ${invalidResources.join(', ')}`)
+      }
+    }
+
+    // Remover todos os subtipos, barreiras, acessibilidades e recursos assistivos existentes
     await prisma.candidatoSubtipoBarreira.deleteMany({
       where: { candidatoId }
     })
@@ -76,6 +94,9 @@ export const CandidatoSubtipoRepo = {
       where: { candidatoId }
     })
     await prisma.candidatoAcessibilidade.deleteMany({
+      where: { candidatoId }
+    })
+    await prisma.candidatoRecursoAssistivo.deleteMany({
       where: { candidatoId }
     })
 
@@ -114,7 +135,20 @@ export const CandidatoSubtipoRepo = {
       })
     }
 
-    // Retornar candidato atualizado com subtipos, barreiras e acessibilidades
+    // Adicionar novos recursos assistivos do candidato
+    if (assistiveResources.length > 0) {
+      await prisma.candidatoRecursoAssistivo.createMany({
+        data: assistiveResources.map(r => ({
+          candidatoId,
+          recursoId: r.recursoId,
+          usoFrequencia: r.usoFrequencia,
+          impactoMobilidade: r.impactoMobilidade,
+        })),
+        skipDuplicates: true,
+      })
+    }
+
+    // Retornar candidato atualizado com subtipos, barreiras, acessibilidades e recursos assistivos
     return prisma.candidato.findUnique({
       where: { id: candidatoId },
       include: {
@@ -135,6 +169,11 @@ export const CandidatoSubtipoRepo = {
         acessibilidades: {
           include: {
             acessibilidade: true,
+          },
+        },
+        recursosAssistivos: {
+          include: {
+            recurso: true,
           },
         },
       },

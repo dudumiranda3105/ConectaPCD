@@ -211,6 +211,7 @@ export const SmartMatchService = {
 
   /**
    * Score de Acessibilidades - verifica se a vaga atende às necessidades
+   * Considera recursos assistivos do candidato que podem mitigar barreiras
    */
   calcularScoreAcessibilidades(candidato: any, vaga: any) {
     const razoes: string[] = []
@@ -246,11 +247,41 @@ export const SmartMatchService = {
     // Acessibilidades oferecidas pela vaga
     const oferecidas = new Set(vaga.acessibilidades?.map((va: any) => va.acessibilidadeId) || [])
 
+    // Verificar recursos assistivos do candidato que mitigam barreiras
+    const recursosComMitigacao = candidato.recursosAssistivos?.filter((ra: any) => 
+      ra.recurso?.mitigacoes && ra.recurso.mitigacoes.length > 0
+    ) || []
+    
+    // Coletar IDs de barreiras do candidato
+    const barreirasIds = new Set(
+      candidato.subtipos?.flatMap((cs: any) =>
+        cs.barreiras?.map((csb: any) => csb.barreiraId) || []
+      ) || []
+    )
+    
+    // Verificar quais barreiras são mitigadas pelos recursos assistivos
+    let barreirasMitigadas = 0
+    const recursosMitigadores: string[] = []
+    
+    recursosComMitigacao.forEach((ra: any) => {
+      const mitigacoesRelevantes = ra.recurso.mitigacoes.filter((m: any) => 
+        barreirasIds.has(m.barreiraId)
+      )
+      if (mitigacoesRelevantes.length > 0) {
+        barreirasMitigadas += mitigacoesRelevantes.length
+        recursosMitigadores.push(ra.recurso.nome)
+      }
+    })
+
     if (necessidades.length === 0) {
+      // Bônus se candidato tem recursos assistivos que mitigam barreiras
+      if (barreirasMitigadas > 0) {
+        razoes.push(`Seus recursos assistivos (${recursosMitigadores.join(', ')}) ajudam a mitigar barreiras`)
+      }
       return {
         score: 100,
         detalhes: 'Sem necessidades específicas',
-        razoes: ['Você não possui necessidades específicas de acessibilidade'],
+        razoes: razoes.length > 0 ? razoes : ['Você não possui necessidades específicas de acessibilidade'],
         alertas: []
       }
     }
@@ -272,7 +303,14 @@ export const SmartMatchService = {
       }
     })
 
-    const score = maxPontos > 0 ? Math.round((pontos / maxPontos) * 100) : 100
+    let score = maxPontos > 0 ? Math.round((pontos / maxPontos) * 100) : 100
+    
+    // Bônus de até 15 pontos se recursos assistivos mitigam barreiras
+    if (barreirasMitigadas > 0 && score < 100) {
+      const bonus = Math.min(15, barreirasMitigadas * 5) // até 15 pontos
+      score = Math.min(100, score + bonus)
+      razoes.push(`+${bonus} pontos: seus recursos assistivos ajudam a compensar barreiras`)
+    }
 
     // Gerar razões e alertas
     if (atendidas.length > 0) {
@@ -287,7 +325,7 @@ export const SmartMatchService = {
 
     return {
       score,
-      detalhes: `${atendidas.length}/${necessidades.length} necessidades atendidas`,
+      detalhes: `${atendidas.length}/${necessidades.length} necessidades atendidas${barreirasMitigadas > 0 ? ' (com bônus de recursos)' : ''}`,
       razoes,
       alertas
     }
